@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: katlas-service
+  labels:
+    app: katlas-service
+spec:
+  ports:
+  - name: tcp-80-80
+    nodePort: 30415
+    port: 8011
+    protocol: TCP
+    targetPort: 8011
+  selector:
+    app: katlas-service
+  type: LoadBalancer
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: katlas-service
+  labels:
+    app: katlas-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: katlas-service
+  template:
+    metadata:
+      name: katlas-service
+      labels:
+        app: katlas-service
+    spec:
+      containers:
+      - env:
+        - name: ENV_NAMESPACE
+          value: default
+        - name: SERVER_TYPE
+          value: http
+        - name: DGRAPH_HOST
+          value: "dgraph-public.default.svc.cluster.local:9080"
+        image: katlas/katlas-service:latest
+        imagePullPolicy: Always
+        name: katlas-service

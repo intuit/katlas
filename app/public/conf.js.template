@@ -1,0 +1,14 @@
+// This file will not be bundled with application code. Instead, it will be
+// injected with environment variables and then copied to conf.js at build
+// time. Then, "index.html" will require it before main bundle is loaded.
+// In that way, it can be used to define environment variables that will
+// be made available in to soon to be loaded JS bundle.
+//
+// NOTE: this file will NOT be transpiled by Babel and therefore cannot contain
+// any syntax that is not yet supported by targeted browsers.
+
+window.envConfig = {
+  // NOTE: environment variable should NOT be wrapped in quote chars. Therefore,
+  // set them such as, CUTLASS_API_URL=https://localhost:8011
+  KATLAS_API_URL: '${KATLAS_API_URL}',
+};

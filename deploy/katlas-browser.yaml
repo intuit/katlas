@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: katlas-browser
+  labels:
+    app: katlas-browser
+spec:
+  ports:
+  - name: tcp-80-80
+    nodePort: 30417
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: katlas-browser
+  type: LoadBalancer
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: katlas-browser
+  labels:
+    app: katlas-browser
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: katlas-browser
+  template:
+    metadata:
+      name: katlas-browser
+      labels:
+        app: katlas-browser
+    spec:
+      containers:
+      - env:
+        - name: ENV_NAMESPACE
+          value: default
+        - name: KATLAS_API_URL
+          value: http://minikube-ip:30415
+        image: katlas/katlas-browser:latest
+        imagePullPolicy: Always
+        name: katlas-browser

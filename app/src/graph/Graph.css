@@ -1,0 +1,37 @@
+@font-face {
+  font-family: 'fontawesome';
+  src: url('../../node_modules/font-awesome/fonts/fontawesome-webfont.woff2') format('woff2');
+}
+
+.Graph {
+  text-align: left;
+}
+
+.Graph-container {
+  height: 500px;
+}
+
+.Graph-scroll-container {
+  overflow: auto;
+  height: 600px;
+  text-align: left;
+}
+
+.Graph-legend-container {
+  overflow: auto;
+  height: 100px;
+  text-align: center;
+  flex-direction: row;
+}
+
+.Graph-legend-cell {
+  font-size: 12px;
+}
+
+.Graph-legend-icon {
+  font-family: "FontAwesome";
+}
+
+.Graph-legend-vr {
+  font-size: 36px;
+}

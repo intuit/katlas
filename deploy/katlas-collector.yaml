@@ -1,0 +1,54 @@
+# Service Account for katlas-controller
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app: katlas-controller
+  name: katlas-controller
+  namespace: default
+---
+# ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app: katlas-controller
+  name: katlas-controller
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: view
+subjects:
+- kind: ServiceAccount
+  name: katlas-controller
+  namespace: default
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: katlas-controller
+  namespace: default
+  labels:
+    app: katlas-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: katlas-controller
+  template:
+    metadata:
+      name: katlas-controller
+      labels:
+        app: katlas-controller
+    spec:
+      serviceAccountName: katlas-controller
+      containers:
+      - name: katlas-controller
+        image: katlas/katlas-collector:latest
+        imagePullPolicy: Always
+        env:
+          - name: CLUSTER_NAME
+            value: minikube
+          - name: TARGET_URL
+            value: http://$(KATLAS_API_SERVICE_HOST):$(KATLAS_API_SERVICE_PORT)/

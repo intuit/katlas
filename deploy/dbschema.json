@@ -1,0 +1,249 @@
+[{
+		"predicate": "cluster",
+		"type": "uid",
+		"index": false,
+		"count": false,
+		"reverse": true
+	},
+	{
+		"predicate": "namespace",
+		"type": "uid",
+		"index": false,
+		"count": false,
+		"reverse": true
+	},
+	{
+		"predicate": "nodename",
+		"type": "uid",
+		"index": false,
+		"count": false,
+		"reverse": true
+	},
+	{
+		"predicate": "owner",
+		"type": "uid",
+		"index": false,
+		"count": false,
+		"reverse": true
+	},
+	{
+		"predicate": "resourceid",
+		"type": "string",
+		"index": true,
+		"upsert": true,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "resourceversion",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "availablereplicas",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "clusterip",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "containers",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "creationtime",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "defaultbackend",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "ip",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "k8sobj",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "labels",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "name",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "numreplicas",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "objtype",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "phase",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "podspec",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "ports",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "rules",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "selector",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "servicetype",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "strategy",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "tls",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "volumes",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	}
+]
