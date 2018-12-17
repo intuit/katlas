@@ -1,9 +1,10 @@
 package db
 
 import (
+	"testing"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestDGClient(t *testing.T) {
@@ -84,6 +85,17 @@ func TestCreateIndex(t *testing.T) {
 	err := client.CreateSchema(s)
 	assert.Nil(t, err)
 	client.DropSchema("testindex")
+}
+
+func TestGetSchema(t *testing.T) {
+	client := NewDGClient("127.0.0.1:9080")
+	defer client.Close()
+	smds, err := client.GetSchema()
+	if err != nil {
+		log.Fatalf("failed to get schema %v", err)
+	}
+	log.Infof("From test schema returned: [%v]\n", smds)
+	assert.Nil(t, err)
 }
 
 func cleanUP(client *DGClient, uids map[string]string) {
