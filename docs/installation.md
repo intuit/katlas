@@ -74,13 +74,13 @@ $ kubectl create -f deploy/katlas-collector.yaml
 
 Install K-Atlas Browser
 
-*
+
 Modify the below env variable in deploy/katlas-browser.yaml and then run the kubectl command.
 
 KATLAS\_API\_URL
 
 value: http://&lt;minikube-ip&gt;:30415
-*
+
 
 ```text
 $ kubectl create -f deploy/katlas-browser.yaml
@@ -112,9 +112,8 @@ If using minikube, point your browser to the following URL to start using K-Atla
 http://<minikube-ip>:30417
 ```
 
-*
-Ensure you use the Chrome browser. For issues with Installation, please refer to the FAQ Section.
-*
+
+**Ensure you use the Chrome browser. For issues with Installation, please refer to the FAQ Section.**
 
 
 
