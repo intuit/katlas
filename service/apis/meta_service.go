@@ -62,7 +62,8 @@ func (s MetaService) GetMetadata(name string) (Metadata, error) {
 	qm := map[string][]string{util.Name: {name}, util.ObjType: {util.Metadata}}
 	// Get metadata by name
 	n := Metadata{}
-	metas, err := s.dbclient.GetQueryResult(qm)
+	queryService := NewQueryService(s.dbclient)
+	metas, err := queryService.GetQueryResult(qm)
 	if err != nil {
 		return n, err
 	}
@@ -80,7 +81,7 @@ func (s MetaService) GetMetadata(name string) (Metadata, error) {
 }
 
 // NewMetaService creates a new MetaService with the given dgraph client.
-func NewMetaService(dc *db.DGClient) *MetaService {
+func NewMetaService(dc db.IDGClient) *MetaService {
 	return &MetaService{dc}
 }
 
@@ -88,7 +89,8 @@ func NewMetaService(dc *db.DGClient) *MetaService {
 func (s MetaService) GetMetadataFields(name string) ([]MetadataField, error) {
 	qm := map[string][]string{util.Name: {name}, util.ObjType: {util.Metadata}}
 	// Get metadata by name
-	metas, err := s.dbclient.GetQueryResult(qm)
+	queryService := NewQueryService(s.dbclient)
+	metas, err := queryService.GetQueryResult(qm)
 	if err != nil {
 		return nil, err
 	}
