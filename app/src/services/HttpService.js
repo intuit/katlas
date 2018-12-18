@@ -1,3 +1,5 @@
+import * as notifyActions from '../actions/notifyActions';
+
 export class HttpService  {
 
   static get({url, params, arrayParams}) {
@@ -39,6 +41,7 @@ export class HttpService  {
   //Adding this to handle an otherwise unhandled exception, but this will need to be re-worked soon!
   static handleErrors(response) {
     if (!response.ok) {
+      notifyActions.notify(response.statusText);
       throw Error(response.statusText);
     }
     return response;
@@ -51,6 +54,7 @@ export class HttpService  {
       if (res.ok) {
           return res.json();
       } else {
+        notifyActions.notify('HttpService response not OK, cannot return JSON');
         console.error('HttpService response not OK, cannot return JSON');
         return null;
       }

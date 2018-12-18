@@ -15,7 +15,6 @@ import SearchIcon from '@material-ui/icons/Search';
 import { ENTER_KEYCODE } from '../config/appConfig';
 import * as queryActions from '../actions/queryActions';
 import logo from './map.png';
-import Notifier, { openSnackbar } from '../notifier/Notifier';
 
 const styles = theme => ({
   root: {
@@ -85,10 +84,6 @@ class MenuBar extends Component {
 
   handleEnterPressCheck = event => {
     if(event.keyCode === ENTER_KEYCODE && this.props.query.current !== '') {
-      if(this.props.query.current.length < 3) {
-          openSnackbar({ message: 'Minimum length of Search word must be 3 characters.' });
-          return
-      }
       this.handleSubmit();
     }
   };
@@ -121,7 +116,6 @@ class MenuBar extends Component {
             <div className={classes.searchIcon} onClick={this.handleSubmit}>
               <SearchIcon />
             </div>
-            <Notifier />
             <InputBase
               placeholder="Search…"
               classes={{

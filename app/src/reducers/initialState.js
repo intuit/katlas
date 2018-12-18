@@ -6,5 +6,8 @@ export default {
     isWaiting: false,
     results: []
   },
-  entity: {}
+  entity: {},
+  notify: {
+    msg: ''
+  }
 };

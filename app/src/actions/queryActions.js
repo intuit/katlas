@@ -1,5 +1,6 @@
 import * as types from './actionTypes';
 import {ApiService} from "../services/ApiService";
+import * as notifyActions from '../actions/notifyActions';
 
 export const changeQuery = str => ({
   type: types.CHANGE_QUERY,
@@ -15,7 +16,21 @@ export const receiveQueryResp = json => ({
 
 export function fetchQuery(query) {
   return dispatch => {
-    return ApiService.getKeyword(query)
+
+    let requestPromise;
+
+    if (query.includes('@')) {
+      requestPromise = ApiService.getQueryResult('/qsl', 'qslstring', query);
+    } else {
+      if(query.length < 3) {
+        const msg = 'Minimum length of Search word must be 3 characters.';
+        notifyActions.notify(msg);
+        return;
+      }
+      requestPromise = ApiService.getQueryResult('/query', 'keyword', query);
+    }
+
+    return requestPromise
     .then(handleResponse)
     .then(json => dispatch(receiveQueryResp(json)));
   };
