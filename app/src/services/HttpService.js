@@ -33,30 +33,19 @@ export class HttpService  {
     }
 
     return fetch(url)
-        .then(this.handleErrors)
         .then(res => this.makeResponse(res))
-        .catch(err => Promise.reject(err));
   }
 
-  //Adding this to handle an otherwise unhandled exception, but this will need to be re-worked soon!
-  static handleErrors(response) {
-    if (!response.ok) {
-      notifyActions.notify(response.statusText);
-      throw Error(response.statusText);
+  static makeResponse(res) {
+    if (res.status === 204) {
+      return null;
     }
-    return response;
+    if (res.ok) {
+      return res.json();
+    } else {
+      notifyActions.notify(res.statusText);
+      console.error('Error from Rest Service ' + res.statusText + ',' + res.status);
+      return null;
+    }
   }
-
-    static makeResponse(res) {
-      if (res.status === 204) {
-          return null;
-      }
-      if (res.ok) {
-          return res.json();
-      } else {
-        notifyActions.notify('HttpService response not OK, cannot return JSON');
-        console.error('HttpService response not OK, cannot return JSON');
-        return null;
-      }
-    }
 }
