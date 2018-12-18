@@ -8,13 +8,11 @@ With an introduction to the core concepts in the previous sections, lets move on
 
 1. Install Minikube
 
-{% embed url="https://github.com/kubernetes/minikube" %}
+https://github.com/kubernetes/minikube
 
 2. Once minikube is up and running, Note that cluster `minikube`  and namespace `default` exists after the above steps. The yaml files used in the Installation use this cluster and namespace.
 
-{% hint style="info" %}
-If using another cluster and namespace, the K-Atlas Installation yaml files will need to be modified to use the correct cluster and namespace.
-{% endhint %}
+*If using another cluster and namespace, the K-Atlas Installation yaml files will need to be modified to use the correct cluster and namespace.*
 
 ```text
 $ kubectl config get-clusters
@@ -51,7 +49,7 @@ NAME                                 READY   STATUS    RESTARTS   AGE
 dgraph-0                             3/3     Running   0          1d
 ```
 
-Setup Dgraph with the Schema and Metadata \[TODO- This step is temporary, after more code changes, it will be done by the code\]
+Setup Dgraph with the Schema and Metadata-
 
 ```text
 cd deploy/
@@ -76,13 +74,13 @@ $ kubectl create -f deploy/katlas-collector.yaml
 
 Install K-Atlas Browser
 
-{% hint style="info" %}
+
 Modify the below env variable in deploy/katlas-browser.yaml and then run the kubectl command.
 
 KATLAS\_API\_URL
 
 value: http://&lt;minikube-ip&gt;:30415
-{% endhint %}
+
 
 ```text
 $ kubectl create -f deploy/katlas-browser.yaml
@@ -93,10 +91,10 @@ Check all pods are up
 ```text
 $ kubectl get pods
 NAME                                 READY   STATUS    RESTARTS   AGE
-dgraph-0                             3/3     Running   9          1d
-katlas-service-748668b795-wt6gk      1/1     Running   3          1d
-katlas-controller-8586d84564-njrvr   1/1     Running   3          1d
-katlas-browser-5875c79c64-2zhwk      1/1     Running   3          1d
+dgraph-0                             3/3     Running   0          1d
+katlas-service-748668b795-wt6gk      1/1     Running   0          1d
+katlas-controller-8586d84564-njrvr   1/1     Running   0          1d
+katlas-browser-5875c79c64-2zhwk      1/1     Running   0          1d
 ```
 
 Check all Services are running
@@ -114,9 +112,8 @@ If using minikube, point your browser to the following URL to start using K-Atla
 http://<minikube-ip>:30417
 ```
 
-{% hint style="info" %}
-Ensure you use the Chrome browser. For issues with Installation, please refer to the FAQ Section.
-{% endhint %}
+
+**Ensure you use the Chrome browser. For issues with Installation, please refer to the FAQ Section.**
 
 
 
