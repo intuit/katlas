@@ -1,4 +1,4 @@
-import {HttpService} from "./HttpService";
+import {HttpService} from "./httpService";
 
 const SERVICE_CONTEXT = "/v1";
 

@@ -6,8 +6,8 @@ import { withRouter } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 
-import { ENTER_KEYCODE } from "../config/appConfig";
-import * as queryActions from '../actions/queryActions';
+import { ENTER_KEYCODE } from "../../config/appConfig";
+import * as queryActions from '../../actions/queryActions';
 import logo from './map.png';
 import './Home.css';
 import Notifier, { openSnackbar } from '../notifier/Notifier';

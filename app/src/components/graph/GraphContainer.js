@@ -1,12 +1,14 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { withRouter } from 'react-router-dom';
 import _ from 'lodash';
 import { withStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import 'whatwg-fetch';
 
 import "./Graph.css";
-import EntityDetails from '../details/EntityDetails';
+import EntityDetails from '../entityDetails/EntityDetails';
 import Graph from './Graph';
 
 const styles = theme => ({
@@ -39,7 +41,7 @@ class GraphContainer extends Component {
   componentDidMount() {
     this.setState({waitingOnReq: true});
     //TODO:DM - unhardcode this, 5000ms -> 5 sec
-    this.timer = setInterval(()=> this.getData(), 5000);
+    this.timer = setInterval(() => this.getData(), 5000);
     //Delay the very first call by just one scheduling cycle so that the webfont can load first
     setTimeout(() => this.getData(), 0);
   }
@@ -56,7 +58,7 @@ class GraphContainer extends Component {
     clearInterval(this.timer);
   }
 
-  getData (){
+  getData = () => {
     const pathComponents = this.props.location.pathname.split('/');
     const uidParam = pathComponents[pathComponents.length - 1];
     let url = `${window.envConfig.KATLAS_API_URL}/v1/entity/uid/${uidParam}`;
@@ -72,7 +74,7 @@ class GraphContainer extends Component {
           });
         }
       });
-  }
+  };
 
   processRawResp(resp) {
     if (!resp.ok) {
@@ -112,4 +114,4 @@ GraphContainer.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles)(GraphContainer);
+export default withRouter(withStyles(styles)(GraphContainer));

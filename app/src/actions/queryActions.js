@@ -1,5 +1,5 @@
 import * as types from './actionTypes';
-import {ApiService} from "../services/ApiService";
+import {ApiService} from "../services/apiService";
 
 export const changeQuery = str => ({
   type: types.CHANGE_QUERY,

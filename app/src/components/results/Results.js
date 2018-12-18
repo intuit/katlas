@@ -13,9 +13,9 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
-import EntityDetails from '../details/EntityDetails';
-import * as apiCfg from '../config/apiConfig';
-import * as queryActions from '../actions/queryActions';
+import EntityDetails from '../entityDetails/EntityDetails';
+import * as apiCfg from '../../config/apiConfig';
+import * as queryActions from '../../actions/queryActions';
 import './Results.css';
 
 const styles = theme => ({

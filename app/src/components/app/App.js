@@ -4,10 +4,10 @@ import { Route, Switch } from "react-router-dom";
 import Paper from '@material-ui/core/Paper';
 import { withStyles } from '@material-ui/core/styles';
 
-import MenuBar from "./menuBar/MenuBar";
-import Home from "./home/Home";
-import Results from "./results/Results";
-import GraphContainer from "./graph/GraphContainer";
+import MenuBar from "../menuBar/MenuBar";
+import Home from "../home/Home";
+import Results from "../results/Results";
+import GraphContainer from "../graph/GraphContainer";
 
 import './App.css';
 
@@ -20,12 +20,6 @@ const styles = theme => ({
 });
 
 class App extends Component {
-
-  componentDidMount() {
-    console.log("Cutlass App mounted.");
-    //any app start XHR?
-  }
-
   render() {
     const { classes } = this.props;
     return (
