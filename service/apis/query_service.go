@@ -66,13 +66,13 @@ func (s QueryService) getQueryResultByKeyword(keyword string) (string, error) {
 	qr = "{"
 
 	for _, schemanode := range smds {
-		fmt.Printf("Predicate: %v Type: %v tokenizer: %v\n", schemanode.Predicate, schemanode.Type, schemanode.Tokenizer)
+		log.Debugf("Predicate: %v Type: %v tokenizer: %v\n", schemanode.Predicate, schemanode.Type, schemanode.Tokenizer)
 
 		if schemanode.Type == "string" && schemanode.Index == true && len(schemanode.Tokenizer) > 0 {
 			for _, tokenizer := range schemanode.Tokenizer {
 				tk := tokenizer
 				if tk == "trigram" {
-					fmt.Printf("Found ***** Predicate: %v Type: %v tokenizer: %v\n", schemanode.Predicate, schemanode.Type, schemanode.Tokenizer)
+					log.Debugf("Found ***** Predicate: %v Type: %v tokenizer: %v\n", schemanode.Predicate, schemanode.Type, schemanode.Tokenizer)
 					filter := "obj" + strconv.Itoa(cnt) + "(func:regexp(" + schemanode.Predicate + ",/" + keyword + "/i)) {"
 					qr = qr + filter + `
 						uid
