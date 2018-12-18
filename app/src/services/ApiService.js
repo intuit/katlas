@@ -21,41 +21,4 @@ export class ApiService {
     });
 
   }
-
-  /*static getKeyword(input) {
-
-    const params = {
-      keyword: input
-    };
-    const servicesURL = window.envConfig.KATLAS_API_URL;
-    const api = "/query";
-
-    return HttpService.get({
-      url: servicesURL + SERVICE_CONTEXT + api,
-      params: params,
-    }).then((response) => {
-      return response;
-    }).catch((error) => {
-      throw error;
-    });
-  }
-
-  static getQSL(input) {
-
-    const params = {
-      qslstring: input
-    };
-    const servicesURL = window.envConfig.CUTLASS_API_URL;
-    const api = "/qsl";
-
-    return HttpService.get({
-      url: servicesURL + SERVICE_CONTEXT + api,
-      params: params,
-    }).then((response) => {
-      return response;
-    }).catch((error) => {
-      throw error;
-    });
-  }*/
-
 }
