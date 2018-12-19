@@ -97,7 +97,7 @@ it('tries to submit too short a query', () => {
   expect(nowStore.query.current).toEqual(SEARCH_STR);
   expect(nowStore.query.submitted).toEqual(false);
   expect(nowStore.query.isWaiting).toEqual(false);
-  //also check for existience of Notification
+  //TODO:DM - also check for existience of notification here or split into separate test; search wrapper for a DOM node or CSS class that changes when notification is shown
 });
 
 it('tries to submit with a tab', () => {
