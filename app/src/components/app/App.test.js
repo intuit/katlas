@@ -12,7 +12,7 @@ import '../../../public/conf';
 const div = document.createElement('div');
 const store = configureStore();
 
-it('shallow renders home view', () => {
+it('shallow renders app', () => {
   shallow(<App />);
 });
 

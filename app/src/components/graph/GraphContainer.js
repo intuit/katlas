@@ -5,11 +5,12 @@ import _ from 'lodash';
 import { withStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import 'whatwg-fetch';
 
 import "./Graph.css";
 import EntityDetails from '../entityDetails/EntityDetails';
 import Graph from './Graph';
+
+const DATA_FETCH_PERIOD_MS = 5000;
 
 const styles = theme => ({
   container: {
@@ -36,12 +37,13 @@ class GraphContainer extends Component {
       data: {},
       waitingOnReq: false
     };
+    this._isMounted = false;
   }
 
   componentDidMount() {
+    this._isMounted = true;
     this.setState({waitingOnReq: true});
-    //TODO:DM - unhardcode this, 5000ms -> 5 sec
-    this.timer = setInterval(() => this.getData(), 5000);
+    this.intervalHandle = setInterval(() => this.getData(), DATA_FETCH_PERIOD_MS);
     //Delay the very first call by just one scheduling cycle so that the webfont can load first
     setTimeout(() => this.getData(), 0);
   }
@@ -55,7 +57,8 @@ class GraphContainer extends Component {
   }
 
   componentWillUnmount() {
-    clearInterval(this.timer);
+    clearInterval(this.intervalHandle);
+    this._isMounted = false;
   }
 
   getData = () => {
@@ -66,8 +69,12 @@ class GraphContainer extends Component {
     fetch(url)
       .then(this.processRawResp)
       .then(json => {
-        //only update state if the objects fail lodash equality check
-        if(!_.isEqual(this.state.data, json)) {
+        //only update state if the objects fail lodash equality check AND
+        //the component is still mounted. usually, the lifecycle methods should
+        //be used directly for such things that, but in testing we're getting
+        //intermittent errors that setState is being called on unmounted
+        //components, without this check
+        if(!_.isEqual(this.state.data, json) && this._isMounted) {
           this.setState({
             data: json,
             waitingOnReq: false

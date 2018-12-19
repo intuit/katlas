@@ -23,21 +23,22 @@ it('deep renders graph container', () => {
   unmountComponentAtNode(div);
 });
 
-// it('deep renders graph container while making async request', () => {
-//   //mock out the global fetch, don't actually trigger XHR
-//   window.fetch = jest.fn().mockImplementation(() =>
-//     Promise.resolve(new Response(MOCK_RESP, {status:200})));
-//   //render component with path which will cause data fetch
-//   render(
-//     <MemoryRouter initialEntries={['/graph/0x0']}>
-//       <GraphContainer/>
-//     </MemoryRouter>, div);
-//   //force timers to complete, so as to trigger request
-//   jest.runOnlyPendingTimers();
-//   unmountComponentAtNode(div);
-//   //ensure that fetch was called at least once
-//   expect(window.fetch.mock.calls.length).toBeGreaterThan(0);
-// });
+it('deep renders graph container while making async request', (done) => {
+  //mock out the global fetch, don't actually trigger XHR
+  window.fetch = jest.fn().mockImplementation(() =>
+    Promise.resolve(new Response(JSON.stringify(MOCK_RESP), {status:200})));
+  //render component with path which will cause data fetch
+  render(
+    <MemoryRouter initialEntries={['/graph/0x0']}>
+      <GraphContainer/>
+    </MemoryRouter>, div);
+  //force timers to complete, so as to trigger request
+  jest.runOnlyPendingTimers();
+  //ensure that fetch was called at least once
+  expect(window.fetch.mock.calls.length).toBeGreaterThan(0);
+  unmountComponentAtNode(div);
+  done();
+});
 
 it('shows a spinner during outstanding request', () => {
   const wrapper = mount(
