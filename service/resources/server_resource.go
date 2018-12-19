@@ -2,9 +2,9 @@ package resources
 
 import (
 	"encoding/json"
-	"net/http"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
@@ -17,6 +17,7 @@ type ServerResource struct {
 	EntitySvc *apis.EntityService
 	QuerySvc  *apis.QueryService
 	MetaSvc   *apis.MetaService
+	QSLSvc    *apis.QSLService
 	// TODO:
 	// add metadata service, audit service and spec service after API ready
 }
@@ -173,6 +174,36 @@ func (s ServerResource) QueryHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to convert to JSON output", http.StatusInternalServerError)
 		return
 	}
+	w.Write(ret)
+}
+
+func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
+	queryMap := r.URL.Query()
+
+	query, err := s.QSLSvc.CreateDgraphQuery(queryMap["qslstring"][0])
+	if err != nil {
+		if err.Error() == "Failed to connect to dgraph to get metadata" {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusBadRequest) // code: 400
+		return
+	}
+	log.Infof("dgraph query for %#v:\n %s", queryMap["qslstring"][0], query)
+
+	response, err := s.QSLSvc.ExecuteDgraphQuery(query)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	log.Infof("response for query %#v: %#v", queryMap["qslstring"][0], response)
+
+	ret, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, "Failed to convert to JSON output", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(ret)
 }
 
