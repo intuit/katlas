@@ -1,5 +1,5 @@
 import * as types from './actionTypes';
-import {ApiService} from "../services/apiService";
+import {apiService} from "../services/apiService";
 
 export const changeQuery = str => ({
   type: types.CHANGE_QUERY,
@@ -15,7 +15,7 @@ export const receiveQuery = json => ({
 
 export function fetchQuery(query) {
   return dispatch => {
-    return ApiService.getKeyword(query)
+    return apiService.getKeyword(query)
     .then(handleResponse)
     .then(json => dispatch(receiveQuery(json)));
   };

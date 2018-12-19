@@ -1,24 +1,33 @@
-import {HttpService} from "./httpService";
+import {HttpService} from './httpService';
 
-const SERVICE_CONTEXT = "/v1";
+const ALL_SERVICE_CONTEXT = '/v1';
+const QUERY_SERVICE_PATH = '/query';
+const ENTITY_SERVICE_PATH = '/entity/uid/';
 
-export class ApiService {
-  //TODO:DM - determine how to best re-expand use of the entity specific routes of QueryAPI (ex: /query/k8sNamespace, /query/k8sCluster), but they aren't in use currently and as-written, they weren't nearly DRY enough
+export class apiService {
   static getKeyword(input) {
-
     const params = {
       keyword: input
     };
-    const servicesURL = window.envConfig.KATLAS_API_URL;
-    const api = "/query";
+    const ALL_SERVICE_URL = window.envConfig.KATLAS_API_URL;
+    return request_helper(ALL_SERVICE_URL + ALL_SERVICE_CONTEXT +
+      QUERY_SERVICE_PATH, params);
+  }
 
-    return HttpService.get({
-      url: servicesURL + SERVICE_CONTEXT + api,
-      params: params,
-    }).then((response) => {
-      return response;
-    }).catch((error) => {
-      throw error;
-    });
+  static getEntity(uid) {
+    const ALL_SERVICE_URL = window.envConfig.KATLAS_API_URL;
+    return request_helper(ALL_SERVICE_URL + ALL_SERVICE_CONTEXT +
+      ENTITY_SERVICE_PATH + uid);
   }
 }
+
+const request_helper = (url, params) => {
+  return HttpService.get({
+    url,
+    params
+  }).then((response) => {
+    return response;
+  }).catch((error) => {
+    throw error;
+  });
+};

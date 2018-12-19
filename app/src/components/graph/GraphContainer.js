@@ -6,9 +6,10 @@ import { withStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
-import "./Graph.css";
 import EntityDetails from '../entityDetails/EntityDetails';
+import {apiService} from "../../services/apiService";
 import Graph from './Graph';
+import "./Graph.css";
 
 const DATA_FETCH_PERIOD_MS = 5000;
 
@@ -64,10 +65,8 @@ class GraphContainer extends Component {
   getData = () => {
     const pathComponents = this.props.location.pathname.split('/');
     const uidParam = pathComponents[pathComponents.length - 1];
-    let url = `${window.envConfig.KATLAS_API_URL}/v1/entity/uid/${uidParam}`;
 
-    fetch(url)
-      .then(this.processRawResp)
+    apiService.getEntity(uidParam)
       .then(json => {
         //only update state if the objects fail lodash equality check AND
         //the component is still mounted. usually, the lifecycle methods should
@@ -82,16 +81,6 @@ class GraphContainer extends Component {
         }
       });
   };
-
-  processRawResp(resp) {
-    if (!resp.ok) {
-      //TODO:DM - better to just throw here and handle errors centrally across app?
-      //throw Error(resp.statusText);
-      console.error('Error processing API response: ' + resp.statusText);
-      return {};
-    }
-    return resp.json();
-}
 
   render() {
     const { classes } = this.props;
