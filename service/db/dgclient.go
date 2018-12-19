@@ -4,9 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
-	"strconv"
-	"strings"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/dgraph-io/dgo"
@@ -14,9 +11,6 @@ import (
 	"github.com/intuit/katlas/service/util"
 	"google.golang.org/grpc"
 )
-
-//QueryParamKeyword ...param for keyword query
-const QueryParamKeyword = "keyword"
 
 // Action as oper
 type Action int
@@ -47,6 +41,7 @@ type DGClient struct {
 
 // IDGClient ... define interface to DGClient
 type IDGClient interface {
+	GetSchema() ([]*api.SchemaNode, error)
 	CreateSchema(sm Schema) error
 	DropSchema(name string) error
 	GetEntity(meta string, uuid string) (map[string]interface{}, error)
@@ -56,7 +51,7 @@ type IDGClient interface {
 	CreateOrDeleteEdge(fromType string, fromUID string, toType string, toUID string, rel string, op Action) error
 	SetFieldToNull(delMap map[string]interface{}) error
 	UpdateEntity(meta string, uuid string, data map[string]interface{}) error
-	GetQueryResult(queryMap map[string][]string) (map[string]interface{}, error)
+	GetQueryResult(query string) (map[string]interface{}, error)
 	Close() error
 }
 
@@ -221,96 +216,20 @@ func (s DGClient) UpdateEntity(meta string, uuid string, data map[string]interfa
 }
 
 // GetQueryResult - get Query Results
-func (s DGClient) GetQueryResult(queryMap map[string][]string) (map[string]interface{}, error) {
-
-	var q string
-
-	val, ok := queryMap[QueryParamKeyword]
-	if ok {
-		if val[0] == "" {
-			err := fmt.Errorf("Value not specified for Query Param [%s]", QueryParamKeyword)
-			return nil, err
-		}
-		q = s.GetQueryResultByKeyword(val[0])
-	} else {
-		if len(queryMap) == 0 {
-			err := fmt.Errorf("Query Params not specified")
-			return nil, err
-		}
-		q = s.GetQueryResultByKeyValue(queryMap)
-	}
-
-	resp, err := s.dc.NewTxn().Query(context.Background(), q)
+func (s DGClient) GetQueryResult(query string) (map[string]interface{}, error) {
+	resp, err := s.dc.NewTxn().Query(context.Background(), query)
 	if err != nil {
-		log.Errorf("Query[%v] Error [%v]\n", q, err)
+		log.Errorf("Query[%v] Error [%v]\n", query, err)
 		return nil, err
 	}
 
 	m := make(map[string]interface{})
 	err = json.Unmarshal(resp.Json, &m)
 	if err != nil {
-		log.Errorf("Query[%v] Error [%v]\n", q, err)
+		log.Errorf("Query[%v] Error [%v]\n", query, err)
 		return nil, err
 	}
 	return m, nil
-}
-
-// GetQueryResultByKeyword ...Api to get Query Results by keyword
-// Keyword query http://<dgraph ip:port>/v1/query?keyword=webapp
-func (s DGClient) GetQueryResultByKeyword(keyword string) (q string) {
-	cnt := 0
-	q = "{"
-	for k, v := range QueryPredicates {
-		if v.Type == "string" && v.IsIndex == true && IsExpectedIndexType(v.IndexType, "trigram") {
-
-			filter := "obj" + strconv.Itoa(cnt) + "(func:regexp(" + k + ",/" + keyword + "/i)) {"
-			q = q + filter + `
-				uid
-	            expand(_all_) {
-					uid
-					expand(_all_)
-				}
-			}
-			`
-		}
-		cnt++
-	}
-	q = q + "}"
-	return q
-}
-
-// GetQueryResultByKeyValue ...Api to get Query Results by key-value pairs
-// Key-Value query http://<dgraph ip:port>/v1/query?name=webapp&objtype=Container
-func (s DGClient) GetQueryResultByKeyValue(queryMap map[string][]string) (q string) {
-
-	//Only indexed fields can be filtered on
-	//Time must be in correct format "2018-10-18 14:36:32 -0700 PDT"
-	qps := []string{}
-	var funcStr, filterStr string
-
-	for k, v := range queryMap {
-		qp := "eq(" + k + ",\"" + v[0] + "\")"
-		qps = append(qps, qp)
-	}
-
-	funcStr = "(func:" + qps[0] + ") "
-	filters := qps[1:]
-	if len(filters) > 0 {
-		filterStr = "@filter(" + strings.Join(filters, " AND ") + ")"
-	}
-
-	q = `
-	{
-		objects` + funcStr + filterStr + ` {
-			uid
-			expand(_all_) {
-				uid
-				expand(_all_)
-			}
-		}
-	}
-	`
-	return q
 }
 
 // GetAllByClusterAndType - query to get result by filter edge
@@ -339,6 +258,21 @@ func (s DGClient) GetAllByClusterAndType(meta string, cluster string) (map[strin
 		return nil, err
 	}
 	return m, nil
+}
+
+//GetSchema - get all predicates
+func (s DGClient) GetSchema() ([]*api.SchemaNode, error) {
+	q := `
+		schema {}
+	`
+	resp, err := s.dc.NewTxn().Query(context.Background(), q)
+	if err != nil {
+		log.Errorf("Query [%v] Error [%v]\n", q, err)
+		return nil, err
+	}
+	log.Infof("Query result: [%s]", resp.Schema)
+	smn := resp.Schema
+	return smn, nil
 }
 
 // CreateSchema - create index
