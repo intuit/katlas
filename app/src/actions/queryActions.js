@@ -8,11 +8,6 @@ export const changeQuery = str => ({
 
 export const submitQuery = () => ({type: types.SUBMIT_QUERY});
 
-export const receiveQuery = json => ({
-  type: types.RECEIVE_QUERY,
-  results: json
-});
-
 export function fetchQuery(query) {
   return dispatch => {
     return apiService.getKeyword(query)
@@ -20,6 +15,11 @@ export function fetchQuery(query) {
     .then(json => dispatch(receiveQuery(json)));
   };
 }
+
+export const receiveQuery = json => ({
+  type: types.RECEIVE_QUERY,
+  results: json
+});
 
 function handleResponse(json) {
     let results = [];
