@@ -45,21 +45,26 @@ describe('asynch query actions', () => {
     const store = mockStore({ query: {} });
 
     store.dispatch(actions.fetchQuery('doesntMatter')).then(() => {
-      expect(store.getActions()[0].results).toHaveLength(MOCK_RESP_DUPE_RESULT_LEN)
+      //now we're expecting the action to have been triggered with particular
+      //checking the length because it's not otherwise so easy to compare raw
+      //network response vs. parsed data, will test that transformation logic
+      //in reducer tests
+      expect(store.getActions()[0].results).toHaveLength(MOCK_RESP_DUPE_LEN)
     });
 
-    //re-mock fetch with diff mock value
-    //TODO:DM - clean me up!
+    //re-mock fetch with diff mock value, an empty response
     window.fetch = jest.fn().mockImplementation(() =>
-      Promise.resolve(new Response(JSON.stringify({"objects": []}), {status:200})));
+      Promise.resolve(new Response(JSON.stringify(MOCK_RESP_EMPTY), {status:200})));
     return store.dispatch(actions.fetchQuery('doesntMatter')).then(() => {
+      //now we're looking for the 2nd action to have been triggered
       expect(store.getActions()[1].results).toHaveLength(0)
     });
   })
 });
 
 //MOCK_RESP contains 2 duplicate objects, this will exercise code to filter out dupes and should leave us with resulting length of 1
-const MOCK_RESP_DUPE_RESULT_LEN = 1;
+const MOCK_RESP_EMPTY = {"objects": []};
+const MOCK_RESP_DUPE_LEN = 1;
 const MOCK_RESP_DUPE = {
   "objects": [{
     "cluster": [{
