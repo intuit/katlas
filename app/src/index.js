@@ -8,7 +8,6 @@ import history from './history';
 
 import './index.css';
 import App from './components/app/App';
-//import App from './App.jsx';
 import store from './store.js';
 
 WebFont.load({

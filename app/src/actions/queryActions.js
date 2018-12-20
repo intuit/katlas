@@ -2,11 +2,11 @@ import * as types from './actionTypes';
 import {apiService} from "../services/apiService";
 import * as notifyActions from './notifyActions';
 import history from '../history';
+import {QUERY_KEYWORD_SERVICE_PATH, QUERY_QSL_SERVICE_PATH, QUERY_PARAM_NAME, QSL_PARAM_NAME} from "../services/apiService";
 
-const QUERY_KEYWORD_SERVICE_PATH = '/query';
-const QUERY_QSL_SERVICE_PATH = '/qsl';
-const QUERY_PARAM_NAME = 'keyword';
-const QSL_PARAM_NAME = 'qslstring';
+//QSL uses this symbol, which can be used as a Query type differentiator.
+const QSL_TAG = '@';
+export const QUERY_LEN_ERR = 'Minimum length of Search word must be 3 characters.';
 
 export const changeQuery = str => ({
   type: types.CHANGE_QUERY,
@@ -18,8 +18,7 @@ export function submitQuery(query) {
     if(query !== '' && query.length >= 3) {
       history.push('/results?query=' + encodeURIComponent(query));
     } else {
-      const msg = 'Minimum length of Search word must be 3 characters.';
-      dispatch(notifyActions.showNotify(msg));
+      dispatch(notifyActions.showNotify(QUERY_LEN_ERR));
       return;
     }
   };
@@ -30,7 +29,7 @@ export function fetchQuery(query) {
 
     let requestPromise;
 
-    if (query.includes('@')) {
+    if (query.includes(QSL_TAG)) {
       requestPromise = apiService.getQueryResult(QUERY_QSL_SERVICE_PATH, QSL_PARAM_NAME, query);
     } else {
       requestPromise = apiService.getQueryResult(QUERY_KEYWORD_SERVICE_PATH, QUERY_PARAM_NAME, query);

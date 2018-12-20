@@ -7,7 +7,7 @@ export default function notify(state = initialState.notify, action) {
     case SHOW_NOTIFY:
       newState = {
         msg: action.msg,
-        timestamp: +new Date()
+        timestamp: +new Date() //create instantaneous JS timestamp
       };
       return newState;
     default:

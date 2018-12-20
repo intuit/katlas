@@ -21,6 +21,7 @@ class Notifier extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    //grab an instant JS timestamp to compare to time of last notify message; if within autohide duration, set open to true
     this.setState({
       open:(+new Date() - nextProps.notify.timestamp) < AutoHideDuration,
     });

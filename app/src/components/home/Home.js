@@ -37,9 +37,8 @@ class Home extends Component {
   };
 
   handleSubmit = () => {
+      //Validate query in submitQuery and decide to switch to /results based on query validation.
       this.props.queryActions.submitQuery(this.props.query.current);
-      //TODO:DM - should we also do a fetch here? we do in menu bar for cases where the history push doesn't change route handler
-      //no need to do xhr here, will do that upon a route change to /results
   };
 
   render() {

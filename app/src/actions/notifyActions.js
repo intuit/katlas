@@ -1,9 +1,6 @@
 import * as types from './actionTypes';
 
-export const showNotify = str => {
-  //alert('In showNotify action ' + str);
-  return {
+export const showNotify = str => ({
     type: types.SHOW_NOTIFY,
     msg: str
-  };
-};
+});

@@ -44,7 +44,6 @@ export class HttpService  {
       return res.json();
     } else {
       store.dispatch(notifyActions.showNotify(res.statusText));
-      console.error('Error from Rest Service ' + res.statusText + ',' + res.status);
       return null;
     }
   }

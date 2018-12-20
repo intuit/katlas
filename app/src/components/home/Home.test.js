@@ -6,6 +6,9 @@ import { mount, shallow } from 'enzyme';
 
 import configureStore from '../../store/configureStore';
 import Home from './Home';
+
+import '../../actions/queryActions';
+
 //next import will load envVars from local override of app/public/conf.js
 import '../../../public/conf';
 
