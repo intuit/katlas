@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ReactJson from 'react-json-view';
 
-import './Details.css';
+import './EntityDetails.css';
 
 //This component ended up being a pretty thin wrapper around react-json-view
 //3rd party comp. But still valuable as a separate component since it will be

@@ -1,6 +1,6 @@
 @font-face {
   font-family: 'fontawesome';
-  src: url('../../node_modules/font-awesome/fonts/fontawesome-webfont.woff2') format('woff2');
+  src: url('../../../node_modules/font-awesome/fonts/fontawesome-webfont.woff2') format('woff2');
 }
 
 .Graph {

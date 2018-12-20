@@ -4,9 +4,9 @@ import _ from 'lodash';
 import vis from 'vis';
 import { Grid } from '@material-ui/core';
 
-import {options} from "../config/visjsConfig";
-import {getVisData, clearVisData, colorMixer, getLegends} from "../utils/graph";
-import {NodeStatusPulseColors} from "../config/appConfig";
+import {options} from "../../config/visjsConfig";
+import {getVisData, clearVisData, colorMixer, getLegends} from "../../utils/graph";
+import {NodeStatusPulseColors} from "../../config/appConfig";
 import './Graph.css';
 
 class Graph extends Component {
@@ -38,12 +38,10 @@ class Graph extends Component {
     this.renderGraphExpanded = this.renderGraphExpanded.bind(this);
     this.renderVisGraph = this.renderVisGraph.bind(this);
     this.clearNetwork = this.clearNetwork.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   componentDidMount() {
     this.clearNetwork();
-    console.log("GraphView mounted.");
   }
 
   componentWillReceiveProps(nextProps){
@@ -54,16 +52,6 @@ class Graph extends Component {
   }
 
   componentWillUnmount(){
-    this.clearNetwork();
-  }
-
-  handleSubmit(e) {
-    console.debug(`Got event ${e}`);
-    if (this.validateInputs().length > 0) {
-        return;
-    }
-    this.setState({errors: []});
-    this.setState({detailsTab: []});
     this.clearNetwork();
   }
 
@@ -127,7 +115,6 @@ class Graph extends Component {
   }
 
   renderGraph(jsonData) {
-    console.log("In renderGraph.");
     console.debug(`Got data ${JSON.stringify(jsonData)}`);
 
     const {nodes, edges} = getVisData(jsonData);
@@ -139,9 +126,6 @@ class Graph extends Component {
 
   renderGraphExpanded(jsonData) {
     if (_.isEmpty(jsonData)) return;
-
-    console.log("In renderGraphExpand.");
-    console.debug(`Got data ${JSON.stringify(jsonData)}`);
 
     this.nodesDataset.clear();
     this.edgesDataset.clear();
@@ -171,17 +155,12 @@ class Graph extends Component {
       for (let i = 0; i < this._edges.length; i++) {
         this.edgesDataset.add(this._edges[i]);
       }
-
       this._data = {nodes: this.nodesDataset, edges: this.edgesDataset};
 
-      console.log("Before drawing expanded graph.");
       const container = document.getElementById("graph"); //id of div container for graph.
       this._network = new vis.Network(container, this._data, options);
-      console.log("After drawing expanded graph.");
 
       this.configNetwork(this._network);
-      //TODO:DM - consider whether this is really necessary after sizing well for various screens
-      this._network.moveTo({scale: 0.8});
       //must bind call to handleColorPulse since it'll be called by browser otherwise with Window as "this" context
       this.pulseIntervalHandle = setInterval(this.handleColorPulse.bind(this), 100);//TODO:DM-constantize time!
   }

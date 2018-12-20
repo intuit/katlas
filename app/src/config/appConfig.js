@@ -1,4 +1,5 @@
 export const ENTER_KEYCODE = 13;
+export const ENTER_KEYSTR = 'Enter';
 
 export const NODE_DEFAULT_STR = 'default';
 export const NODE_DEFAULT_COLOR = '#2575E2';
