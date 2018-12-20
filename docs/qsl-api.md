@@ -11,17 +11,23 @@ Provide an easy to use language for users to query objects from dgraph without h
 ### Details
   * objecttype - the kubernetes Kind of the object
     * needs to match the case as Kubernetes would
-    * e.g. ReplicaSet will work, Replicaset/rEplicaset/etc. will not
+    * e.g. ReplicaSet will work, Replicaset/rEplicaset/REPLICASET/etc. will not
     * will automatically capitalize first letter, so pod and Pod will both work
-  * filtername,value - filter to get objects of objecttype where the fieldname = value
+  * filtername=value - filter to get objects of objecttype where the filtername = value
     * value must be enclosed in quotes and can contain alphanumeric characters, ., -, and _
-    * commas can be used as boolean equivalent to AND
+    * , can be used as boolean equivalent to AND
     * | can be used as the boolean equivalent to OR
-    * AND takes precedence over OR, e.g. a,b,c|d,e === (a&b&c) | (d&e)
+    * AND takes precedence over OR
+      * e.g. a,b,c|d,e === (a&b&c) | (d&e)
     * other comparators (<,>,<=,>=) can be used for data types that support comparison
+      * e.g. ReplicaSet[\@numreplicas>="1"]{\*}
   * field - the fields of the object that we want to return
-    * the "\*" will return all fields
-    * n "\*" will get ll fields and relations n edges away from the node
+    * each field must begin with an @ followed by an alphanumeric field name, or be a string of \*
+     * the list can either only contain comma separated @-prefixed field names or \* strings, not both
+    * the "\*" will return all fields of the object in dgraph
+    * n "\*" will get all fields and relations n edges away from the node
+      * if multiple \* are present any relations after that block are ignored
+      * e.g. cluster[...]{\*\*}.namespace[...]{@name} is the same as cluster[...]{\*\*}
   * objecttype1[...]{\*}.objecttype2[...]{\*} - the . denotes a relationship objecttype1->objecttype2
     this will get all fields from objecttype1 and all objecttype2's related to the results of the first block
     with all their fields

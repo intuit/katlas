@@ -35,6 +35,7 @@ func IsAlpha(s string) bool {
 	return true
 }
 
+// TODO: update regex so this isn't necessary
 func IsStar(s string) bool {
 	for _, r := range s {
 		if string(r) != "*" {
@@ -56,6 +57,11 @@ func NewQSLService(host string, m *MetaService) *QSLService {
 // @name="paas-preprod-west2.cluster.k8s.local",@k8sobj="K8sObj",@resourceid="paas-preprod-west2.cluster.k8s.local"
 // -> , $name: string, $k8sobj: string, $resourceid: string
 func CreateFiltersQuery(filterlist string) (string, string, error) {
+
+	if len(filterlist) == 0 {
+		return "", "", errors.New("Filters must be nonempty")
+	}
+
 	// split the whole string by the | "or" symbol because of higher priority for ands
 	// e.g. a&b&c|d&e == (a&b&c) | (d&e)
 	splitlist := strings.Split(filterlist, "|")
@@ -111,9 +117,10 @@ func CreateFiltersQuery(filterlist string) (string, string, error) {
 // will be joined with newlines for the resulting query
 // e.g. @name,@resourceversion -> [name, resourceversion]
 func CreateFieldsQuery(fieldlist string, metafieldslist []MetadataField, tabs int) ([]string, error) {
-	// TODO: potentially add some character that we can use to get all related object types
-	// kind of like expand all
-	// get a list of fields since we can't use expand all due to repeating subgroups
+
+	if len(fieldlist) == 0 {
+		return nil, errors.New("Fields must be nonempty")
+	}
 	if fieldlist == "*" {
 		returnlist := []string{}
 		for i, item := range metafieldslist {
@@ -130,12 +137,12 @@ func CreateFieldsQuery(fieldlist string, metafieldslist []MetadataField, tabs in
 		returnlist := []string{}
 		if IsStar(fieldlist) {
 			for i := 0; i < len(fieldlist); i++ {
-				returnlist = append([]string{strings.Repeat("\t", len(fieldlist)-i) + "expand(_all_){"}, returnlist...)
-				returnlist = append(returnlist, strings.Repeat("\t", len(fieldlist)-i)+"}")
+				returnlist = append([]string{strings.Repeat("\t", len(fieldlist)-i+tabs) + "expand(_all_){"}, returnlist...)
+				returnlist = append(returnlist, strings.Repeat("\t", len(fieldlist)-i+tabs)+"}")
 			}
 			return returnlist, nil
 		} else {
-			return nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... [" + fieldlist + "]")
+			return nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... not both [" + fieldlist + "]")
 		}
 
 	}

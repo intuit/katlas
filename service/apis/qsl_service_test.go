@@ -79,9 +79,14 @@ func TestCreateFiltersQuery(t *testing.T) {
 				t.Errorf("filter function incorrect\n input: %s\n testfunc: %s\n realfunc: %s", k, v.values[1], realOut2)
 			}
 		} else {
-			if err.Error() != v.err.Error() {
-				t.Errorf("filter error incorrect\n input: %s\n testfiltererr: %s\n realfiltererr: %s", k, v.err.Error(), err.Error())
+			if v.err != nil {
+				if err.Error() != v.err.Error() {
+					t.Errorf("filter error incorrect\n input: %s\n testfiltererr: %s\n realfiltererr: %s", k, v.err.Error(), err.Error())
+				}
+			} else {
+				t.Errorf("filter error incorrect\n input: %s\n testfiltererr: %s\n realfiltererr: %s", k, "no error expected", err.Error())
 			}
+
 		}
 
 	}
@@ -94,13 +99,17 @@ func TestCreateFieldsQuery(t *testing.T) {
 		"@name,@resourceversion":             FResult{[]string{"name", "resourceversion", "uid"}, nil},
 		"@name,@resourceversion,@resourceid": FResult{[]string{"name", "resourceversion", "resourceid", "uid"}, nil},
 		"@name,@resourceversion,@k8sobj":     FResult{[]string{"name", "resourceversion", "k8sobj", "uid"}, nil},
-		"*":     FResult{[]string{"k8sobj", "objtype", "name", "resourceid", "resourceversion", "uid"}, nil},
-		"**":    FResult{[]string{"\texpand(_all_){", "\t\texpand(_all_){", "\t\t}", "\t}"}, nil},
-		"***":   FResult{[]string{"\texpand(_all_){", "\t\texpand(_all_){", "\t\t\texpand(_all_){", "\t\t\t}", "\t\t}", "\t}"}, nil},
-		"?":     FResult{nil, errors.New("Field names must be prefixed with @ sign and followed by an alphanumeric field name [?]")},
-		"@n@me": FResult{nil, errors.New("Field names must be composed of only alphanumeric characters [n@me]")},
-		"@*":    FResult{nil, errors.New("Field names must be composed of only alphanumeric characters [*]")},
-		"*@":    FResult{nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... [*@]")},
+		"*":        FResult{[]string{"k8sobj", "objtype", "name", "resourceid", "resourceversion", "uid"}, nil},
+		"**":       FResult{[]string{"expand(_all_){", "\texpand(_all_){", "\t}", "}"}, nil},
+		"***":      FResult{[]string{"expand(_all_){", "\texpand(_all_){", "\t\texpand(_all_){", "\t\t}", "\t}", "}"}, nil},
+		"?":        FResult{nil, errors.New("Field names must be prefixed with @ sign and followed by an alphanumeric field name [?]")},
+		"name":     FResult{nil, errors.New("Field names must be prefixed with @ sign and followed by an alphanumeric field name [name]")},
+		"@n@me":    FResult{nil, errors.New("Field names must be composed of only alphanumeric characters [n@me]")},
+		"@*":       FResult{nil, errors.New("Field names must be composed of only alphanumeric characters [*]")},
+		"*@":       FResult{nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... not both [*@]")},
+		"*,@name":  FResult{nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... not both [*,@name]")},
+		"@name,**": FResult{nil, errors.New("Field names must be prefixed with @ sign and followed by an alphanumeric field name [**]")},
+		"**,*":     FResult{nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... not both [**,*]")},
 	}
 
 	namespacemetafieldslist := []MetadataField{MetadataField{FieldName: "k8sobj", FieldType: "string", Mandatory: true, Index: true, RefDataType: "", Cardinality: "One"}, MetadataField{FieldName: "objtype", FieldType: "string", Mandatory: true, Index: true, RefDataType: "", Cardinality: "One"}, MetadataField{FieldName: "name", FieldType: "string", Mandatory: true, Index: true, RefDataType: "", Cardinality: "One"}, MetadataField{FieldName: "resourceid", FieldType: "string", Mandatory: false, Index: true, RefDataType: "", Cardinality: "One"}, MetadataField{FieldName: "resourceversion", FieldType: "string", Mandatory: true, Index: false, RefDataType: "", Cardinality: "One"}}
@@ -114,10 +123,10 @@ func TestCreateFieldsQuery(t *testing.T) {
 		} else {
 			if v.err != nil {
 				if err.Error() != v.err.Error() {
-					t.Errorf("filter error incorrect\n input: %s\n testfielderr: %s\n realfielderr: %s", k, v.err.Error(), err.Error())
+					t.Errorf("field error incorrect\n input: %s\n testfielderr: %s\n realfielderr: %s", k, v.err.Error(), err.Error())
 				}
 			} else {
-				t.Errorf("filter error incorrect\n input: %s\n testfielderr: %s\n realfielderr: %s", k, "no error expected", err.Error())
+				t.Errorf("field error incorrect\n input: %s\n testfielderr: %s\n realfielderr: %s", k, "no error expected", err.Error())
 			}
 
 		}
@@ -126,8 +135,8 @@ func TestCreateFieldsQuery(t *testing.T) {
 }
 
 func TestCreateDgraphQuery(t *testing.T) {
-	tests := map[string]string{
-		`namespace[@name="default"]{*}`: strings.Join([]string{
+	tests := map[string]FResult{
+		`namespace[@name="default"]{*}`: FResult{[]string{
 			"query objects($objtype: string, $name: string){",
 			"objects(func: eq(objtype, Namespace)) @filter( ( eq(name,\"default\") )){",
 			"\tresourceversion",
@@ -140,17 +149,17 @@ func TestCreateDgraphQuery(t *testing.T) {
 			"\tuid",
 			"}",
 			"}",
-		}, "\n"),
-		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{@name}`: strings.Join([]string{
+		}, nil},
+		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{@name}`: FResult{[]string{
 			"query objects($objtype: string, $name: string){",
 			"objects(func: eq(objtype, Cluster)) @filter( ( eq(name,\"paas-preprod-west2.cluster.k8s.local\") )){",
 			"\tname",
 			"\tuid",
 			"}",
 			"}",
-		}, "\n"),
+		}, nil},
 
-		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"|@name="default"]{*}`: strings.Join([]string{
+		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"|@name="default"]{*}`: FResult{[]string{
 			"query objects($objtype: string, $name: string){",
 			"objects(func: eq(objtype, Cluster)) @filter( ( eq(name,\"paas-preprod-west2.cluster.k8s.local\") )){",
 			"\tcreationtime",
@@ -172,8 +181,50 @@ func TestCreateDgraphQuery(t *testing.T) {
 			"\t}",
 			"}",
 			"}",
-		}, "\n"),
-		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{**}`: strings.Join([]string{
+		}, nil},
+		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa",@k8sobj="K8sObj"]{*}`: FResult{[]string{
+			"query objects($objtype: string, $name: string){",
+			"objects(func: eq(objtype, Cluster)) @filter( ( eq(name,\"paas-preprod-west2.cluster.k8s.local\") )){",
+			"\tcreationtime",
+			"\tk8sobj",
+			"\tobjtype",
+			"\tname",
+			"\tresourceid",
+			"\tresourceversion",
+			"\tuid",
+			"\t~cluster @filter(eq(objtype, Namespace) and ( eq(name,\"opa\") and eq(k8sobj,\"K8sObj\") )){",
+			"\t\tresourceversion",
+			"\t\tcreationtime",
+			"\t\tk8sobj",
+			"\t\tlabels",
+			"\t\tname",
+			"\t\tresourceid",
+			"\t\tobjtype",
+			"\t\tuid",
+			"\t}",
+			"}",
+			"}",
+		}, nil},
+		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="default"]{**}`: FResult{[]string{
+			"query objects($objtype: string, $name: string){",
+			"objects(func: eq(objtype, Cluster)) @filter( ( eq(name,\"paas-preprod-west2.cluster.k8s.local\") )){",
+			"\tcreationtime",
+			"\tk8sobj",
+			"\tobjtype",
+			"\tname",
+			"\tresourceid",
+			"\tresourceversion",
+			"\tuid",
+			"\t~cluster @filter(eq(objtype, Namespace) and ( eq(name,\"default\") )){",
+			"\t\texpand(_all_){",
+			"\t\t\texpand(_all_){",
+			"\t\t\t}",
+			"\t\t}",
+			"\t}",
+			"}",
+			"}",
+		}, nil},
+		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{**}`: FResult{[]string{
 			"query objects($objtype: string, $name: string){",
 			"objects(func: eq(objtype, Cluster)) @filter( ( eq(name,\"paas-preprod-west2.cluster.k8s.local\") )){",
 			"\texpand(_all_){",
@@ -182,7 +233,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 			"\t}",
 			"}",
 			"}",
-		}, "\n"),
+		}, nil},
 	}
 
 	dgraphHost := "127.0.0.1:9080"
@@ -194,10 +245,17 @@ func TestCreateDgraphQuery(t *testing.T) {
 	for k, v := range tests {
 		output, err := qslSvc.CreateDgraphQuery(k)
 		if err != nil {
-			t.Error(err)
-		}
-		if !(output == v) {
-			t.Errorf("query incorrect\n input: %s\n testquery: \n%s\n realquery: \n%s", k, v, output)
+			if v.err != nil {
+				if err.Error() != v.err.Error() {
+					t.Errorf("query error incorrect\n input: %s\n testqueryerr: %s\n realqueryerr: %s", k, v.err.Error(), err.Error())
+				}
+			} else {
+				t.Errorf("query error incorrect\n input: %s\n testqueryerr: %s\n realqueryerr: %s", k, "no error expected", err.Error())
+			}
+		} else {
+			if !(output == strings.Join(v.values, "\n")) {
+				t.Errorf("query incorrect\n input: %s\n testquery: \n%s\n realquery: \n%s", k, v, output)
+			}
 		}
 	}
 
