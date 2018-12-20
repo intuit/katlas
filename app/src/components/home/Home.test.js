@@ -35,7 +35,7 @@ it('has one input element', () => {
   expect(wrapper.find('input')).toHaveLength(1);
 });
 
-it('submits a valid query', () => {
+xit('submits a valid query', () => {
   const SEARCH_STR = 'foobar';
   const wrapper = mount(
     <Provider store={store}>
@@ -59,6 +59,7 @@ it('submits a valid query', () => {
 
 it('tries to submit an empty query', () => {
   const SEARCH_STR = '';
+  const NOTIFY_MSG = 'Minimum length of Search word must be 3 characters.';
   const wrapper = mount(
     <Provider store={store}>
       <MemoryRouter>
@@ -76,10 +77,12 @@ it('tries to submit an empty query', () => {
   expect(nowStore.query.current).toEqual(SEARCH_STR);
   expect(nowStore.query.submitted).toEqual(false);
   expect(nowStore.query.isWaiting).toEqual(false);
+  expect(nowStore.notify.msg).toEqual(NOTIFY_MSG);
 });
 
 it('tries to submit too short a query', () => {
   const SEARCH_STR = 'fo';
+  const NOTIFY_MSG = 'Minimum length of Search word must be 3 characters.';
   const wrapper = mount(
     <Provider store={store}>
       <MemoryRouter>
@@ -97,6 +100,7 @@ it('tries to submit too short a query', () => {
   expect(nowStore.query.current).toEqual(SEARCH_STR);
   expect(nowStore.query.submitted).toEqual(false);
   expect(nowStore.query.isWaiting).toEqual(false);
+  expect(nowStore.notify.msg).toEqual(NOTIFY_MSG);
   //TODO:DM - also check for existience of notification here or split into separate test; search wrapper for a DOM node or CSS class that changes when notification is shown
 });
 
