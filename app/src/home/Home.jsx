@@ -35,13 +35,9 @@ class Home extends Component {
   };
 
   handleSubmit = () => {
-    //Only carryout submission if string is present
-    if(this.props.query.current !== ''){
-      this.props.queryActions.submitQuery();
+      this.props.queryActions.submitQuery(this.props.query.current);
       //TODO:DM - should we also do a fetch here? we do in menu bar for cases where the history push doesn't change route handler
       //no need to do xhr here, will do that upon a route change to /results
-      this.props.history.push('/results?query=' + encodeURIComponent(this.props.query.current));
-    }
   };
 
   render() {

@@ -8,6 +8,7 @@ export default {
   },
   entity: {},
   notify: {
-    msg: ''
+    msg: '',
+    timestamp: 0
   }
 };

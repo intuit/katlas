@@ -1,4 +1,5 @@
 import * as notifyActions from '../actions/notifyActions';
+import store from '../store.js';
 
 export class HttpService  {
 
@@ -43,7 +44,7 @@ export class HttpService  {
     if (res.ok) {
       return res.json();
     } else {
-      notifyActions.notify(res.statusText);
+      store.dispatch(notifyActions.showNotify(res.statusText));
       console.error('Error from Rest Service ' + res.statusText + ',' + res.status);
       return null;
     }

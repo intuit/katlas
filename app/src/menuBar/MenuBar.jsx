@@ -90,12 +90,7 @@ class MenuBar extends Component {
 
   //TODO:DM-why isn't this working for icon clicks directly?
   handleSubmit = () => {
-    //Only carryout submission if string is present
-    if(this.props.query.current !== ''){
-      //no need to do xhr here, will do that upon a route change to /results
-      //or via prop updates in Results component
-      this.props.history.push('/results?query=' + encodeURIComponent(this.props.query.current));
-    }
+    this.props.queryActions.submitQuery(this.props.query.current);
   };
 
   render() {

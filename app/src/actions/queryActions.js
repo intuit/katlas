@@ -1,13 +1,24 @@
 import * as types from './actionTypes';
 import {ApiService} from "../services/ApiService";
 import * as notifyActions from '../actions/notifyActions';
+import history from '../history';
 
 export const changeQuery = str => ({
   type: types.CHANGE_QUERY,
   query: str
 });
 
-export const submitQuery = () => ({type: types.SUBMIT_QUERY});
+export function submitQuery(query) {
+  return dispatch => {
+    if(query !== '' && query.length >= 3) {
+      history.push('/results?query=' + encodeURIComponent(query));
+    } else {
+      const msg = 'Minimum length of Search word must be 3 characters.';
+      dispatch(notifyActions.showNotify(msg));
+      return;
+    }
+  };
+}
 
 export const receiveQueryResp = json => ({
   type: types.RECEIVE_QUERY,
@@ -22,11 +33,6 @@ export function fetchQuery(query) {
     if (query.includes('@')) {
       requestPromise = ApiService.getQueryResult('/qsl', 'qslstring', query);
     } else {
-      if(query.length < 3) {
-        const msg = 'Minimum length of Search word must be 3 characters.';
-        notifyActions.notify(msg);
-        return;
-      }
       requestPromise = ApiService.getQueryResult('/query', 'keyword', query);
     }
 
