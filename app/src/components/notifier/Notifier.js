@@ -1,4 +1,5 @@
 import React from 'react';
+import {connect} from 'react-redux';
 import Snackbar from '@material-ui/core/Snackbar';
 import { withStyles } from '@material-ui/core/styles';
 
@@ -8,47 +9,45 @@ const styles = {
     }
 };
 
-let openSnackbarFn;
+const AutoHideDuration = 10000;
 
 class Notifier extends React.Component {
+
   state = {
-    open: false,
-    message: '',
+     open: false,
   };
 
   componentDidMount() {
-    openSnackbarFn = this.openSnackbar;
   }
 
-  openSnackbar = ({ message }) => {
+  componentWillReceiveProps(nextProps) {
     this.setState({
-      open: true,
-      message,
+      open:(+new Date() - nextProps.notify.timestamp) < AutoHideDuration,
     });
-  };
+  }
 
-  handleSnackbarClose = () => {
+  handleSnackbarClose() {
     this.setState({
-      open: false,
-      message: '',
+      open:false,
     });
-  };
+  }
 
   render() {
     const { classes } = this.props;
     const message = (
       <span
         id="snackbar-message-id">
-        {this.state.message}
+        {this.props.notify.msg}
       </span>
     );
 
+    //Need to bind the handleSnackbarClose to this class, because it is called from an async timer fn.
     return (
       <Snackbar
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         message={message}
-        autoHideDuration={3000}
-        onClose={this.handleSnackbarClose}
+        autoHideDuration={AutoHideDuration}
+        onClose={this.handleSnackbarClose.bind(this)}
         open={this.state.open}
         ContentProps={{
             classes: {
@@ -61,8 +60,14 @@ class Notifier extends React.Component {
   }
 }
 
-export function openSnackbar({ message }) {
-  openSnackbarFn({ message });
-}
+const mapStoreToProps = store => ({notify: store.notify});
 
-export default withStyles(styles)(Notifier);
+const mapDispatchToProps = dispatch => ({
+});
+
+export default connect(
+  mapStoreToProps,
+  mapDispatchToProps
+)(
+  withStyles(styles)(Notifier)
+);

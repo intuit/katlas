@@ -10,7 +10,6 @@ import { ENTER_KEYCODE, ENTER_KEYSTR } from "../../config/appConfig";
 import * as queryActions from '../../actions/queryActions';
 import logo from './map.png';
 import './Home.css';
-import Notifier, { openSnackbar } from '../notifier/Notifier';
 
 const styles = theme => ({
   container: {
@@ -38,18 +37,9 @@ class Home extends Component {
   };
 
   handleSubmit = () => {
-    //Only carryout submission if string is present
-    if(this.props.query.current !== ''){
-      if(this.props.query.current.length < 3) {
-          openSnackbar({ message: 'Minimum length of Search word must be 3 characters.' });
-          //TODO - clean this up, return easy to miss and is important for sidestepping action trigger
-          return
-      }
-      this.props.queryActions.submitQuery();
+      this.props.queryActions.submitQuery(this.props.query.current);
       //TODO:DM - should we also do a fetch here? we do in menu bar for cases where the history push doesn't change route handler
       //no need to do xhr here, will do that upon a route change to /results
-      this.props.history.push('/results?query=' + encodeURIComponent(this.props.query.current));
-    }
   };
 
   render() {
@@ -59,7 +49,6 @@ class Home extends Component {
           <h3>Welcome to Kubernetes Application Topology Browser</h3>
           <h1>K-Atlas Browser</h1>
         </div>
-        <Notifier />
         <div className={this.props.classes.container}>
           <TextField
             label="Search..."

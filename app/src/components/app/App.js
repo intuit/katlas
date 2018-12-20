@@ -8,6 +8,7 @@ import MenuBar from "../menuBar/MenuBar";
 import Home from "../home/Home";
 import Results from "../results/Results";
 import GraphContainer from "../graph/GraphContainer";
+import Notifier from '../notifier/Notifier';
 
 import './App.css';
 
@@ -25,6 +26,7 @@ class App extends Component {
     return (
       <div className="App">
         <MenuBar/>
+        <Notifier/>
         <Paper className={classes.paper}>
           <Switch>
             <Route exact path="/" component={Home} />
