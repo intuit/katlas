@@ -12,8 +12,8 @@ import { fade } from '@material-ui/core/styles/colorManipulator';
 import { withStyles } from '@material-ui/core/styles';
 import SearchIcon from '@material-ui/icons/Search';
 
-import { ENTER_KEYCODE } from '../config/appConfig';
-import * as queryActions from '../actions/queryActions';
+import { ENTER_KEYCODE } from '../../config/appConfig';
+import * as queryActions from '../../actions/queryActions';
 import logo from './map.png';
 import Notifier, { openSnackbar } from '../notifier/Notifier';
 

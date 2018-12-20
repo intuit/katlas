@@ -41,7 +41,7 @@ type EntityService struct {
 }
 
 // NewEntityService creates a new EntityService with the given dgraph client.
-func NewEntityService(dc *db.DGClient, msvc *MetaService) *EntityService {
+func NewEntityService(dc db.IDGClient, msvc *MetaService) *EntityService {
 	return &EntityService{dc, msvc}
 }
 
@@ -58,7 +58,8 @@ func (s EntityService) DeleteEntity(uuid string) error {
 // DeleteEntityByResourceID remove object by given resourceid
 func (s EntityService) DeleteEntityByResourceID(meta string, rid string) error {
 	qm := map[string][]string{util.ResourceID: {rid}, util.ObjType: {meta}}
-	node, err := s.dbclient.GetQueryResult(qm)
+	queryService := NewQueryService(s.dbclient)
+	node, err := queryService.GetQueryResult(qm)
 	if err != nil {
 		log.Error(err)
 		return err
@@ -166,7 +167,8 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 		defer mutex.Unlock(data[util.ResourceID])
 		// check if entity already exist
 		qm := map[string][]string{util.ResourceID: {data[util.ResourceID].(string)}, util.ObjType: {meta}}
-		node, err := s.dbclient.GetQueryResult(qm)
+		queryService := NewQueryService(s.dbclient)
+		node, err := queryService.GetQueryResult(qm)
 		if err != nil {
 			log.Error(err)
 			return nil, err
@@ -286,7 +288,8 @@ func buildDataMap(isJSON bool, relData interface{}, relType string, cluster stri
 func (s EntityService) getUIDFromRelData(data map[string]interface{}, objType string) (*string, error) {
 	// query by ResourceID to get uid
 	qm := map[string][]string{util.ResourceID: {data[util.ResourceID].(string)}, util.ObjType: {objType}}
-	node, err := s.dbclient.GetQueryResult(qm)
+	queryService := NewQueryService(s.dbclient)
+	node, err := queryService.GetQueryResult(qm)
 	if err != nil {
 		log.Error(err)
 		return nil, err

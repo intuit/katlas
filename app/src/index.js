@@ -7,13 +7,13 @@ import WebFont from 'webfontloader';
 
 import './index.css';
 import configureStore from './store/configureStore';
-import App from './App.jsx';
+import App from './components/app/App';
 
 WebFont.load({
-    custom: {
-      families: ['fontawesome']
-    }
-  });
+  custom: {
+    families: ['fontawesome']
+  }
+});
 
 //Construct the kernel of the material design theme colors, etc.
 //(it can be expanded on, on a per component basis)
