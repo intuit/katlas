@@ -1,5 +1,5 @@
 import * as types from './actionTypes';
-import {ApiService} from "../services/ApiService";
+import {apiService} from "../services/apiService";
 
 export const changeQuery = str => ({
   type: types.CHANGE_QUERY,
@@ -8,18 +8,18 @@ export const changeQuery = str => ({
 
 export const submitQuery = () => ({type: types.SUBMIT_QUERY});
 
-export const receiveQueryResp = json => ({
+export function fetchQuery(query) {
+  return dispatch => {
+    return apiService.getKeyword(query)
+    .then(handleResponse)
+    .then(json => dispatch(receiveQuery(json)));
+  };
+}
+
+export const receiveQuery = json => ({
   type: types.RECEIVE_QUERY,
   results: json
 });
-
-export function fetchQuery(query) {
-  return dispatch => {
-    return ApiService.getKeyword(query)
-    .then(handleResponse)
-    .then(json => dispatch(receiveQueryResp(json)));
-  };
-}
 
 function handleResponse(json) {
     let results = [];

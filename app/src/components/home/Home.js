@@ -6,8 +6,8 @@ import { withRouter } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 
-import { ENTER_KEYCODE } from "../config/appConfig";
-import * as queryActions from '../actions/queryActions';
+import { ENTER_KEYCODE, ENTER_KEYSTR } from "../../config/appConfig";
+import * as queryActions from '../../actions/queryActions';
 import logo from './map.png';
 import './Home.css';
 import Notifier, { openSnackbar } from '../notifier/Notifier';
@@ -30,7 +30,9 @@ class Home extends Component {
   };
 
   handleEnterPressCheck = event => {
-    if(event.keyCode === ENTER_KEYCODE) {
+    //Check both for keycode (used in practice) and a key string which is all
+    //the testing framework can seem to do
+    if(event.keyCode === ENTER_KEYCODE || event.key === ENTER_KEYSTR) {
       this.handleSubmit();
     }
   };
@@ -40,6 +42,7 @@ class Home extends Component {
     if(this.props.query.current !== ''){
       if(this.props.query.current.length < 3) {
           openSnackbar({ message: 'Minimum length of Search word must be 3 characters.' });
+          //TODO - clean this up, return easy to miss and is important for sidestepping action trigger
           return
       }
       this.props.queryActions.submitQuery();
@@ -66,7 +69,7 @@ class Home extends Component {
             variant="filled"
             value={this.props.query.current}
             onChange={this.handleChange}
-            onKeyUp={this.handleEnterPressCheck}
+            onKeyPress={this.handleEnterPressCheck}
           />
         </div>
         <img src={logo} className="Home-logo-full" alt="logo"/>

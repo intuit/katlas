@@ -1,5 +1,4 @@
 export class HttpService  {
-
   static get({url, params, arrayParams}) {
     if (params) {
       url = url + "?";
@@ -18,22 +17,22 @@ export class HttpService  {
     }
 
     if (arrayParams) {
-        if (!params) {
-            url = url + "?";
-        }
+      if (!params) {
+        url = url + "?";
+      }
 
-        for (let i = 0; i < arrayParams.length; i++) {
-            //TODO:DM - clean up fn creation in loop
-            Object.keys(arrayParams[i]).forEach(key => {
-                arrayParams[i][key].forEach(e => url = url + key + "=" + e + "&");
-            });
-        }
+      for (let i = 0; i < arrayParams.length; i++) {
+        //TODO:DM - clean up fn creation in loop
+        Object.keys(arrayParams[i]).forEach(key => {
+            arrayParams[i][key].forEach(e => url = url + key + "=" + e + "&");
+        });
+      }
     }
 
     return fetch(url)
-        .then(this.handleErrors)
-        .then(res => this.makeResponse(res))
-        .catch(err => Promise.reject(err));
+      .then(this.handleErrors)
+      .then(res => this.makeResponse(res))
+      .catch(err => Promise.reject(err));
   }
 
   //Adding this to handle an otherwise unhandled exception, but this will need to be re-worked soon!
@@ -44,15 +43,15 @@ export class HttpService  {
     return response;
   }
 
-    static makeResponse(res) {
-      if (res.status === 204) {
-          return null;
-      }
-      if (res.ok) {
-          return res.json();
-      } else {
-        console.error('HttpService response not OK, cannot return JSON');
+  static makeResponse(res) {
+    if (res.status === 204) {
         return null;
-      }
     }
+    if (res.ok) {
+        return res.json();
+    } else {
+      console.error('HttpService response not OK, cannot return JSON');
+      return null;
+    }
+  }
 }

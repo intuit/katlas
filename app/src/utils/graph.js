@@ -29,7 +29,6 @@ const uidPropNameDgraph = "uid";
 //They are used to display Application specific data for the Node
 const namePropNameDgraphApp = "name";
 const objtypePropNameDgraphApp = "objtype";
-const assetidPropNameDgraphApp = "assetid";
 const nodeStatusProp = "status";
 const nodePhaseProp = "phase";
 
@@ -61,6 +60,8 @@ function parseDgraphJson(jsonData) {
     });
   }
 }
+
+
 
 function printUidMap() {
     console.debug("Printing uidMap");
@@ -167,7 +168,7 @@ export function getVisData(jsonData) {
 
     for (const [uid, v] of uidMap.entries()) {
 
-        let nodeName = "", nodeObjtype = "", nodeAssetid = "", nodeStatus = "";
+        let nodeName = "", nodeObjtype = "", nodeStatus = "";
 
         const block = v;
 
@@ -197,9 +198,6 @@ export function getVisData(jsonData) {
                 }
                 if (prop === objtypePropNameDgraphApp) {
                     nodeObjtype = val;
-                }
-                if (prop === assetidPropNameDgraphApp) {
-                    nodeAssetid = val;
                 }
                 if (prop === nodeStatusProp ||
                   prop === nodePhaseProp) {
