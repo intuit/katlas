@@ -6,6 +6,7 @@ import (
 	"errors"
 	"regexp"
 	"strings"
+	"unicode"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/dgraph-io/dgo"
@@ -13,12 +14,34 @@ import (
 	"google.golang.org/grpc"
 )
 
+// regex to get objtype[filters]{fields}
+//var block_regex = `([a-zA-Z0-9]+)\[(?:(\@[\"\,\@\=\>\<a-zA-Z0-9\-\.\|\:_]*|\*))\]\{(\**|[\,\@\"\=a-zA-Z0-9\-]*)`
 var block_regex = `([a-zA-Z0-9]+)\[(?:(\@[\"\,\@\=\>\<a-zA-Z0-9\-\.\|\:_]*|\*))\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
+
+// regex to get KeyOperatorValue from something like numreplicas>=2
 var filter_regex = `\@([a-zA-Z0-9]*)([\<\>\=]*)\"([a-zA-Z0-9\-\.\|\:_]*)\"`
 
 type QSLService struct {
 	host    string
 	metaSvc *MetaService
+}
+
+func IsAlpha(s string) bool {
+	for _, r := range s {
+		if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
+			return false
+		}
+	}
+	return true
+}
+
+func IsStar(s string) bool {
+	for _, r := range s {
+		if string(r) != "*" {
+			return false
+		}
+	}
+	return true
 }
 
 func NewQSLService(host string, m *MetaService) *QSLService {
@@ -57,7 +80,7 @@ func CreateFiltersQuery(filterlist string) (string, string, error) {
 
 		for j, item2 := range splitstring {
 			_ = j
-			// kvsplit := strings.Split(item2, "=")
+			// use regex to get the key, operator and value
 			r := regexp.MustCompile(filter_regex)
 			matches := r.FindStringSubmatch(item2)
 			log.Debugf("filtermatches %s %#v\n", item2, matches)
@@ -104,15 +127,17 @@ func CreateFieldsQuery(fieldlist string, metafieldslist []MetadataField, tabs in
 		returnlist = append(returnlist, strings.Repeat("\t", tabs+1)+"uid")
 		return returnlist, nil
 	} else if string(fieldlist[0]) == "*" && len(fieldlist) > 1 {
-		// TODO: actually check if all of the characters are * instead of just assuming
 		returnlist := []string{}
-		for i := 0; i < len(fieldlist); i++ {
-			returnlist = append([]string{strings.Repeat("\t", len(fieldlist)-i) + "expand(_all_){"}, returnlist...)
-			returnlist = append(returnlist, strings.Repeat("\t", len(fieldlist)-i)+"}")
-
+		if IsStar(fieldlist) {
+			for i := 0; i < len(fieldlist); i++ {
+				returnlist = append([]string{strings.Repeat("\t", len(fieldlist)-i) + "expand(_all_){"}, returnlist...)
+				returnlist = append(returnlist, strings.Repeat("\t", len(fieldlist)-i)+"}")
+			}
+			return returnlist, nil
+		} else {
+			return nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... [" + fieldlist + "]")
 		}
 
-		return returnlist, nil
 	}
 
 	splitlist := strings.Split(fieldlist, ",")
@@ -120,15 +145,15 @@ func CreateFieldsQuery(fieldlist string, metafieldslist []MetadataField, tabs in
 
 	for i, item := range splitlist {
 		_ = i
-		if strings.HasPrefix(item, "@") {
-			if len(item) > 1 && !strings.Contains(item[1:], "@") {
+		if strings.HasPrefix(item, "@") && len(item) > 1 {
+			if IsAlpha(item[1:]) {
 				returnlist = append(returnlist, strings.Repeat("\t", tabs+1)+item[1:])
 			} else {
-				return nil, errors.New("Field names must not contain @ sign other than in prefix [" + item[1:] + "]")
+				return nil, errors.New("Field names must be composed of only alphanumeric characters [" + item[1:] + "]")
 			}
 
 		} else {
-			return nil, errors.New("Field names must be prefixed with @ sign [" + item + "]")
+			return nil, errors.New("Field names must be prefixed with @ sign and followed by an alphanumeric field name [" + item + "]")
 		}
 
 	}

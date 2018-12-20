@@ -72,15 +72,15 @@ func TestCreateFiltersQuery(t *testing.T) {
 		realOut1, realOut2, err := CreateFiltersQuery(k)
 		if err == nil {
 			if !(v.values[0] == realOut1) {
-				t.Errorf("filter declaration incorrect\n testdec: %s\n realdec: %s", v.values[0], realOut1)
+				t.Errorf("filter declaration incorrect\n input: %s\n testdec: %s\n realdec: %s", k, v.values[0], realOut1)
 			}
 
 			if !(v.values[1] == realOut2) {
-				t.Errorf("filter function incorrect\n testfunc: %s\n realfunc: %s", v.values[1], realOut2)
+				t.Errorf("filter function incorrect\n input: %s\n testfunc: %s\n realfunc: %s", k, v.values[1], realOut2)
 			}
 		} else {
 			if err.Error() != v.err.Error() {
-				t.Errorf("filter error incorrect\n testfiltererr: %s\n realfiltererr: %s", v.err.Error(), err.Error())
+				t.Errorf("filter error incorrect\n input: %s\n testfiltererr: %s\n realfiltererr: %s", k, v.err.Error(), err.Error())
 			}
 		}
 
@@ -97,8 +97,10 @@ func TestCreateFieldsQuery(t *testing.T) {
 		"*":     FResult{[]string{"k8sobj", "objtype", "name", "resourceid", "resourceversion", "uid"}, nil},
 		"**":    FResult{[]string{"\texpand(_all_){", "\t\texpand(_all_){", "\t\t}", "\t}"}, nil},
 		"***":   FResult{[]string{"\texpand(_all_){", "\t\texpand(_all_){", "\t\t\texpand(_all_){", "\t\t\t}", "\t\t}", "\t}"}, nil},
-		"?":     FResult{nil, errors.New("Field names must be prefixed with @ sign [?]")},
-		"@n@me": FResult{nil, errors.New("Field names must not contain @ sign other than in prefix [n@me]")},
+		"?":     FResult{nil, errors.New("Field names must be prefixed with @ sign and followed by an alphanumeric field name [?]")},
+		"@n@me": FResult{nil, errors.New("Field names must be composed of only alphanumeric characters [n@me]")},
+		"@*":    FResult{nil, errors.New("Field names must be composed of only alphanumeric characters [*]")},
+		"*@":    FResult{nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... [*@]")},
 	}
 
 	namespacemetafieldslist := []MetadataField{MetadataField{FieldName: "k8sobj", FieldType: "string", Mandatory: true, Index: true, RefDataType: "", Cardinality: "One"}, MetadataField{FieldName: "objtype", FieldType: "string", Mandatory: true, Index: true, RefDataType: "", Cardinality: "One"}, MetadataField{FieldName: "name", FieldType: "string", Mandatory: true, Index: true, RefDataType: "", Cardinality: "One"}, MetadataField{FieldName: "resourceid", FieldType: "string", Mandatory: false, Index: true, RefDataType: "", Cardinality: "One"}, MetadataField{FieldName: "resourceversion", FieldType: "string", Mandatory: true, Index: false, RefDataType: "", Cardinality: "One"}}
@@ -107,12 +109,17 @@ func TestCreateFieldsQuery(t *testing.T) {
 		output, err := CreateFieldsQuery(k, namespacemetafieldslist, -1)
 		if err == nil {
 			if !(reflect.DeepEqual(v.values, output)) {
-				t.Errorf("fields incorrect\n testfields: %s\n realfields: %s", v.values, output)
+				t.Errorf("fields incorrect\n input: %s\n testfields: %s\n realfields: %s", k, v.values, output)
 			}
 		} else {
-			if err.Error() != v.err.Error() {
-				t.Errorf("filter error incorrect\n testfielderr: %s\n realfielderr: %s", v.err.Error(), err.Error())
+			if v.err != nil {
+				if err.Error() != v.err.Error() {
+					t.Errorf("filter error incorrect\n input: %s\n testfielderr: %s\n realfielderr: %s", k, v.err.Error(), err.Error())
+				}
+			} else {
+				t.Errorf("filter error incorrect\n input: %s\n testfielderr: %s\n realfielderr: %s", k, "no error expected", err.Error())
 			}
+
 		}
 
 	}
@@ -123,12 +130,13 @@ func TestCreateDgraphQuery(t *testing.T) {
 		`namespace[@name="default"]{*}`: strings.Join([]string{
 			"query objects($objtype: string, $name: string){",
 			"objects(func: eq(objtype, Namespace)) @filter( ( eq(name,\"default\") )){",
+			"\tresourceversion",
+			"\tcreationtime",
 			"\tk8sobj",
-			"\tobjtype",
+			"\tlabels",
 			"\tname",
 			"\tresourceid",
-			"\tlabels",
-			"\tresourceversion",
+			"\tobjtype",
 			"\tuid",
 			"}",
 			"}",
@@ -145,6 +153,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"|@name="default"]{*}`: strings.Join([]string{
 			"query objects($objtype: string, $name: string){",
 			"objects(func: eq(objtype, Cluster)) @filter( ( eq(name,\"paas-preprod-west2.cluster.k8s.local\") )){",
+			"\tcreationtime",
 			"\tk8sobj",
 			"\tobjtype",
 			"\tname",
@@ -152,12 +161,13 @@ func TestCreateDgraphQuery(t *testing.T) {
 			"\tresourceversion",
 			"\tuid",
 			"\t~cluster @filter(eq(objtype, Namespace) and ( eq(name,\"opa\") or eq(name,\"default\") )){",
+			"\t\tresourceversion",
+			"\t\tcreationtime",
 			"\t\tk8sobj",
-			"\t\tobjtype",
+			"\t\tlabels",
 			"\t\tname",
 			"\t\tresourceid",
-			"\t\tlabels",
-			"\t\tresourceversion",
+			"\t\tobjtype",
 			"\t\tuid",
 			"\t}",
 			"}",
@@ -187,7 +197,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 			t.Error(err)
 		}
 		if !(output == v) {
-			t.Errorf("query incorrect\n testquery: \n%s\n realquery: \n%s", v, output)
+			t.Errorf("query incorrect\n input: %s\n testquery: \n%s\n realquery: \n%s", k, v, output)
 		}
 	}
 
