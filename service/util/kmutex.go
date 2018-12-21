@@ -28,9 +28,10 @@ func NewKeyMutex(maxDuration time.Duration, delayFactor int) *KeyMutex {
 
 // TryLock try lock by key
 func (k KeyMutex) TryLock(key interface{}) bool {
+	timeout := time.NewTimer(k.maxDuration)
 	for {
 		select {
-		case <-time.After(k.maxDuration):
+		case <-timeout.C:
 			log.Infof("timeout when try acquire lock for %s ", key)
 			return false
 		default:

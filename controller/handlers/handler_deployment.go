@@ -19,6 +19,7 @@ import (
 // DeploymentHandler is a sample implementation of Handler
 type DeploymentHandler struct{}
 
+// GetDeploymentInformer get index Informer to watch Deployment
 func GetDeploymentInformer(client kubernetes.Interface) cache.SharedIndexInformer {
 	informer := cache.NewSharedIndexInformer(
 		// the ListWatch contains two different functions that our
@@ -27,11 +28,11 @@ func GetDeploymentInformer(client kubernetes.Interface) cache.SharedIndexInforme
 		&cache.ListWatch{
 			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
 				// list all of the deployments (AppsV1beta2 resource) in the deafult namespace
-				return client.AppsV1beta2().Deployments(APP_NAMESPACE).List(options)
+				return client.AppsV1beta2().Deployments(AppNamespace).List(options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				// watch all of the deployments (AppsV1beta2 resource) in the default namespace
-				return client.AppsV1beta2().Deployments(APP_NAMESPACE).Watch(options)
+				return client.AppsV1beta2().Deployments(AppNamespace).Watch(options)
 			},
 		},
 		&v1beta2.Deployment{}, // the target type (Pod)
@@ -49,6 +50,7 @@ func (t *DeploymentHandler) Init() error {
 	return nil
 }
 
+// ValidateDeployment to check deployment required attributes
 func ValidateDeployment(deployment *v1beta2.Deployment) bool {
 	if deployment.ObjectMeta.Name == "" {
 		return false
@@ -56,52 +58,39 @@ func ValidateDeployment(deployment *v1beta2.Deployment) bool {
 	if deployment.ObjectMeta.Namespace == "" {
 		return false
 	}
-
 	if deployment.ResourceVersion == "" {
 		return false
 	}
-
 	return true
 }
 
 // ObjectCreated is called when an object is created
-func (t *DeploymentHandler) ObjectCreated(obj interface{}) (map[string]interface{}, error) {
+func (t *DeploymentHandler) ObjectCreated(obj interface{}) error {
 	log.Info("DeploymentHandler.ObjectCreated")
 	// assert the type to a Pod object to pull out relevant data
 	deployment := obj.(*v1beta2.Deployment)
-
 	defer func() {
 		if r := recover(); r != nil {
 			t.ObjectUpdated(obj, obj)
 			return
 		}
 	}()
-
 	if !ValidateDeployment(deployment) {
-		return nil, errors.New("Could not validate deployment object " + deployment.ObjectMeta.Name)
+		return errors.New("Could not validate deployment object " + deployment.ObjectMeta.Name)
 	}
-
-	deploymentdata := CreateDeploymentData(*deployment, CLUSTERNAME)
-
 	j, err := json.MarshalIndent(deployment, "", "    ")
 	if err != nil {
 		log.Error(err)
 	}
-
 	log.Debugf("    Deployment: %s, \n", j)
-	log.Debugf("    Deploymentdata: %+v, \n", deploymentdata)
-
-	SendJSONQueryWithRetries(deploymentdata, CMDBAPIENDPOINT+"v1/entity/Deployment")
-
-	return deploymentdata, nil
+	SendJSONQueryWithRetries(deployment, RestSvcEndpoint+"v1/entity/Deployment")
+	return nil
 }
 
 // ObjectDeleted is called when an object is deleted
 func (t *DeploymentHandler) ObjectDeleted(obj interface{}, key string) error {
 	log.Info("DeploymentHandler.ObjectDeleted")
-
-	SendDeleteRequest(CMDBAPIENDPOINT + "v1/entity/Deployment/" + CLUSTERNAME + ":" + strings.Replace(key, "/", ":", -1))
-
+	SendDeleteRequest(RestSvcEndpoint + "v1/entity/Deployment/Deployment:" + ClusterName + ":" + strings.Replace(key, "/", ":", -1))
 	return nil
 }
 
@@ -111,32 +100,8 @@ func (t *DeploymentHandler) ObjectUpdated(objOld, objNew interface{}) error {
 	return nil
 }
 
-func CreateDeploymentData(deployment v1beta2.Deployment, clustername string) map[string]interface{} {
-
-	deploymentdata := map[string]interface{}{
-		"objtype":           "Deployment",
-		"cluster":           clustername,
-		"name":              deployment.ObjectMeta.Name,
-		"creationtime":      &deployment.ObjectMeta.CreationTimestamp,
-		"namespace":         deployment.ObjectMeta.Namespace,
-		"numreplicas":       deployment.Spec.Replicas,
-		"availablereplicas": deployment.Status.AvailableReplicas,
-		"strategy":          deployment.Spec.Strategy.Type,
-		"resourceversion":   deployment.ResourceVersion,
-		"labels":            deployment.ObjectMeta.GetLabels(),
-		"k8sobj":            "K8sObj",
-	}
-
-	log.Infof("DEPLOYMENTDATA:: %+v", deploymentdata)
-
-	return deploymentdata
-}
-
+// DeploymentSynchronize sync all Deployments periodically in case missing events
 func DeploymentSynchronize(client kubernetes.Interface) {
-	list := make([]map[string]interface{}, 0)
-	clusterdeploymentslist, _ := client.AppsV1beta2().Deployments(APP_NAMESPACE).List(v1.ListOptions{})
-	for _, data := range clusterdeploymentslist.Items {
-		list = append(list, CreateDeploymentData(data, CLUSTERNAME))
-	}
-	SendJSONQueryWithRetries(list, CMDBAPIENDPOINT+"v1/sync/Deployment")
+	clusterdeploymentslist, _ := client.AppsV1beta2().Deployments(AppNamespace).List(v1.ListOptions{})
+	SendJSONQueryWithRetries(clusterdeploymentslist.Items, RestSvcEndpoint+"v1/sync/Deployment")
 }
