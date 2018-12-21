@@ -56,11 +56,7 @@ func (s QueryService) GetQueryResult(queryMap map[string][]string) (map[string]i
 
 // Keyword query http://<dgraph ip:port>/v1/query?keyword=pod
 func (s QueryService) getQueryResultByKeyword(keyword string) (string, error) {
-<<<<<<< HEAD
 	smds, err := s.dbclient.GetSchemaFromCache(db.LruCache)
-=======
-	smds, err := s.dbclient.GetSchema()
->>>>>>> upstream/master
 	if err != nil {
 		log.Debug(err)
 		return "", err
