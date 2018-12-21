@@ -1,19 +1,20 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { render } from 'react-dom';
-import { BrowserRouter } from 'react-router-dom';
+import { Router } from 'react-router-dom';
 import { MuiThemeProvider, createMuiTheme } from "@material-ui/core";
 import WebFont from 'webfontloader';
+import history from './history';
 
 import './index.css';
-import configureStore from './store/configureStore';
-import App from './App.jsx';
+import App from './components/app/App';
+import store from './store.js';
 
 WebFont.load({
-    custom: {
-      families: ['fontawesome']
-    }
-  });
+  custom: {
+    families: ['fontawesome']
+  }
+});
 
 //Construct the kernel of the material design theme colors, etc.
 //(it can be expanded on, on a per component basis)
@@ -31,14 +32,12 @@ const theme = createMuiTheme({
   },
 });
 
-const store = configureStore();
-
 render(
   <MuiThemeProvider theme={theme}>
     <Provider store={store}>
-      <BrowserRouter basename={process.env.PUBLIC_URL}>
+      <Router history={history} basename={process.env.PUBLIC_URL}>
         <App/>
-      </BrowserRouter>
+      </Router>
     </Provider>
   </MuiThemeProvider>,
   document.getElementById('root')
