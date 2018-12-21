@@ -2,14 +2,16 @@ package main
 
 import (
 	"flag"
+	"net/http"
+	"strings"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/intuit/katlas/service/apis"
 	"github.com/intuit/katlas/service/cfg"
 	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/resources"
-	"net/http"
-	"strings"
 )
 
 //Health checks service health
@@ -46,6 +48,15 @@ func serve() {
 
 	router.HandleFunc("/health", Health).Methods("GET")
 	router.HandleFunc("/", Up).Methods("GET", "POST")
+
+	//Creates an LRU cache of the given size
+	var err error
+	db.LruCache, err = lru.New(5)
+	if err != nil {
+		log.Errorf("err: %v", err)
+	}
+	log.Infoln("LRU cache created with given size")
+	db.InitLruCacheDBSchema = false
 
 	log.Infof("Service started on port:8011, mode:%s", cfg.ServerCfg.ServerType)
 

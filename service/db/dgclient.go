@@ -8,6 +8,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/dgraph-io/dgo"
 	"github.com/dgraph-io/dgo/protos/api"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/intuit/katlas/service/util"
 	"google.golang.org/grpc"
 )
@@ -20,6 +21,15 @@ const (
 	update
 	delete
 )
+
+//CacheKey - Define key name for LruCache
+const CacheKey = "dbSchema"
+
+//LruCache - Define type LRU Cache
+var LruCache *lru.Cache
+
+//InitLruCacheDBSchema - a flag to indicate if LruCache has initial DBSchema when server starts
+var InitLruCacheDBSchema bool
 
 // Schema dgraph database schema
 type Schema struct {
@@ -41,7 +51,10 @@ type DGClient struct {
 
 // IDGClient ... define interface to DGClient
 type IDGClient interface {
-	GetSchema() ([]*api.SchemaNode, error)
+	GetCacheContainsDBSchema() (*lru.Cache, error)
+	GetSchemaFromCache(cache *lru.Cache) ([]*api.SchemaNode, error)
+	RemoveDBSchemaFromCache(cache *lru.Cache)
+	GetSchemaFromDB() ([]*api.SchemaNode, error)
 	CreateSchema(sm Schema) error
 	DropSchema(name string) error
 	GetEntity(meta string, uuid string) (map[string]interface{}, error)
@@ -260,8 +273,51 @@ func (s DGClient) GetAllByClusterAndType(meta string, cluster string) (map[strin
 	return m, nil
 }
 
-//GetSchema - get all predicates
-func (s DGClient) GetSchema() ([]*api.SchemaNode, error) {
+//GetCacheContainsDBSchema - Get cache which contains db schema
+func (s DGClient) GetCacheContainsDBSchema() (*lru.Cache, error) {
+	//Add db schema to the cache
+	if InitLruCacheDBSchema == false {
+		dbSchemaNodes, err := s.GetSchemaFromDB()
+		if err != nil {
+			log.Errorf("err: %v", err)
+			return nil, err
+		}
+		LruCache.Add(CacheKey, dbSchemaNodes)
+		InitLruCacheDBSchema = true
+	} else {
+		//Looks up a key's value from the cache
+		_, ok := LruCache.Get(CacheKey)
+		if !ok {
+			dbSchemaNodes, err := s.GetSchemaFromDB()
+			if err != nil {
+				log.Errorf("err: %v", err)
+				return nil, err
+			}
+			LruCache.Add(CacheKey, dbSchemaNodes)
+		}
+	}
+	return LruCache, nil
+}
+
+//GetSchemaFromCache - Get db schema from cache
+func (s DGClient) GetSchemaFromCache(cache *lru.Cache) ([]*api.SchemaNode, error) {
+	cache, err := s.GetCacheContainsDBSchema()
+	if err != nil {
+		log.Errorf("err: %v", err)
+		return nil, err
+	}
+	dbSchemaNodesInterface, ok := cache.Get(CacheKey)
+	if !ok {
+		log.Errorf("err: %v", err)
+		return nil, err
+	}
+
+	dbSchemaNodes, ok := dbSchemaNodesInterface.([]*api.SchemaNode)
+	return dbSchemaNodes, nil
+}
+
+//GetSchemaFromDB - get all predicates
+func (s DGClient) GetSchemaFromDB() ([]*api.SchemaNode, error) {
 	q := `
 		schema {}
 	`
@@ -273,6 +329,11 @@ func (s DGClient) GetSchema() ([]*api.SchemaNode, error) {
 	log.Infof("Query result: [%s]", resp.Schema)
 	smn := resp.Schema
 	return smn, nil
+}
+
+//RemoveDBSchemaFromCache - remove DBSchema key from the Cache
+func (s DGClient) RemoveDBSchemaFromCache(cache *lru.Cache) {
+	cache.Remove(CacheKey)
 }
 
 // CreateSchema - create index
