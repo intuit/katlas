@@ -1,3 +1,6 @@
+import * as notifyActions from '../actions/notifyActions';
+import store from '../store.js';
+
 export class HttpService  {
   static get({url, params, arrayParams}) {
     if (params) {
@@ -30,17 +33,7 @@ export class HttpService  {
     }
 
     return fetch(url)
-      .then(this.handleErrors)
-      .then(res => this.makeResponse(res))
-      .catch(err => Promise.reject(err));
-  }
-
-  //Adding this to handle an otherwise unhandled exception, but this will need to be re-worked soon!
-  static handleErrors(response) {
-    if (!response.ok) {
-      throw Error(response.statusText);
-    }
-    return response;
+        .then(res => this.makeResponse(res))
   }
 
   static makeResponse(res) {
@@ -48,9 +41,9 @@ export class HttpService  {
         return null;
     }
     if (res.ok) {
-        return res.json();
+      return res.json();
     } else {
-      console.error('HttpService response not OK, cannot return JSON');
+      store.dispatch(notifyActions.showNotify(res.statusText));
       return null;
     }
   }
