@@ -6,8 +6,6 @@ import (
 	"fmt"
 
 	"github.com/gorilla/mux"
-	// "container/list"
-	"sync"
 
 	"encoding/json"
 	"io/ioutil"
@@ -17,28 +15,20 @@ import (
 	//"github.com/dgraph-io/dgo/y"
 )
 
-var DATABASE_PROVIDER = "DGraph"
-var mutex2 = &sync.Mutex{}
-var IN_CLUSTER = false
+var inCluster = false
 
-//var queue [][]byte = make([][]byte, 10)
-// var queue []string = make([]string, 10)
-
-type UIDList struct {
-	Me []map[string]interface{} `json:"me"`
-}
-
-type BaseStruct struct {
+type baseStruct struct {
 	Name         string `json:"name"`
 	Objtype      string `json:"objtype,omitempty"`
 	Cluster      string `json:"cluster,omitempty"`
 	Objnamespace string `json:"objnamespace,omitempty"`
 }
 
-type ObjectList struct {
+type objectList struct {
 	Me []map[string]string `json:"me"`
 }
 
+// Create function
 func Create(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -57,19 +47,21 @@ func Create(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Health check
 func Health(w http.ResponseWriter, r *http.Request) {
 	log.Info("RestService is still running")
 	w.Write([]byte("RestService is still running"))
 
 }
 
+// Sync function
 func Sync(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
 	}
 
-	info := BaseStruct{}
+	info := baseStruct{}
 	err2 := json.Unmarshal(body, &info)
 	if err2 != nil {
 		log.Error(err2)
@@ -80,6 +72,7 @@ func Sync(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Restart function
 func Restart(w http.ResponseWriter, r *http.Request) {
 	// takes an object with Objtype restart and name as the cluster name
 	// deletes the cluster from the database
@@ -88,7 +81,7 @@ func Restart(w http.ResponseWriter, r *http.Request) {
 		log.Error(err)
 	}
 
-	info := BaseStruct{}
+	info := baseStruct{}
 	err2 := json.Unmarshal(body, &info)
 	if err2 != nil {
 		log.Error(err2)
@@ -98,12 +91,14 @@ func Restart(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Up function
 func Up(w http.ResponseWriter, r *http.Request) {
 	log.Info("Up")
 	w.Write([]byte("Up"))
 
 }
 
+// EntityHandler function
 func EntityHandler(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -134,13 +129,15 @@ func EntityHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// QueryHandler ...
 func QueryHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// SyncHandler ...
 func SyncHandler(w http.ResponseWriter, r *http.Request) {
 
-	resp := ObjectList{
+	resp := objectList{
 		Me: []map[string]string{
 			{
 				"resourceversion": "1",
@@ -195,6 +192,7 @@ func SyncHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// DeleteHandler ...
 func DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -218,7 +216,7 @@ func serve() {
 	router.HandleFunc("/v1/entity/{metadata}/{resourceid}", DeleteHandler).Methods("DELETE")
 	router.HandleFunc("/health", Health).Methods("GET")
 	log.Infof("Service started on port 8011")
-	if IN_CLUSTER {
+	if inCluster {
 		log.Error(http.ListenAndServeTLS(":8011", "server.crt", "server.key", router))
 	} else {
 		log.Error(http.ListenAndServe(":8011", router))

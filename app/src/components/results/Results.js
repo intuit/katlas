@@ -13,9 +13,9 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
-import EntityDetails from '../details/EntityDetails';
-import * as apiCfg from '../config/apiConfig';
-import * as queryActions from '../actions/queryActions';
+import EntityDetails from '../entityDetails/EntityDetails';
+import * as apiCfg from '../../config/apiConfig';
+import * as queryActions from '../../actions/queryActions';
 import './Results.css';
 
 const styles = theme => ({
@@ -61,7 +61,7 @@ class Results extends Component {
     //incase the user directly linked to this route, make sure to take query
     //from params to get store 'caught up'
     this.props.queryActions.changeQuery(query);
-    this.props.queryActions.submitQuery();
+    this.props.queryActions.submitQuery(query);
     this.props.queryActions.fetchQuery(query);
   }
 
@@ -71,7 +71,7 @@ class Results extends Component {
     const prevQuery = getQueryParam(prevProps.location.search, apiCfg.SERVICES.queryParamName);
     if (prevQuery !== currentQuery){
       //should only run if query param changes
-      this.props.queryActions.submitQuery();
+      this.props.queryActions.submitQuery(currentQuery);
       this.props.queryActions.fetchQuery(currentQuery);
     }
   }
