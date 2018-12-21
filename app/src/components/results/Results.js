@@ -61,7 +61,7 @@ class Results extends Component {
     //incase the user directly linked to this route, make sure to take query
     //from params to get store 'caught up'
     this.props.queryActions.changeQuery(query);
-    this.props.queryActions.submitQuery();
+    this.props.queryActions.submitQuery(query);
     this.props.queryActions.fetchQuery(query);
   }
 
@@ -71,7 +71,7 @@ class Results extends Component {
     const prevQuery = getQueryParam(prevProps.location.search, apiCfg.SERVICES.queryParamName);
     if (prevQuery !== currentQuery){
       //should only run if query param changes
-      this.props.queryActions.submitQuery();
+      this.props.queryActions.submitQuery(currentQuery);
       this.props.queryActions.fetchQuery(currentQuery);
     }
   }
