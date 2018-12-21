@@ -1,4 +1,50 @@
 [{
+  "name": "Application",
+  "objtype": "metadata",
+  "fields": [{
+    "fieldName": "creationtime",
+    "fieldType": "string",
+    "mandatory": true,
+    "index": false,
+    "cardinality": "One"
+  }, {
+    "fieldName": "k8sobj",
+    "fieldType": "string",
+    "mandatory": true,
+    "index": true,
+    "cardinality": "One"
+  }, {
+    "fieldName": "objtype",
+    "fieldType": "string",
+    "mandatory": true,
+    "index": true,
+    "cardinality": "One"
+  }, {
+    "fieldName": "name",
+    "fieldType": "string",
+    "mandatory": true,
+    "index": true,
+    "cardinality": "One"
+  }, {
+    "fieldName": "resourceid",
+    "fieldType": "string",
+    "mandatory": false,
+    "index": true,
+    "cardinality": "One"
+  }, {
+    "fieldName": "labels",
+    "fieldType": "json",
+    "mandatory": false,
+    "index": true,
+    "cardinality": "One"
+  }, {
+    "fieldName": "resourceversion",
+    "fieldType": "string",
+    "mandatory": true,
+    "index": false,
+    "cardinality": "One"
+  }]
+}, {
   "name": "Namespace",
   "objtype": "metadata",
   "fields": [{
@@ -12,7 +58,7 @@
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": true,
+    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
@@ -105,7 +151,7 @@
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": true,
+    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
@@ -158,8 +204,15 @@
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": true,
+    "index": false,
     "cardinality": "One"
+  }, {
+    "fieldName": "application",
+    "fieldType": "relationship",
+    "refDataType": "Application",
+    "mandatory": false,
+    "index": false,
+    "cardinality": "Many"
   }, {
     "fieldName": "k8sobj",
     "fieldType": true,
@@ -236,8 +289,15 @@
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": true,
+    "index": false,
     "cardinality": "One"
+  }, {
+    "fieldName": "application",
+    "fieldType": "relationship",
+    "refDataType": "Application",
+    "mandatory": false,
+    "index": false,
+    "cardinality": "Many"
   }, {
     "fieldName": "k8sobj",
     "fieldType": true,
@@ -314,7 +374,7 @@
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": true,
+    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
@@ -393,7 +453,7 @@
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": true,
+    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
@@ -459,8 +519,15 @@
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": true,
+    "index": false,
     "cardinality": "One"
+  },{
+    "fieldName": "application",
+    "fieldType": "relationship",
+    "refDataType": "Application",
+    "mandatory": false,
+    "index": false,
+    "cardinality": "Many"
   }, {
     "fieldName": "k8sobj",
     "fieldType": true,
@@ -508,7 +575,7 @@
     "fieldName": "clusterip",
     "fieldType": "string",
     "mandatory": false,
-    "index": true,
+    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "servicetype",
@@ -543,7 +610,7 @@
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": true,
+    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
@@ -653,7 +720,7 @@
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": true,
+    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",

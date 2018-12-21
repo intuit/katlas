@@ -19,46 +19,25 @@ import (
 	"net/http/httputil"
 )
 
-// set APP_NAMESPACE to only monitor assets in a specific namespace
-// otherwise APP_NAMESPACE will refer to all namespaces that the controller has access to
-var APP_NAMESPACE string
+// AppNamespace used for only monitor assets in a specific namespace
+// otherwise AppNamespace will refer to all namespaces that the controller has access to
+var AppNamespace string
 
-// for running in a cluster
-var CLUSTERNAME = os.Getenv("CLUSTER_NAME")
-var CMDBAPIENDPOINT = os.Getenv("TARGET_URL")
+// ClusterName for running in a cluster
+var ClusterName = os.Getenv("CLUSTER_NAME")
+
+// RestSvcEndpoint the URL that k8s data will send to
+var RestSvcEndpoint = os.Getenv("TARGET_URL")
 
 // Handler interface contains the methods that are required
 type Handler interface {
 	Init() error
-	ObjectCreated(obj interface{}) (map[string]interface{}, error)
+	ObjectCreated(obj interface{}) error
 	ObjectDeleted(obj interface{}, key string) error
 	ObjectUpdated(objOld, objNew interface{}) error
 }
 
-// generic interface for all *Data structs
-type DataInterface interface {
-	SetUID(uid string)
-	IsDataInterface()
-}
-
-type ObjectInfo struct {
-	UID             string      `json:"uid,omitempty"`
-	ClusterName     string      `json:"clustername,omitempty"`
-	Objtype         string      `json:"objtype,omitempty"`
-	Metadata        interface{} `json:"metadata,omitempty"`
-	ResourceVersion string      `json:"resourceversion,omitempty"`
-	Namespace       string      `json:"objnamespace,omitempty"`
-}
-
-type SyncStruct struct {
-	Name    string `json:"name"`
-	Objtype string `json:"objtype,omitempty"`
-}
-
-type ObjectList struct {
-	Items []map[string]interface{} `json:"me"`
-}
-
+// SendJSONQuery send requests to REST api
 func SendJSONQuery(obj interface{}, url string) (int, []byte) {
 	//url := "http://localhost:8011/create"
 
@@ -75,6 +54,7 @@ func SendJSONQuery(obj interface{}, url string) (int, []byte) {
 	req.Header.Add("Cache-Control", "no-cache")
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", os.Getenv("AUTH_HEADER"))
+	req.Header.Add("ClusterName", ClusterName)
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -92,10 +72,11 @@ func SendJSONQuery(obj interface{}, url string) (int, []byte) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	log.Info(url, string(requestDump))
+	log.Info(string(requestDump))
 	return res.StatusCode, body
 }
 
+// SendDeleteRequest send request to delete k8s objects
 func SendDeleteRequest(url string) (int, []byte) {
 	req, _ := http.NewRequest("DELETE", url, nil)
 	req.Close = true
@@ -117,10 +98,11 @@ func SendDeleteRequest(url string) (int, []byte) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	log.Info(url, string(requestDump))
+	log.Info(string(requestDump))
 	return res.StatusCode, body
 }
 
+// SendJSONQueryWithRetries retry requests if error occurs
 func SendJSONQueryWithRetries(obj interface{}, url string) ([]byte, error) {
 	// try sending the query 5 times and if it fails
 	status, body := SendJSONQuery(obj, url)
@@ -141,7 +123,7 @@ func SendJSONQueryWithRetries(obj interface{}, url string) ([]byte, error) {
 
 }
 
-// retrieve the Kubernetes cluster client from outside of the cluster
+// GetKubernetesClient retrieve the Kubernetes cluster client from outside of the cluster
 func GetKubernetesClient() kubernetes.Interface {
 	// construct the path to resolve to `~/.kube/config`
 	kubeConfigPath := os.Getenv("HOME") + "/.kube/config"

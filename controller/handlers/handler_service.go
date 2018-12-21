@@ -18,6 +18,7 @@ import (
 // ServiceHandler is a sample implementation of Handler
 type ServiceHandler struct{}
 
+// GetServiceInformer get index Informer to watch Service
 func GetServiceInformer(client kubernetes.Interface) cache.SharedIndexInformer {
 	informer := cache.NewSharedIndexInformer(
 		// the ListWatch contains two different functions that our
@@ -26,11 +27,11 @@ func GetServiceInformer(client kubernetes.Interface) cache.SharedIndexInformer {
 		&cache.ListWatch{
 			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
 				// list all of the pods (core resource) in the deafult namespace
-				return client.CoreV1().Services(APP_NAMESPACE).List(options)
+				return client.CoreV1().Services(AppNamespace).List(options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				// watch all of the pods (core resource) in the default namespace
-				return client.CoreV1().Services(APP_NAMESPACE).Watch(options)
+				return client.CoreV1().Services(AppNamespace).Watch(options)
 			},
 		},
 		&core_v1.Service{}, // the target type (Pod)
@@ -49,24 +50,22 @@ func (t *ServiceHandler) Init() error {
 	return nil
 }
 
-func ValidateService(pod *core_v1.Service) bool {
-	if pod.ObjectMeta.Name == "" {
+// ValidateService check required fields
+func ValidateService(service *core_v1.Service) bool {
+	if service.ObjectMeta.Name == "" {
 		return false
 	}
-
-	if pod.ObjectMeta.Namespace == "" {
+	if service.ObjectMeta.Namespace == "" {
 		return false
 	}
-
-	if pod.ObjectMeta.ResourceVersion == "" {
+	if service.ObjectMeta.ResourceVersion == "" {
 		return false
 	}
-
 	return true
 }
 
 // ObjectCreated is called when an object is created
-func (t *ServiceHandler) ObjectCreated(obj interface{}) (map[string]interface{}, error) {
+func (t *ServiceHandler) ObjectCreated(obj interface{}) error {
 	log.Info("ServiceHandler.ObjectCreated")
 	defer func() {
 		if r := recover(); r != nil {
@@ -76,24 +75,17 @@ func (t *ServiceHandler) ObjectCreated(obj interface{}) (map[string]interface{},
 	}()
 	// assert the type to a Service object to pull out relevant data
 	service := obj.(*core_v1.Service)
-
 	if !ValidateService(service) {
-		return nil, errors.New("Could not validate service object " + service.ObjectMeta.Name)
+		return errors.New("Could not validate service object " + service.ObjectMeta.Name)
 	}
-
-	servicedata := CreateServiceData(*service, CLUSTERNAME)
-
-	SendJSONQueryWithRetries(servicedata, CMDBAPIENDPOINT+"v1/entity/Service")
-
-	return servicedata, nil
+	SendJSONQueryWithRetries(service, RestSvcEndpoint+"v1/entity/Service")
+	return nil
 }
 
 // ObjectDeleted is called when an object is deleted
 func (t *ServiceHandler) ObjectDeleted(obj interface{}, key string) error {
 	log.Info("ServiceHandler.ObjectDeleted")
-
-	SendDeleteRequest(CMDBAPIENDPOINT + "v1/entity/Service/" + CLUSTERNAME + ":" + strings.Replace(key, "/", ":", -1))
-
+	SendDeleteRequest(RestSvcEndpoint + "v1/entity/Service/Service:" + ClusterName + ":" + strings.Replace(key, "/", ":", -1))
 	return nil
 }
 
@@ -103,31 +95,8 @@ func (t *ServiceHandler) ObjectUpdated(objOld, objNew interface{}) error {
 	return nil
 }
 
-func CreateServiceData(service core_v1.Service, clustername string) map[string]interface{} {
-
-	servicedata := map[string]interface{}{
-		"objtype":         "Service",
-		"name":            service.ObjectMeta.Name,
-		"namespace":       service.ObjectMeta.Namespace,
-		"creationtime":    service.ObjectMeta.CreationTimestamp,
-		"selector":        service.Spec.Selector,
-		"labels":          service.ObjectMeta.GetLabels(),
-		"clusterip":       service.Spec.ClusterIP,
-		"servicetype":     service.Spec.Type,
-		"ports":           service.Spec.Ports,
-		"cluster":         clustername,
-		"resourceversion": service.ObjectMeta.ResourceVersion,
-		"k8sobj":          "K8sObj",
-	}
-
-	return servicedata
-}
-
+// ServiceSynchronize sync all Services periodically in case missing events
 func ServiceSynchronize(client kubernetes.Interface) {
-	list := make([]map[string]interface{}, 0)
-	clusterserviceslist, _ := client.CoreV1().Services(APP_NAMESPACE).List(v1.ListOptions{})
-	for _, data := range clusterserviceslist.Items {
-		list = append(list, CreateServiceData(data, CLUSTERNAME))
-	}
-	SendJSONQueryWithRetries(list, CMDBAPIENDPOINT+"v1/sync/Service")
+	clusterserviceslist, _ := client.CoreV1().Services(AppNamespace).List(v1.ListOptions{})
+	SendJSONQueryWithRetries(clusterserviceslist.Items, RestSvcEndpoint+"v1/sync/Service")
 }

@@ -18,6 +18,7 @@ import (
 // StatefulSetHandler is a sample implementation of Handler
 type StatefulSetHandler struct{}
 
+// GetStatefulSetInformer get index Informer to watch StatefulSet
 func GetStatefulSetInformer(client kubernetes.Interface) cache.SharedIndexInformer {
 	informer := cache.NewSharedIndexInformer(
 		// the ListWatch contains two different functions that our
@@ -26,11 +27,11 @@ func GetStatefulSetInformer(client kubernetes.Interface) cache.SharedIndexInform
 		&cache.ListWatch{
 			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
 				// list all of the statefulsets (apps resource) in the deafult namespace
-				return client.AppsV1().StatefulSets(APP_NAMESPACE).List(options)
+				return client.AppsV1().StatefulSets(AppNamespace).List(options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				// watch all of the statefulsets (apps resource) in the default namespace
-				return client.AppsV1().StatefulSets(APP_NAMESPACE).Watch(options)
+				return client.AppsV1().StatefulSets(AppNamespace).Watch(options)
 			},
 		},
 		&appsv1.StatefulSet{}, // the target type (Pod)
@@ -48,24 +49,22 @@ func (t *StatefulSetHandler) Init() error {
 	return nil
 }
 
-func ValidateStatefulSet(pod *appsv1.StatefulSet) bool {
-	if pod.ObjectMeta.Name == "" {
+// ValidateStatefulSet to check required fields
+func ValidateStatefulSet(sts *appsv1.StatefulSet) bool {
+	if sts.ObjectMeta.Name == "" {
 		return false
 	}
-
-	if pod.ObjectMeta.Namespace == "" {
+	if sts.ObjectMeta.Namespace == "" {
 		return false
 	}
-
-	if pod.ObjectMeta.ResourceVersion == "" {
+	if sts.ObjectMeta.ResourceVersion == "" {
 		return false
 	}
-
 	return true
 }
 
 // ObjectCreated is called when an object is created
-func (t *StatefulSetHandler) ObjectCreated(obj interface{}) (map[string]interface{}, error) {
+func (t *StatefulSetHandler) ObjectCreated(obj interface{}) error {
 	log.Info("StatefulSetHandler.ObjectCreated")
 	defer func() {
 		if r := recover(); r != nil {
@@ -77,22 +76,16 @@ func (t *StatefulSetHandler) ObjectCreated(obj interface{}) (map[string]interfac
 	statefulset := obj.(*appsv1.StatefulSet)
 
 	if !ValidateStatefulSet(statefulset) {
-		return nil, errors.New("Could not validate statefulset object " + statefulset.ObjectMeta.Name)
+		return errors.New("Could not validate statefulset object " + statefulset.ObjectMeta.Name)
 	}
-
-	statefulsetdata := CreateStatefulSetData(*statefulset, CLUSTERNAME)
-
-	SendJSONQueryWithRetries(statefulsetdata, CMDBAPIENDPOINT+"v1/entity/StatefulSet")
-
-	return statefulsetdata, nil
+	SendJSONQueryWithRetries(statefulset, RestSvcEndpoint+"v1/entity/StatefulSet")
+	return nil
 }
 
 // ObjectDeleted is called when an object is deleted
 func (t *StatefulSetHandler) ObjectDeleted(obj interface{}, key string) error {
 	log.Info("StatefulSetHandler.ObjectDeleted")
-
-	SendDeleteRequest(CMDBAPIENDPOINT + "v1/entity/StatefulSet/" + CLUSTERNAME + ":" + strings.Replace(key, "/", ":", -1))
-
+	SendDeleteRequest(RestSvcEndpoint + "v1/entity/StatefulSet/StatefulSet:" + ClusterName + ":" + strings.Replace(key, "/", ":", -1))
 	return nil
 }
 
@@ -102,28 +95,8 @@ func (t *StatefulSetHandler) ObjectUpdated(objOld, objNew interface{}) error {
 	return nil
 }
 
-func CreateStatefulSetData(statefulset appsv1.StatefulSet, clustername string) map[string]interface{} {
-
-	statefulsetdata := map[string]interface{}{
-		"objtype":         "StatefulSet",
-		"name":            statefulset.ObjectMeta.Name,
-		"creationtime":    &statefulset.ObjectMeta.CreationTimestamp,
-		"namespace":       statefulset.ObjectMeta.Namespace,
-		"numreplicas":     statefulset.Spec.Replicas,
-		"cluster":         clustername,
-		"resourceversion": statefulset.ObjectMeta.ResourceVersion,
-		"labels":          statefulset.ObjectMeta.GetLabels(),
-		"k8sobj":          "K8sObj",
-	}
-
-	return statefulsetdata
-}
-
+// StatefulSetSynchronize sync all StatefulSets periodically in case missing events
 func StatefulSetSynchronize(client kubernetes.Interface) {
-	list := make([]map[string]interface{}, 0)
-	clusterstatefulsetslist, _ := client.AppsV1().StatefulSets(APP_NAMESPACE).List(v1.ListOptions{})
-	for _, data := range clusterstatefulsetslist.Items {
-		list = append(list, CreateStatefulSetData(data, CLUSTERNAME))
-	}
-	SendJSONQueryWithRetries(list, CMDBAPIENDPOINT+"v1/sync/StatefulSet")
+	clusterstatefulsetslist, _ := client.AppsV1().StatefulSets(AppNamespace).List(v1.ListOptions{})
+	SendJSONQueryWithRetries(clusterstatefulsetslist.Items, RestSvcEndpoint+"v1/sync/StatefulSet")
 }

@@ -67,29 +67,14 @@ func TestStatefulset(t *testing.T) {
 		liststatefulsets, err := client.AppsV1().StatefulSets("test-namespace").List(metav1.ListOptions{})
 		t.Logf("Statefulsets: %s\n", liststatefulsets.String())
 
-		output, err := statefulsethandler.ObjectCreated(a)
+		err = statefulsethandler.ObjectCreated(a)
 		if err != nil {
-			t.Errorf("error reading statefulset : %v", err)
+			t.Errorf("error creating statefulset : %v", err)
 		}
 		err = statefulsethandler.ObjectUpdated(a, a)
-
-		if len(output) != len(test.out) {
-			t.Error("Informer did not get the added statefulset diff length")
+		if err != nil {
+			t.Errorf("error updating statefulset : %v", err)
 		}
-
-		for k, v := range output {
-			if k == "selector" || k == "numreplicas" || k == "labels" || k == "creationtime" {
-				continue
-			}
-			if w, ok := test.out[k]; !ok || v != w {
-				t.Error("Informer did not get the added statefulset diff values")
-				t.Errorf("output[%s]: %s\n", k, output[k])
-				t.Errorf("test.out[%s]: %s\n", k, test.out[k])
-			}
-		}
-
-		t.Logf("Got statefulset from channel: %s/%s\n", output["namespace"], test.out["name"])
-
 	}
 
 	handlers.StatefulSetSynchronize(client)
