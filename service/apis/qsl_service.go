@@ -1,29 +1,24 @@
 package apis
 
 import (
-	"context"
-	"encoding/json"
 	"errors"
 	"regexp"
 	"strings"
 	"unicode"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/dgraph-io/dgo"
-	"github.com/dgraph-io/dgo/protos/api"
-	"google.golang.org/grpc"
+	"github.com/intuit/katlas/service/db"
 )
 
 // regex to get objtype[filters]{fields}
-//var block_regex = `([a-zA-Z0-9]+)\[(?:(\@[\"\,\@\=\>\<a-zA-Z0-9\-\.\|\:_]*|\*))\]\{(\**|[\,\@\"\=a-zA-Z0-9\-]*)`
 var block_regex = `([a-zA-Z0-9]+)\[(?:(\@[\"\,\@\=\>\<a-zA-Z0-9\-\.\|\:_]*|\*))\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
 
 // regex to get KeyOperatorValue from something like numreplicas>=2
 var filter_regex = `\@([a-zA-Z0-9]*)([\<\>\=]*)\"([a-zA-Z0-9\-\.\|\:_]*)\"`
 
 type QSLService struct {
-	host    string
-	metaSvc *MetaService
+	DBclient db.IDGClient
+	metaSvc  *MetaService
 }
 
 func IsAlpha(s string) bool {
@@ -45,7 +40,7 @@ func IsStar(s string) bool {
 	return true
 }
 
-func NewQSLService(host string, m *MetaService) *QSLService {
+func NewQSLService(host db.IDGClient, m *MetaService) *QSLService {
 	return &QSLService{host, m}
 }
 
@@ -99,9 +94,7 @@ func CreateFiltersQuery(filterlist string) (string, string, error) {
 			operator := matches[2]
 			value := matches[3]
 
-			//filterdeclaration = filterdeclaration + ", $" + kvsplit[0][1:] + ": string"
 			filterdeclaration = filterdeclaration + ", $" + keyname + ": string"
-			// interfilterfunc = append(interfilterfunc, " eq("+kvsplit[0][1:]+",\""+kvsplit[1][1:len(kvsplit[1])-1]+"\") ")
 			interfilterfunc = append(interfilterfunc, " "+operator_map[operator]+"("+keyname+",\""+value+"\") ")
 		}
 
@@ -192,11 +185,6 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 	objtype := strings.Title(matches[1])
 	filters := matches[2]
 	fields := matches[3]
-	// // replicaset
-	// if strings.HasSuffix(objtype, "set") {
-	// 	objtype = objtype[0:len(objtype)-3] + "Set"
-	// }
-	// log.Debugf("helperobjtype %#v\n", objtype)
 
 	// get a list of the metadata fields for this object type
 	metafieldslist, err := qa.metaSvc.GetMetadataFields(objtype)
@@ -381,38 +369,5 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 	finalquery := strings.Join(basequery, "\n")
 	// log.Infof("New Query: %s\n", finalquery)
 	return finalquery, nil
-
-}
-
-// Run query on a dgraph instance
-func (qa *QSLService) ExecuteDgraphQuery(query string) (map[string]interface{}, error) {
-	conn, err := grpc.Dial(qa.host, grpc.WithInsecure())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	dgclient := dgo.NewDgraphClient(
-		api.NewDgraphClient(conn),
-	)
-
-	txn := dgclient.NewTxn()
-	defer txn.Discard(context.Background())
-
-	resp, err := txn.Query(context.Background(), query)
-	if err != nil {
-		log.Errorf("query err: %#v\n", err)
-		return nil, errors.New("Could not successfully execute query. Please try again later.\n" + err.Error())
-	}
-
-	respjson := map[string]interface{}{}
-
-	err = json.Unmarshal(resp.GetJson(), &respjson)
-	if err != nil {
-		log.Errorf("unmarshal err: %#v\n", err)
-		return nil, errors.New("Could not successfully handle data from query. Please try again later.")
-	}
-
-	// log.Infof("response from executing dgraph query: %#v\n", respjson)
-	return respjson, nil
 
 }

@@ -191,7 +191,7 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Infof("dgraph query for %#v:\n %s", queryMap["qslstring"][0], query)
 
-	response, err := s.QSLSvc.ExecuteDgraphQuery(query)
+	response, err := s.QSLSvc.DBclient.ExecuteDgraphQuery(query)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

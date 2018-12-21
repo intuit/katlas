@@ -240,7 +240,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 	dc := db.NewDGClient(dgraphHost)
 	defer dc.Close()
 	metaSvc := NewMetaService(dc)
-	qslSvc := NewQSLService(dgraphHost, metaSvc)
+	qslSvc := NewQSLService(dc, metaSvc)
 
 	for k, v := range tests {
 		output, err := qslSvc.CreateDgraphQuery(k)

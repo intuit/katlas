@@ -52,19 +52,19 @@ Provide an easy to use language for users to query objects from dgraph without h
 
 ## QSL Queries and Their DGraph Equivalents
   ```
-  qsl: cluster[@name="paas-preprod-west2.cluster.k8s.local"]{@name}
+  qsl: cluster[@name="preprod-west2.cluster.k8s.local"]{@name}
 
   dgraph: query Me($objtype: string, $name: string){
-	    objects(func: eq(objtype, Cluster)) @filter(eq(name, paas-preprod-west2.cluster.k8s.local)){
+	    objects(func: eq(objtype, Cluster)) @filter(eq(name, preprod-west2.cluster.k8s.local)){
 				name
 			}
 	}
   ```
   ```
-  qsl: cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"|@name="default"]{*}
+  qsl: cluster[@name="preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"|@name="default"]{*}
 
   dgraph:   query objects($objtype: string, $name: string){
-objects(func: eq(objtype, Cluster)) @filter(( eq(name,"paas-preprod-west2.cluster.k8s.local") )){
+objects(func: eq(objtype, Cluster)) @filter(( eq(name,"preprod-west2.cluster.k8s.local") )){
 	creationtime
 	k8sobj
 	objtype
@@ -85,10 +85,10 @@ objects(func: eq(objtype, Cluster)) @filter(( eq(name,"paas-preprod-west2.cluste
   ```
 
   ```
-  qsl: cluster[@name="paas-preprod-west2.cluster.k8s.local"]{@name,@creationtime}.deployment[@name="tiller-deploy"]{@name,@strategy}.ReplicaSet[@name="tiller-deploy-8c8c79584"]{*}
+  qsl: cluster[@name="preprod-west2.cluster.k8s.local"]{@name,@creationtime}.deployment[@name="tiller-deploy"]{@name,@strategy}.ReplicaSet[@name="tiller-deploy-8c8c79584"]{*}
 
   dgraph:  query objects($objtype: string, $name: string){
-objects(func: eq(objtype, Cluster)) @filter( eq(name,"paas-preprod-west2.cluster.k8s.local") ){
+objects(func: eq(objtype, Cluster)) @filter( eq(name,"preprod-west2.cluster.k8s.local") ){
 	creationtime
 	name
 	~cluster @filter(eq(objtype, Deployment) and eq(name,"tiller-deploy") ){
@@ -110,10 +110,10 @@ objects(func: eq(objtype, Cluster)) @filter( eq(name,"paas-preprod-west2.cluster
 }
   ```
   ```
-  qsl:  cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.pod[@name="calico-node-gcj7s"]{*}
+  qsl:  cluster[@name="preprod-west2.cluster.k8s.local"]{*}.pod[@name="calico-node-gcj7s"]{*}
 
   dgraph: query objects($objtype: string, $name: string){
-    objects(func: eq(objtype, Cluster)) @filter( eq(name,paas-preprod-west2.cluster.k8s.local)){
+    objects(func: eq(objtype, Cluster)) @filter( eq(name,preprod-west2.cluster.k8s.local)){
       creationtime
       k8sobj
       objtype
@@ -166,7 +166,7 @@ response:
             "labels": "null",
             "name": "default",
             "objtype": "Namespace",
-            "resourceid": "paas-preprod-west2.cluster.k8s.local:default",
+            "resourceid": "preprod-west2.cluster.k8s.local:default",
             "resourceversion": "9",
             "uid": "0x714"
         }
@@ -176,7 +176,7 @@ response:
 
 ```
 input:
-cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"]{*}
+cluster[@name="preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"]{*}
 
 response:
 200 OK
@@ -184,9 +184,9 @@ response:
     "objects": [
         {
             "k8sobj": "K8sObj",
-            "name": "paas-preprod-west2.cluster.k8s.local",
+            "name": "preprod-west2.cluster.k8s.local",
             "objtype": "Cluster",
-            "resourceid": "paas-preprod-west2.cluster.k8s.local",
+            "resourceid": "preprod-west2.cluster.k8s.local",
             "resourceversion": "0",
             "~cluster": [
                 {
@@ -194,7 +194,7 @@ response:
                     "labels": "null",
                     "name": "opa",
                     "objtype": "Namespace",
-                    "resourceid": "paas-preprod-west2.cluster.k8s.local:opa",
+                    "resourceid": "preprod-west2.cluster.k8s.local:opa",
                     "resourceversion": "772"
                 }
             ]
@@ -205,7 +205,7 @@ response:
 
 ```
 input:
-cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}..deployment[@name="dgraph-ratel"]{*}.replicaSet[@name="dgraph-ratel-588856bd5b",@numreplicas>="1"]{*}
+cluster[@name="preprod-west2.cluster.k8s.local"]{*}.deployment[@name="dgraph-ratel"]{*}.replicaSet[@name="dgraph-ratel-588856bd5b",@numreplicas>="1"]{*}
 
 response:
 200 OK
@@ -213,9 +213,9 @@ response:
     "objects": [
         {
             "k8sobj": "K8sObj",
-            "name": "paas-preprod-west2.cluster.k8s.local",
+            "name": "preprod-west2.cluster.k8s.local",
             "objtype": "Cluster",
-            "resourceid": "paas-preprod-west2.cluster.k8s.local",
+            "resourceid": "preprod-west2.cluster.k8s.local",
             "resourceversion": "0",
             "~cluster": [
                 {
@@ -226,7 +226,7 @@ response:
                     "name": "dgraph-ratel",
                     "numreplicas": 1,
                     "objtype": "Deployment",
-                    "resourceid": "paas-preprod-west2.cluster.k8s.local:dev-devx-cmdb-api-usw2-ppd-qal:dgraph-ratel",
+                    "resourceid": "preprod-west2.cluster.k8s.local:dgraph-ratel",
                     "resourceversion": "44171156",
                     "strategy": "RollingUpdate"
                 },
@@ -238,7 +238,7 @@ response:
                     "name": "dgraph-ratel",
                     "numreplicas": 1,
                     "objtype": "Deployment",
-                    "resourceid": "paas-preprod-west2.cluster.k8s.local:dev-devx-cmdb-api-usw2-ppd-prf:dgraph-ratel",
+                    "resourceid": "preprod-west2.cluster.k8s.local:dgraph-ratel",
                     "resourceversion": "45458408",
                     "strategy": "RollingUpdate",
                     "~owner": [
@@ -250,7 +250,7 @@ response:
                             "numreplicas": 1,
                             "objtype": "ReplicaSet",
                             "podspec": "{\"containers\":[{\"command\":[\"dgraph-ratel\"],\"image\":\"dgraph/dgraph:v1.0.9\",\"imagePullPolicy\":\"IfNotPresent\",\"name\":\"ratel\",\"ports\":[{\"containerPort\":8000,\"protocol\":\"TCP\"}],\"resources\":{},\"terminationMessagePath\":\"/dev/termination-log\",\"terminationMessagePolicy\":\"File\"}],\"dnsPolicy\":\"ClusterFirst\",\"restartPolicy\":\"Always\",\"schedulerName\":\"default-scheduler\",\"securityContext\":{},\"terminationGracePeriodSeconds\":30}",
-                            "resourceid": "paas-preprod-west2.cluster.k8s.local:dev-devx-cmdb-api-usw2-ppd-prf:dgraph-ratel-588856bd5b",
+                            "resourceid": "preprod-west2.cluster.k8s.local:dgraph-ratel-588856bd5b",
                             "resourceversion": "45458406"
                         }
                     ]
@@ -263,7 +263,7 @@ response:
                     "name": "dgraph-ratel",
                     "numreplicas": 1,
                     "objtype": "Deployment",
-                    "resourceid": "paas-preprod-west2.cluster.k8s.local:dev-devx-cmdb-api-usw2-ppd-e2e:dgraph-ratel",
+                    "resourceid": "preprod-west2.cluster.k8s.local:dgraph-ratel",
                     "resourceversion": "47817014",
                     "strategy": "RollingUpdate"
                 }
@@ -277,17 +277,17 @@ response:
 #### Malformed Input
 ```
 input:
-cluster[@name="paas-preprod-west2.cluster.k8s.local"]n{*}.namespace[@name="opa"]{*}
+cluster[@name="preprod-west2.cluster.k8s.local"]n{*}.namespace[@name="opa"]{*}
 
 response:
 400 Bad Request
-Malformed Query: cluster[@name="paas-preprod-west2.cluster.k8s.local"]n{*}.namespace[@name="opa"]{*}
+Malformed Query: cluster[@name="preprod-west2.cluster.k8s.local"]n{*}.namespace[@name="opa"]{*}
 ```
 
 #### Error Connecting to Dgraph
 ```
 input:
-cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.notrealobject[@name="something"]{*}
+cluster[@name="preprod-west2.cluster.k8s.local"]{*}.notrealobject[@name="something"]{*}
 
 response:
 500 Internal Server Error
@@ -297,9 +297,9 @@ Failed to connect to dgraph to get metadata
 #### Invalid Relation
 ```
 input:
-cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.notrealobject[@name="something"]{*}
+cluster[@name="preprod-west2.cluster.k8s.local"]{*}.notrealobject[@name="something"]{*}
 
 response:
 400 Bad Request
-no relation found between Nnamespace and Cluster
+no relation found between notrealobject and Cluster
 ```

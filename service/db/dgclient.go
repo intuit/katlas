@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/dgraph-io/dgo"
@@ -53,6 +54,7 @@ type IDGClient interface {
 	UpdateEntity(meta string, uuid string, data map[string]interface{}) error
 	GetQueryResult(query string) (map[string]interface{}, error)
 	Close() error
+	ExecuteDgraphQuery(query string) (map[string]interface{}, error)
 }
 
 // NewDGClient create client instance
@@ -338,4 +340,29 @@ func (s DGClient) DropSchema(name string) error {
 // Close - destroy connection
 func (s DGClient) Close() error {
 	return s.conn.Close()
+}
+
+// Run query on a dgraph instance
+func (s DGClient) ExecuteDgraphQuery(query string) (map[string]interface{}, error) {
+
+	txn := s.dc.NewTxn()
+	defer txn.Discard(context.Background())
+
+	resp, err := txn.Query(context.Background(), query)
+	if err != nil {
+		log.Errorf("query err: %#v\n", err)
+		return nil, errors.New("Could not successfully execute query. Please try again later.\n" + err.Error())
+	}
+
+	respjson := map[string]interface{}{}
+
+	err = json.Unmarshal(resp.GetJson(), &respjson)
+	if err != nil {
+		log.Errorf("unmarshal err: %#v\n", err)
+		return nil, errors.New("Could not successfully handle data from query. Please try again later.")
+	}
+
+	// log.Infof("response from executing dgraph query: %#v\n", respjson)
+	return respjson, nil
+
 }
