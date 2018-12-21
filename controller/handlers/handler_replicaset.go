@@ -18,6 +18,7 @@ import (
 // ReplicaSetHandler is a sample implementation of Handler
 type ReplicaSetHandler struct{}
 
+// GetReplicaSetInformer get index Informer to watch ReplicaSet
 func GetReplicaSetInformer(client kubernetes.Interface) cache.SharedIndexInformer {
 	informer := cache.NewSharedIndexInformer(
 		// the ListWatch contains two different functions that our
@@ -26,11 +27,11 @@ func GetReplicaSetInformer(client kubernetes.Interface) cache.SharedIndexInforme
 		&cache.ListWatch{
 			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
 				// list all of the pods (core resource) in the deafult namespace
-				return client.AppsV1beta2().ReplicaSets(APP_NAMESPACE).List(options)
+				return client.AppsV1beta2().ReplicaSets(AppNamespace).List(options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				// watch all of the pods (core resource) in the default namespace
-				return client.AppsV1beta2().ReplicaSets(APP_NAMESPACE).Watch(options)
+				return client.AppsV1beta2().ReplicaSets(AppNamespace).Watch(options)
 			},
 		},
 		&v1beta2.ReplicaSet{}, // the target type (Pod)
@@ -48,24 +49,22 @@ func (t *ReplicaSetHandler) Init() error {
 	return nil
 }
 
-func ValidateReplicaSet(pod *v1beta2.ReplicaSet) bool {
-	if pod.ObjectMeta.Name == "" {
+// ValidateReplicaSet check required fields
+func ValidateReplicaSet(replicaset *v1beta2.ReplicaSet) bool {
+	if replicaset.ObjectMeta.Name == "" {
 		return false
 	}
-
-	if pod.ObjectMeta.Namespace == "" {
+	if replicaset.ObjectMeta.Namespace == "" {
 		return false
 	}
-
-	if pod.ObjectMeta.ResourceVersion == "" {
+	if replicaset.ObjectMeta.ResourceVersion == "" {
 		return false
 	}
-
 	return true
 }
 
 // ObjectCreated is called when an object is created
-func (t *ReplicaSetHandler) ObjectCreated(obj interface{}) (map[string]interface{}, error) {
+func (t *ReplicaSetHandler) ObjectCreated(obj interface{}) error {
 	log.Info("ReplicaSetHandler.ObjectCreated")
 	defer func() {
 		if r := recover(); r != nil {
@@ -75,24 +74,17 @@ func (t *ReplicaSetHandler) ObjectCreated(obj interface{}) (map[string]interface
 	}()
 	// assert the type to a Pod object to pull out relevant data
 	replicaset := obj.(*v1beta2.ReplicaSet)
-
 	if !ValidateReplicaSet(replicaset) {
-		return nil, errors.New("Could not validate replicaset object " + replicaset.ObjectMeta.Name)
+		return errors.New("Could not validate replicaset object " + replicaset.ObjectMeta.Name)
 	}
-
-	replicasetdata := CreateReplicaSetData(*replicaset, CLUSTERNAME)
-
-	SendJSONQueryWithRetries(replicasetdata, CMDBAPIENDPOINT+"v1/entity/ReplicaSet")
-
-	return replicasetdata, nil
+	SendJSONQueryWithRetries(replicaset, RestSvcEndpoint+"v1/entity/ReplicaSet")
+	return nil
 }
 
 // ObjectDeleted is called when an object is deleted
 func (t *ReplicaSetHandler) ObjectDeleted(obj interface{}, key string) error {
 	log.Info("ReplicaSetHandler.ObjectDeleted")
-
-	SendDeleteRequest(CMDBAPIENDPOINT + "v1/entity/ReplicaSet/" + CLUSTERNAME + ":" + strings.Replace(key, "/", ":", -1))
-
+	SendDeleteRequest(RestSvcEndpoint + "v1/entity/ReplicaSet/ReplicaSet:" + ClusterName + ":" + strings.Replace(key, "/", ":", -1))
 	return nil
 }
 
@@ -102,30 +94,8 @@ func (t *ReplicaSetHandler) ObjectUpdated(objOld, objNew interface{}) error {
 	return nil
 }
 
-func CreateReplicaSetData(replicaset v1beta2.ReplicaSet, clustername string) map[string]interface{} {
-
-	replicasetdata := map[string]interface{}{
-		"objtype":         "ReplicaSet",
-		"name":            replicaset.ObjectMeta.Name,
-		"creationtime":    &replicaset.ObjectMeta.CreationTimestamp,
-		"namespace":       replicaset.ObjectMeta.Namespace,
-		"numreplicas":     replicaset.Spec.Replicas,
-		"podspec":         replicaset.Spec.Template.Spec,
-		"owner":           replicaset.ObjectMeta.OwnerReferences[0].Name,
-		"cluster":         clustername,
-		"resourceversion": replicaset.ObjectMeta.ResourceVersion,
-		"labels":          replicaset.ObjectMeta.GetLabels(),
-		"k8sobj":          "K8sObj",
-	}
-
-	return replicasetdata
-}
-
+// ReplicaSetSynchronize sync all ReplicaSets periodically in case missing events
 func ReplicaSetSynchronize(client kubernetes.Interface) {
-	list := make([]map[string]interface{}, 0)
-	clusterreplicasetslist, _ := client.AppsV1beta2().ReplicaSets(APP_NAMESPACE).List(v1.ListOptions{})
-	for _, data := range clusterreplicasetslist.Items {
-		list = append(list, CreateReplicaSetData(data, CLUSTERNAME))
-	}
-	SendJSONQueryWithRetries(list, CMDBAPIENDPOINT+"v1/sync/ReplicaSet")
+	clusterreplicasetslist, _ := client.AppsV1beta2().ReplicaSets(AppNamespace).List(v1.ListOptions{})
+	SendJSONQueryWithRetries(clusterreplicasetslist.Items, RestSvcEndpoint+"v1/sync/ReplicaSet")
 }

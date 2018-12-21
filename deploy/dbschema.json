@@ -13,6 +13,13 @@
 		"reverse": true
 	},
 	{
+		"predicate": "application",
+		"type": "uid",
+		"index": false,
+		"count": false,
+		"reverse": true
+	},
+	{
 		"predicate": "nodename",
 		"type": "uid",
 		"index": false,
