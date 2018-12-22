@@ -254,7 +254,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 			}
 		} else {
 			if !(output == strings.Join(v.values, "\n")) {
-				t.Errorf("query incorrect\n input: %s\n testquery: \n%s\n realquery: \n%s", k, v, output)
+				t.Errorf("query incorrect\n input: %s\n testquery: \n%s\n realquery: \n%s", k, strings.Join(v.values, "\n"), output)
 			}
 		}
 	}

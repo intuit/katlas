@@ -11,16 +11,18 @@ import (
 )
 
 // regex to get objtype[filters]{fields}
-var block_regex = `([a-zA-Z0-9]+)\[(?:(\@[\"\,\@\=\>\<a-zA-Z0-9\-\.\|\:_]*|\*))\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
+var blockRegex = `([a-zA-Z0-9]+)\[(?:(\@[\"\,\@\=\>\<a-zA-Z0-9\-\.\|\:_]*|\*))\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
 
 // regex to get KeyOperatorValue from something like numreplicas>=2
-var filter_regex = `\@([a-zA-Z0-9]*)([\<\>\=]*)\"([a-zA-Z0-9\-\.\|\:_]*)\"`
+var filterRegex = `\@([a-zA-Z0-9]*)([\<\>\=]*)\"([a-zA-Z0-9\-\.\|\:_]*)\"`
 
+// QSLService service for QSL
 type QSLService struct {
 	DBclient db.IDGClient
 	metaSvc  *MetaService
 }
 
+// IsAlpha determine if string is made up of only alphanumeric characters
 func IsAlpha(s string) bool {
 	for _, r := range s {
 		if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
@@ -30,6 +32,7 @@ func IsAlpha(s string) bool {
 	return true
 }
 
+// IsStar determine if string is made up of only *
 // TODO: update regex so this isn't necessary
 func IsStar(s string) bool {
 	for _, r := range s {
@@ -40,10 +43,12 @@ func IsStar(s string) bool {
 	return true
 }
 
+// NewQSLService creates an instance of a QSLService
 func NewQSLService(host db.IDGClient, m *MetaService) *QSLService {
 	return &QSLService{host, m}
 }
 
+// CreateFiltersQuery translates the filters part of the qsl string to dgraph
 // filterfunc
 // @name="cluster1" -> eq(name,cluster1)
 // @name="paas-preprod-west2.cluster.k8s.local",@k8sobj="K8sObj",@resourceid="paas-preprod-west2.cluster.k8s.local"
@@ -65,7 +70,7 @@ func CreateFiltersQuery(filterlist string) (string, string, error) {
 	// the eq functions eq(name,paas-preprod-west2.cluster.k8s.local)
 	filterfunc := []string{}
 
-	operator_map := map[string]string{
+	operatorMap := map[string]string{
 		">":  "gt",
 		">=": "ge",
 		"<=": "le",
@@ -82,7 +87,7 @@ func CreateFiltersQuery(filterlist string) (string, string, error) {
 		for j, item2 := range splitstring {
 			_ = j
 			// use regex to get the key, operator and value
-			r := regexp.MustCompile(filter_regex)
+			r := regexp.MustCompile(filterRegex)
 			matches := r.FindStringSubmatch(item2)
 			log.Debugf("filtermatches %s %#v\n", item2, matches)
 
@@ -95,7 +100,7 @@ func CreateFiltersQuery(filterlist string) (string, string, error) {
 			value := matches[3]
 
 			filterdeclaration = filterdeclaration + ", $" + keyname + ": string"
-			interfilterfunc = append(interfilterfunc, " "+operator_map[operator]+"("+keyname+",\""+value+"\") ")
+			interfilterfunc = append(interfilterfunc, " "+operatorMap[operator]+"("+keyname+",\""+value+"\") ")
 		}
 
 		filterfunc = append(filterfunc, strings.Join(interfilterfunc, "and"))
@@ -106,6 +111,7 @@ func CreateFiltersQuery(filterlist string) (string, string, error) {
 
 }
 
+// CreateFieldsQuery translates the fields part of the qsl string to dgraph
 // creates a list of the fields of an object we want to return
 // will be joined with newlines for the resulting query
 // e.g. @name,@resourceversion -> [name, resourceversion]
@@ -134,9 +140,8 @@ func CreateFieldsQuery(fieldlist string, metafieldslist []MetadataField, tabs in
 				returnlist = append(returnlist, strings.Repeat("\t", len(fieldlist)-i+tabs)+"}")
 			}
 			return returnlist, nil
-		} else {
-			return nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... not both [" + fieldlist + "]")
 		}
+		return nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... not both [" + fieldlist + "]")
 
 	}
 
@@ -164,7 +169,7 @@ func CreateFieldsQuery(fieldlist string, metafieldslist []MetadataField, tabs in
 
 }
 
-// creates the inner nested clauses searching for relationships
+// CreateDgraphQueryHelper creates the inner nested clauses searching for relationships
 func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent string) ([]string, error) {
 
 	// string that we're going to replace
@@ -176,7 +181,7 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 	// regex to match the string pattern
 	//r := regexp.MustCompile(`([a-zA-Z]+)\[(\@[\,\@\"\=a-zA-Z0-9\-\.\|]*)\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`)
 	//r := regexp.MustCompile(`([a-zA-Z]+)\[(?:(\@[\,\@\"\=a-zA-Z0-9\-\.\|\:_]*|\*))\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`)
-	r := regexp.MustCompile(block_regex)
+	r := regexp.MustCompile(blockRegex)
 	matches := r.FindStringSubmatch(query[0])
 	// log.Infof("%#v\n", splitquery)
 	log.Debugf("helpermatches %#v\n", matches)
@@ -283,6 +288,7 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 	return basequery, nil
 }
 
+// CreateDgraphQuery translates the querystring to a dgraph query
 func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 	// e.g. cluster[@name="cluster1"]{@name,@region}.pod[@name="pod1"]{@phase,@image}
 	// split by }. to get each individual block
@@ -297,7 +303,7 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 	// extract the objtype, filters and fields to return from the query string
 	// r := regexp.MustCompile(`([a-zA-Z]+)\[(\@[\,\@\"\=a-zA-Z0-9\-\.]*)\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`)
 	// r := regexp.MustCompile(`([a-zA-Z]+)\[(?:(\@[\,\@\"\=a-zA-Z0-9\-\.\|\:_]*|\*))\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`)
-	r := regexp.MustCompile(block_regex)
+	r := regexp.MustCompile(blockRegex)
 	matches := r.FindStringSubmatch(splitquery[0])
 	log.Debugf("matches %#v\n", matches)
 	log.Debugf("%#v\n", r.SubexpNames())
