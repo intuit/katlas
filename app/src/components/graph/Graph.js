@@ -1,13 +1,17 @@
 import React, { Component } from 'react';
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
 import { withRouter } from 'react-router-dom';
 import _ from 'lodash';
 import vis from 'vis';
 import { Grid } from '@material-ui/core';
 
-import {options} from "../../config/visjsConfig";
-import {getVisData, clearVisData, colorMixer, getLegends} from "../../utils/graph";
-import {NodeStatusPulseColors} from "../../config/appConfig";
+import * as entityActions from "../../actions/entityActions";
+import { options } from "../../config/visjsConfig";
+import { getVisData, clearVisData, colorMixer, getLegends } from "../../utils/graph";
+import { NodeStatusPulseColors } from "../../config/appConfig";
 import './Graph.css';
+
 
 class Graph extends Component {
   constructor(props) {
@@ -65,6 +69,7 @@ class Graph extends Component {
   }
 
   render() {
+    //TODO: this is a bit awkward to have to explicitly call a render "helper" function, ideally anything critical would either be done directly in render() or earlier in lifecycle methods, etc.
     this.renderGraphExpanded(this.state.data);
       return (
         <div className="Graph">
@@ -210,10 +215,10 @@ class Graph extends Component {
 
   //configure custom behaviors for network object
   configNetwork(network) {
-    network.on("doubleClick", params => {
+    network.on("doubleClick", element => {
       //ensure the double click was on a graph node
-      if (params.nodes.length > 0) {
-        const targetNodeUid = params.nodes[0];
+      if (element.nodes.length > 0) {
+        const targetNodeUid = element.nodes[0];
         const pathComponents = this.props.location.pathname.split('/');
         const currentNodeUid = pathComponents[pathComponents.length - 1];
         //only update props if target node is not current node
@@ -226,4 +231,13 @@ class Graph extends Component {
   }
 }
 
-export default withRouter(Graph);
+const mapStoreToProps = store => ({entity: store.entity});
+
+const mapDispatchToProps = dispatch => ({
+  entityActions: bindActionCreators(entityActions, dispatch)
+});
+
+export default connect(
+  mapStoreToProps,
+  mapDispatchToProps
+)(withRouter(Graph));

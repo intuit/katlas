@@ -1,10 +1,11 @@
 FROM node:8.12.0 as build-stage
 WORKDIR /app
-#initially copy over just package.json (and locks, if present) for dependency installation step
+#initially copy over just package.json (and locks, if present) for dependency installation
 COPY package*.json /app/
 RUN yarn install
-#then copy over everything, including our code, for the build step
+#then copy over our code for test+build
 COPY ./ /app/
+#RUN yarn test
 RUN yarn build
 
 #once the build-stage is complete, we can build an image for our deployment

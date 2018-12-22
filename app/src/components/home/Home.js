@@ -83,14 +83,14 @@ Home.propTypes = {
   query: PropTypes.object
 };
 
-const mapStateToProps = state => ({query: state.query});
+const mapStoreToProps = store => ({query: store.query});
 
 const mapDispatchToProps = dispatch => ({
   queryActions: bindActionCreators(queryActions, dispatch)
 });
 
 export default connect(
-  mapStateToProps,
+  mapStoreToProps,
   mapDispatchToProps
 )(
   withStyles(styles)(

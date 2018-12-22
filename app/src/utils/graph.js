@@ -37,28 +37,25 @@ let edges, nodes;
 let legendTypesObj = {};
 let legendStatusesObj = {};
 
-function parseDgraphJson(jsonData) {
-  if (jsonData === null || jsonData === undefined ) {
-    console.error("Empty json data");
+function parseDgraphData(data) {
+  if (data === null || data === undefined ) {
+    console.error("Empty data");
     return;
   }
-  for (let outerObj of jsonData){
-    //TODO:DM - clean up anon fn dependent on closure for outerObj
-    _.forOwn(outerObj, (innerObj, key) => {
-      let uid = "";
-      if (key === uidPropNameDgraph) {
-        uid = innerObj;
-        //Store entire block in map, so we can use to create edges later
-        //Edges cannot be created here as we may not have got the uid still
-        //As json from dgraph has randomized order and uid may be after Array elements
-        uidMap.set(uid, outerObj);
-      }
-      if (EdgeLabels.indexOf(key) > -1) {
-        parseDgraphJson(innerObj);
-
-      }
-    });
-  }
+  _.forOwn(data, (val, key) => {
+    let uid = "";
+    if (key === uidPropNameDgraph) {
+      uid = val;
+      //Store entire block in map, so we can use to create edges later
+      //Edges cannot be created here as we may not have got the uid still
+      //As json from dgraph has randomized order and uid may be after Array elements
+      uidMap.set(uid, data);
+    }
+    //if this key is a relationship type (as defined in EdgeLabels) recurse to get children nodes
+    if (EdgeLabels.indexOf(key) > -1) {
+      parseDgraphData(val);
+    }
+  });
 }
 
 
@@ -160,57 +157,55 @@ function validateJSONData(uid, nodeName, nodeObjtype) {
     }
 }
 
-export function getVisData(jsonData) {
+export function getVisData(data) {
   clearVisData();
-  if (jsonData && jsonData.objects) {
-    parseDgraphJson(jsonData.objects);
+  _.forOwn(data, (entity, key) => {
+    parseDgraphData(entity);
     printUidMap();
 
     for (const [uid, v] of uidMap.entries()) {
+      let nodeName = "", nodeObjtype = "", nodeStatus = "";
+      const block = v;
 
-        let nodeName = "", nodeObjtype = "", nodeStatus = "";
+      for (const prop in block) {
+          if (!block.hasOwnProperty(prop)) {
+              continue;
+          }
+          const val = block[prop];
+          //determine whether we are looking at a property for this node OR a set of child nodes
+          if (
+              Array.isArray(val) &&
+              val.length > 0 &&
+              typeof val[0] === "object"
+          ) {
+              // These are child nodes
+              for (let i = 0; i < val.length; i++) {
+                  const fromUid = uid; //key for this map entry
+                  const toUid = val[i].uid;
 
-        const block = v;
-
-        for (const prop in block) {
-            if (!block.hasOwnProperty(prop)) {
-                continue;
-            }
-            const val = block[prop];
-            //determine whether we are looking at a property for this node OR a set of child nodes
-            if (
-                Array.isArray(val) &&
-                val.length > 0 &&
-                typeof val[0] === "object"
-            ) {
-                // These are child nodes
-                for (let i = 0; i < val.length; i++) {
-                    const fromUid = uid; //key for this map entry
-                    const toUid = val[i].uid;
-
-                    const e = getVisFormatEdge(fromUid, toUid, prop);
-                    edges.push(e);
-                }
-            } else {
-                //get properties which we need to feed to Visjs Node
-                if (prop === namePropNameDgraphApp) {
-                    nodeName = val;
-                }
-                if (prop === objtypePropNameDgraphApp) {
-                    nodeObjtype = val;
-                }
-                if (prop === nodeStatusProp ||
-                  prop === nodePhaseProp) {
-                  nodeStatus = val;
-                }
-            }
-        }
-        validateJSONData(uid, nodeName, nodeObjtype);
-        let n = getVisFormatNode(uid, nodeName, nodeObjtype, nodeStatus);
-        nodes.push(n);
+                  const e = getVisFormatEdge(fromUid, toUid, prop);
+                  edges.push(e);
+              }
+          } else {
+              //get properties which we need to feed to Visjs Node
+              if (prop === namePropNameDgraphApp) {
+                  nodeName = val;
+              }
+              if (prop === objtypePropNameDgraphApp) {
+                  nodeObjtype = val;
+              }
+              if (prop === nodeStatusProp ||
+                prop === nodePhaseProp) {
+                nodeStatus = val;
+              }
+          }
+      }
+      validateJSONData(uid, nodeName, nodeObjtype);
+      let n = getVisFormatNode(uid, nodeName, nodeObjtype, nodeStatus);
+      nodes.push(n);
     }
-    return {nodes, edges};
-  }
+  });
+  return {nodes, edges};
 
 }
 

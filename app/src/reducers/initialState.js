@@ -6,5 +6,9 @@ export default {
     isWaiting: false,
     results: []
   },
-  entity: {}
+  entity: {
+    uidsObj: {},
+    results: {},
+    latestTimestamp: 0
+  }
 };
