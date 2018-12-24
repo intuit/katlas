@@ -1,5 +1,5 @@
 import { createBrowserHistory } from 'history'
 
 export default createBrowserHistory({
-  /* pass a configuration object here if needed */
+  basename: process.env.PUBLIC_URL
 })
