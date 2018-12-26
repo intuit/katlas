@@ -18,6 +18,7 @@ import (
 // PodHandler is a sample implementation of Handler
 type PodHandler struct{}
 
+// GetPodInformer get index Informer to watch Pod
 func GetPodInformer(client kubernetes.Interface) cache.SharedIndexInformer {
 	// the informer is responsible for listing and watching events for objects of a specific type
 	informer := cache.NewSharedIndexInformer(
@@ -27,11 +28,11 @@ func GetPodInformer(client kubernetes.Interface) cache.SharedIndexInformer {
 		&cache.ListWatch{
 			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
 				// list all of the pods (core resource) in the deafult namespace
-				return client.CoreV1().Pods(APP_NAMESPACE).List(options)
+				return client.CoreV1().Pods(AppNamespace).List(options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				// watch all of the pods (core resource) in the default namespace
-				return client.CoreV1().Pods(APP_NAMESPACE).Watch(options)
+				return client.CoreV1().Pods(AppNamespace).Watch(options)
 			},
 		},
 		&core_v1.Pod{}, // the target type (Pod)
@@ -49,7 +50,7 @@ func (t *PodHandler) Init() error {
 	return nil
 }
 
-// verify that the object has at least these fields
+// ValidatePod verify that the object has at least these fields
 func ValidatePod(pod *core_v1.Pod) bool {
 	if pod.ObjectMeta.Name == "" {
 		return false
@@ -57,15 +58,14 @@ func ValidatePod(pod *core_v1.Pod) bool {
 	if pod.ObjectMeta.Namespace == "" {
 		return false
 	}
-	if len(pod.ObjectMeta.OwnerReferences) == 0 {
+	if pod.ObjectMeta.ResourceVersion == "" {
 		return false
 	}
-
 	return true
 }
 
 // ObjectCreated is called when an object is created
-func (t *PodHandler) ObjectCreated(obj interface{}) (map[string]interface{}, error) {
+func (t *PodHandler) ObjectCreated(obj interface{}) error {
 	defer func() {
 		if r := recover(); r != nil {
 			t.ObjectUpdated(obj, obj)
@@ -75,23 +75,17 @@ func (t *PodHandler) ObjectCreated(obj interface{}) (map[string]interface{}, err
 	// assert the type to a Pod object to pull out relevant data
 	pod := obj.(*core_v1.Pod)
 	if !ValidatePod(pod) {
-		return nil, errors.New("Could not validate pod object " + pod.ObjectMeta.Name)
+		return errors.New("Could not validate pod object " + pod.ObjectMeta.Name)
 	}
-
-	poddata := CreatePodData(*pod, CLUSTERNAME)
-
 	// send the object to the rest service
-	SendJSONQueryWithRetries(poddata, CMDBAPIENDPOINT+"v1/entity/Pod")
-
-	return poddata, nil
+	SendJSONQueryWithRetries(pod, RestSvcEndpoint+"v1/entity/Pod")
+	return nil
 }
 
 // ObjectDeleted is called when an object is deleted
 func (t *PodHandler) ObjectDeleted(obj interface{}, key string) error {
 	log.Info("PodHandler.ObjectDeleted")
-
-	SendDeleteRequest(CMDBAPIENDPOINT + "v1/entity/Pod/" + CLUSTERNAME + ":" + strings.Replace(key, "/", ":", -1))
-
+	SendDeleteRequest(RestSvcEndpoint + "v1/entity/Pod/Pod:" + ClusterName + ":" + strings.Replace(key, "/", ":", -1))
 	return nil
 }
 
@@ -101,39 +95,10 @@ func (t *PodHandler) ObjectUpdated(objOld, objNew interface{}) error {
 	return nil
 }
 
-func CreatePodData(pod core_v1.Pod, clustername string) map[string]interface{} {
-
-	podmap := map[string]interface{}{
-		"objtype":         "Pod",
-		"name":            pod.ObjectMeta.Name,
-		"namespace":       pod.ObjectMeta.Namespace,
-		"creationtime":    pod.ObjectMeta.CreationTimestamp,
-		"phase":           pod.Status.Phase,
-		"nodename":        pod.Spec.NodeName,
-		"ip":              pod.Status.PodIP,
-		"containers":      pod.Spec.Containers,
-		"volumes":         pod.Spec.Volumes,
-		"labels":          pod.ObjectMeta.GetLabels(),
-		"cluster":         clustername,
-		"resourceversion": pod.ObjectMeta.ResourceVersion,
-		"k8sobj":          "K8sObj",
-	}
-	if len(pod.ObjectMeta.OwnerReferences) > 0 {
-		podmap["owner"] = pod.ObjectMeta.OwnerReferences[0].Name
-		podmap["ownertype"] = pod.ObjectMeta.OwnerReferences[0].Kind
-	}
-
-	return podmap
-}
-
-// synchronize the objects in dgraph with the cluster to account for drift
+// PodSynchronize synchronize the objects in dgraph with the cluster to account for drift
 // e.g. if there were network issues and some events weren't received,
 // or if the api crashes while processing some events
 func PodSynchronize(client kubernetes.Interface) {
-	list := make([]map[string]interface{}, 0)
-	clusterpodslist, _ := client.CoreV1().Pods(APP_NAMESPACE).List(v1.ListOptions{})
-	for _, data := range clusterpodslist.Items {
-		list = append(list, CreatePodData(data, CLUSTERNAME))
-	}
-	SendJSONQueryWithRetries(list, CMDBAPIENDPOINT+"v1/sync/Pod")
+	clusterpodslist, _ := client.CoreV1().Pods(AppNamespace).List(v1.ListOptions{})
+	SendJSONQueryWithRetries(clusterpodslist.Items, RestSvcEndpoint+"v1/sync/Pod")
 }

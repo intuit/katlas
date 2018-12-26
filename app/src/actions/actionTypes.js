@@ -5,3 +5,4 @@ export const RECEIVE_QUERY = 'RECEIVE_QUERY';
 export const ADD_ENTITY_WATCH = 'ADD_ENTITY_WATCH';
 export const FETCH_ENTITY = 'FETCH_ENTITY';
 export const RECEIVE_ENTITY = 'RECEIVE_ENTITY';
+export const SHOW_NOTIFY = 'SHOW_NOTIFY';

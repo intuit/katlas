@@ -1,6 +1,6 @@
 FROM golang:1.10
-RUN mkdir -p /go/src/github.com/intuit/katlas/rest-service
-WORKDIR /go/src/github.com/intuit/katlas/rest-service
+RUN mkdir -p /go/src/github.com/intuit/katlas/service
+WORKDIR /go/src/github.com/intuit/katlas/service
 RUN go get -u -v github.com/dgraph-io/dgo
 RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 RUN go get github.com/Sirupsen/logrus

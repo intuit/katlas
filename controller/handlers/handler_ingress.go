@@ -17,6 +17,7 @@ import (
 // IngressHandler is a sample implementation of Handler
 type IngressHandler struct{}
 
+// GetIngressInformer get index Informer to watch Ingress
 func GetIngressInformer(client kubernetes.Interface) cache.SharedIndexInformer {
 	informer := cache.NewSharedIndexInformer(
 		// the ListWatch contains two different functions that our
@@ -25,11 +26,11 @@ func GetIngressInformer(client kubernetes.Interface) cache.SharedIndexInformer {
 		&cache.ListWatch{
 			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
 				// list all of the ingresses (ExtensionsV1beta1 resource) in the deafult ingress
-				return client.ExtensionsV1beta1().Ingresses(APP_NAMESPACE).List(options)
+				return client.ExtensionsV1beta1().Ingresses(AppNamespace).List(options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
 				// watch all of the ingresses (ExtensionsV1beta1 resource) in the default ingress
-				return client.ExtensionsV1beta1().Ingresses(APP_NAMESPACE).Watch(options)
+				return client.ExtensionsV1beta1().Ingresses(AppNamespace).Watch(options)
 			},
 		},
 		&ext_v1beta1.Ingress{}, // the target type (Pod)
@@ -48,7 +49,7 @@ func (t *IngressHandler) Init() error {
 }
 
 // ObjectCreated is called when an object is created
-func (t *IngressHandler) ObjectCreated(obj interface{}) (map[string]interface{}, error) {
+func (t *IngressHandler) ObjectCreated(obj interface{}) error {
 	log.Info("IngressHandler.ObjectCreated")
 	defer func() {
 		if r := recover(); r != nil {
@@ -58,23 +59,15 @@ func (t *IngressHandler) ObjectCreated(obj interface{}) (map[string]interface{},
 	}()
 	// assert the type to a Ingress object to pull out relevant data
 	ingress := obj.(*ext_v1beta1.Ingress)
-
-	ingressdata := CreateIngressData(*ingress, CLUSTERNAME)
-
 	log.Infof("    ingressmeta: %+v", ingress)
-	log.Infof(".   IngressName: %s", ingressdata)
-
-	SendJSONQueryWithRetries(ingressdata, CMDBAPIENDPOINT+"v1/entity/Ingress")
-
-	return ingressdata, nil
+	SendJSONQueryWithRetries(ingress, RestSvcEndpoint+"v1/entity/Ingress")
+	return nil
 }
 
 // ObjectDeleted is called when an object is deleted
 func (t *IngressHandler) ObjectDeleted(obj interface{}, key string) error {
 	log.Info("IngressHandler.ObjectDeleted")
-
-	SendDeleteRequest(CMDBAPIENDPOINT + "v1/entity/Ingress/" + CLUSTERNAME + ":" + strings.Replace(key, "/", ":", -1))
-
+	SendDeleteRequest(RestSvcEndpoint + "v1/entity/Ingress/Ingress:" + ClusterName + ":" + strings.Replace(key, "/", ":", -1))
 	return nil
 }
 
@@ -84,30 +77,8 @@ func (t *IngressHandler) ObjectUpdated(objOld, objNew interface{}) error {
 	return nil
 }
 
-func CreateIngressData(ingress ext_v1beta1.Ingress, clustername string) map[string]interface{} {
-
-	ingressdata := map[string]interface{}{
-		"objtype":         "Ingress",
-		"cluster":         clustername,
-		"name":            ingress.ObjectMeta.Name,
-		"namespace":       ingress.ObjectMeta.Namespace,
-		"creationtime":    ingress.ObjectMeta.CreationTimestamp,
-		"defaultbackend":  ingress.Spec.Backend,
-		"tls":             ingress.Spec.TLS,
-		"rules":           ingress.Spec.Rules,
-		"resourceversion": ingress.ObjectMeta.ResourceVersion,
-		"labels":          ingress.ObjectMeta.GetLabels(),
-		"k8sobj":          "K8sObj",
-	}
-
-	return ingressdata
-}
-
+// IngressSynchronize sync all Ingresses periodically in case missing events
 func IngressSynchronize(client kubernetes.Interface) {
-	list := make([]map[string]interface{}, 0)
-	clusteringresseslist, _ := client.ExtensionsV1beta1().Ingresses(APP_NAMESPACE).List(v1.ListOptions{})
-	for _, data := range clusteringresseslist.Items {
-		list = append(list, CreateIngressData(data, CLUSTERNAME))
-	}
-	SendJSONQueryWithRetries(list, CMDBAPIENDPOINT+"v1/sync/Ingress")
+	clusteringresseslist, _ := client.ExtensionsV1beta1().Ingresses(AppNamespace).List(v1.ListOptions{})
+	SendJSONQueryWithRetries(clusteringresseslist.Items, RestSvcEndpoint+"v1/sync/Ingress")
 }

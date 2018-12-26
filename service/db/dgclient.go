@@ -83,7 +83,6 @@ func (s DGClient) GetEntity(meta string, uuid string) (map[string]interface{}, e
 			}
 		}
 	`
-	log.Infof("print output query %s\n", q)
 	resp, err := s.dc.NewTxn().Query(context.Background(), q)
 	if err != nil {
 		return nil, err
@@ -130,7 +129,7 @@ func (s DGClient) CreateEntity(meta string, data map[string]interface{}) (map[st
 	mu.SetJson = jsonData
 	resp, err := txn.Mutate(ctx, mu)
 	if err != nil {
-		log.Error(err)
+		log.Error(err, data)
 		return nil, err
 	}
 	log.Infof("%s %s created/updated successfully", meta, data["name"])
