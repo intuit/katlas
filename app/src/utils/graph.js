@@ -58,103 +58,96 @@ function parseDgraphData(data) {
   });
 }
 
-
-
 function printUidMap() {
-    console.debug("Printing uidMap");
-    for (const [k, v] of uidMap.entries()) {
-        console.debug(k, v);
-    }
+  console.debug("Printing uidMap");
+  for (const [k, v] of uidMap.entries()) {
+    console.debug(k, v);
+  }
 }
 
 function getNodeIcon(nodeObjtype) {
-
-    if (nodeObjtype === undefined || nodeObjtype === null) {
-        return NodeIconMap.get("default");
-    }
-    if (NodeIconMap.has(nodeObjtype)) {
-        return NodeIconMap.get(nodeObjtype);
-    } else {
-        return NodeIconMap.get("default");
-    }
+  if (nodeObjtype === undefined || nodeObjtype === null) {
+    return NodeIconMap.get("default");
+  }
+  if (NodeIconMap.has(nodeObjtype)) {
+    return NodeIconMap.get(nodeObjtype);
+  } else {
+    return NodeIconMap.get("default");
+  }
 }
 
 function getEdgeLabelShortHand(prop) {
-
-    let edgeLabel = "";
-    if (prop !== "") {
-        //edgeLabel = prop.substring(0, 1);
-        edgeLabel = prop;
-        //edgeLabelMap.set(edgeLabel, prop);
-    }
-    return edgeLabel;
+  let edgeLabel = "";
+  if (prop !== "") {
+    edgeLabel = prop;
+  }
+  return edgeLabel;
 }
 
 function getVisFormatEdge(fromUid, toUid, relation) {
-
-    const e = {
-        from: fromUid,
-        to: toUid,
-        label: getEdgeLabelShortHand(relation),
-        color: {
-            color: EdgeColorMap.get(NODE_DEFAULT_STR),
-            inherit: false
-        },
-        font: {
-            size: 8
-        },
-        arrows: "to"
-    };
-    return e;
+  const e = {
+    from: fromUid,
+    to: toUid,
+    label: getEdgeLabelShortHand(relation),
+    color: {
+      color: EdgeColorMap.get(NODE_DEFAULT_STR),
+      inherit: false
+    },
+    font: {
+      size: 8
+    },
+    arrows: "to"
+  };
+  return e;
 }
 
 function getVisFormatNode(uid, nodeName, nodeObjtype, nodeStatus) {
-    let idParam = uid;
-    let titleParam = "";
+  let idParam = uid;
+  let titleParam = "";
 
-    if (nodeObjtype !== undefined && nodeObjtype !== null) {
-        titleParam = nodeObjtype;
-    } else {
-        titleParam = nodeName;
-    }
+  if (nodeObjtype !== undefined && nodeObjtype !== null) {
+    titleParam = nodeObjtype;
+  } else {
+    titleParam = nodeName;
+  }
 
-    //some names are too large to render correctly in hierarchy, split them by middle dash across 2 lines of text
-    nodeName = nameSplitter(nodeName);
+  //some names are too large to render correctly in hierarchy, split them by middle dash across 2 lines of text
+  nodeName = nameSplitter(nodeName);
 
-    const color = NodeStatusColorMap.get(nodeStatus || NODE_DEFAULT_STR);
+  const color = NodeStatusColorMap.get(nodeStatus || NODE_DEFAULT_STR);
 
-    const n = {
-        id: idParam,
-        uid: uid,
-        label: nodeName,
-        icon:{
-          face: NODE_ICON_FONT,
-          code: getNodeIcon(nodeObjtype),
-          size: NODE_ICON_FONT_SIZE,
-          color: color,
-        },
-        name: nodeName,
-        title: titleParam,
-        status: nodeStatus,
-    };
-    legendTypesObj[nodeObjtype] = {
+  const n = {
+    id: idParam,
+    uid: uid,
+    label: nodeName,
+    icon:{
+      face: NODE_ICON_FONT,
       code: getNodeIcon(nodeObjtype),
-      color: NODE_DEFAULT_COLOR,
-    };
-    legendStatusesObj[nodeStatus] = {
-      code: getNodeIcon(NODE_DEFAULT_STR),
+      size: NODE_ICON_FONT_SIZE,
       color: color,
-    };
-    return n;
+    },
+    name: nodeName,
+    title: titleParam,
+    status: nodeStatus,
+  };
+  legendTypesObj[nodeObjtype] = {
+    code: getNodeIcon(nodeObjtype),
+    color: NODE_DEFAULT_COLOR,
+  };
+  legendStatusesObj[nodeStatus] = {
+    code: getNodeIcon(NODE_DEFAULT_STR),
+    color: color,
+  };
+  return n;
 }
 
 function validateJSONData(uid, nodeName, nodeObjtype) {
-    if (nodeName === "") {
-        console.error(`JSON Error - Attribute ${namePropNameDgraphApp} missing for uid = ${uid}`);
-    }
-    if (nodeObjtype === "") {
-        console.error(`JSON Error - Attribute ${objtypePropNameDgraphApp} missing for uid = ${uid}`);
-    }
+  if (nodeName === "") {
+    console.error(`JSON Error - Attribute ${namePropNameDgraphApp} missing for uid = ${uid}`);
+  }
+  if (nodeObjtype === "") {
+    console.error(`JSON Error - Attribute ${objtypePropNameDgraphApp} missing for uid = ${uid}`);
+  }
 }
 
 export function getVisData(data) {
@@ -165,40 +158,38 @@ export function getVisData(data) {
 
     for (const [uid, v] of uidMap.entries()) {
       let nodeName = "", nodeObjtype = "", nodeStatus = "";
+
       const block = v;
 
       for (const prop in block) {
-          if (!block.hasOwnProperty(prop)) {
-              continue;
-          }
-          const val = block[prop];
-          //determine whether we are looking at a property for this node OR a set of child nodes
-          if (
-              Array.isArray(val) &&
-              val.length > 0 &&
-              typeof val[0] === "object"
-          ) {
-              // These are child nodes
-              for (let i = 0; i < val.length; i++) {
-                  const fromUid = uid; //key for this map entry
-                  const toUid = val[i].uid;
+        if (!block.hasOwnProperty(prop)) {
+          continue;
+        }
+        const val = block[prop];
+        //determine whether we are looking at a property for this node OR a set of child nodes
+        if (Array.isArray(val) && val.length > 0 &&
+          typeof val[0] === "object") {
+          // These are child nodes
+          for (let i = 0; i < val.length; i++) {
+            const fromUid = uid; //key for this map entry
+            const toUid = val[i].uid;
 
-                  const e = getVisFormatEdge(fromUid, toUid, prop);
-                  edges.push(e);
-              }
-          } else {
-              //get properties which we need to feed to Visjs Node
-              if (prop === namePropNameDgraphApp) {
-                  nodeName = val;
-              }
-              if (prop === objtypePropNameDgraphApp) {
-                  nodeObjtype = val;
-              }
-              if (prop === nodeStatusProp ||
-                prop === nodePhaseProp) {
-                nodeStatus = val;
-              }
+            const e = getVisFormatEdge(fromUid, toUid, prop);
+            edges.push(e);
           }
+        } else {
+          //get properties which we need to feed to Visjs Node
+          if (prop === namePropNameDgraphApp) {
+            nodeName = val;
+          }
+          if (prop === objtypePropNameDgraphApp) {
+            nodeObjtype = val;
+          }
+          if (prop === nodeStatusProp ||
+            prop === nodePhaseProp) {
+            nodeStatus = val;
+          }
+        }
       }
       validateJSONData(uid, nodeName, nodeObjtype);
       let n = getVisFormatNode(uid, nodeName, nodeObjtype, nodeStatus);
@@ -226,17 +217,17 @@ export function clearVisData(){
 
 //colorChannelA and colorChannelB are ints ranging from 0 to 255
 function colorChannelMixer(colorChannelA, colorChannelB, amountToMix){
-    let channelA = colorChannelA*amountToMix;
-    let channelB = colorChannelB*(1-amountToMix);
-    return parseInt(channelA+channelB);
+  let channelA = colorChannelA*amountToMix;
+  let channelB = colorChannelB*(1-amountToMix);
+  return parseInt(channelA+channelB);
 }
 //rgbA and rgbB are arrays, amountToMix ranges from 0.0 to 1.0
 //example (red): rgbA = [255,0,0]
 export function colorMixer(rgbA, rgbB, amountToMix){
-    let r = colorChannelMixer(rgbA[0],rgbB[0],amountToMix);
-    let g = colorChannelMixer(rgbA[1],rgbB[1],amountToMix);
-    let b = colorChannelMixer(rgbA[2],rgbB[2],amountToMix);
-    return "rgb("+r+","+g+","+b+")";
+  let r = colorChannelMixer(rgbA[0],rgbB[0],amountToMix);
+  let g = colorChannelMixer(rgbA[1],rgbB[1],amountToMix);
+  let b = colorChannelMixer(rgbA[2],rgbB[2],amountToMix);
+  return "rgb("+r+","+g+","+b+")";
 }
 
 //Function to split long label names. If too long, name is split by its middle
