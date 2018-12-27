@@ -56,7 +56,7 @@ func serve() {
 		log.Errorf("err: %v", err)
 	}
 	log.Infoln("LRU cache created with given size")
-	db.InitLruCacheDBSchema = false
+	//db.InitLruCacheDBSchema = false
 
 	log.Infof("Service started on port:8011, mode:%s", cfg.ServerCfg.ServerType)
 
