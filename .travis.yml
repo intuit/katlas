@@ -20,7 +20,7 @@ before_script:
 script:
   - cd service
   - golint ./...
-  - go test -v ./... -coverprofile=service.coverprofile
+  - go test -v ./... -coverprofile=coverage.txt -covermode=atomic
   - docker build --no-cache -f Dockerfile -t katlas-service:${TRAVIS_COMMIT} .
 
 after_success:
