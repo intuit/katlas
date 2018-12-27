@@ -14,6 +14,8 @@ import (
 	"github.com/intuit/katlas/service/resources"
 )
 
+const CacheSize = 10
+
 //Health checks service health
 func Health(w http.ResponseWriter, r *http.Request) {
 	log.Info("RestService is still running")
@@ -51,7 +53,7 @@ func serve() {
 
 	//Creates an LRU cache of the given size
 	var err error
-	db.LruCache, err = lru.New(5)
+	db.LruCache, err = lru.New(CacheSize)
 	if err != nil {
 		log.Errorf("err: %v", err)
 	}
