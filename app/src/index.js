@@ -3,6 +3,7 @@ import { Provider } from 'react-redux';
 import { render } from 'react-dom';
 import { Router } from 'react-router-dom';
 import { MuiThemeProvider, createMuiTheme } from "@material-ui/core";
+import CssBaseline from '@material-ui/core/CssBaseline';
 import WebFont from 'webfontloader';
 import history from './history';
 
@@ -34,6 +35,7 @@ const theme = createMuiTheme({
 
 render(
   <MuiThemeProvider theme={theme}>
+    <CssBaseline />
     <Provider store={store}>
       <Router history={history}>
         <App/>
