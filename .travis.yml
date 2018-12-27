@@ -22,3 +22,6 @@ script:
   - golint ./...
   - go test -v ./... -coverprofile=service.coverprofile
   - docker build --no-cache -f Dockerfile -t katlas-service:${TRAVIS_COMMIT} .
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
