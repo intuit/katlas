@@ -275,7 +275,7 @@ func (s DGClient) GetAllByClusterAndType(meta string, cluster string) (map[strin
 //GetCacheContainsDBSchema - Get cache which contains db schema
 func (s DGClient) GetCacheContainsDBSchema() (*lru.Cache, error) {
 	//Add db schema to the cache
-	if InitLruCacheDBSchema == false {
+	if !InitLruCacheDBSchema {
 		dbSchemaNodes, err := s.GetSchemaFromDB()
 		if err != nil {
 			log.Errorf("err: %v", err)
