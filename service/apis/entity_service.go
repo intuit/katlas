@@ -10,6 +10,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/util"
+	"reflect"
 )
 
 // KeyMutex lock single object by resourceid
@@ -79,23 +80,10 @@ func (s EntityService) DeleteEntityByResourceID(meta string, rid string) error {
 
 // CreateEntity save new entity to the storage
 func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (map[string]string, error) {
-	ridPrefix := ""
-	cluster := ""
-	ns := ""
-	if _, ok := data[util.K8sObj]; ok {
-		if _, ok := data[util.Cluster]; ok {
-			cluster = data[util.Cluster].(string)
-			ridPrefix += cluster + ":"
-		}
-		if _, ok := data[util.Namespace]; ok {
-			ns = data[util.Namespace].(string)
-			ridPrefix += ns + ":"
-		}
-		data[util.ResourceID] = ridPrefix + data[util.Name].(string)
-	} else {
-		if _, ok := data[util.ResourceID]; !ok {
-			data[util.ResourceID] = data[util.Name]
-		}
+	cluster := data[util.Cluster]
+	ns := data[util.Namespace]
+	if _, ok := data[util.ResourceID]; !ok {
+		data[util.ResourceID] = getResourceID(meta, data)
 	}
 	fs, err := s.metaSvc.GetMetadataFields(meta)
 	if err != nil {
@@ -120,44 +108,33 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 				data[field.FieldName] = string(bytes)
 			} else if field.FieldType == util.Relationship {
 				// replace value with relationship object uid
-				_, ok = fieldValue.(string)
-				isJSON := true
-				if ok {
-					isJSON = false
-				}
-				if err != nil {
-					// something wrong on json data, remove it
-					log.Error(err)
-					delete(data, field.FieldName)
-				} else {
-					if strings.EqualFold(field.Cardinality, util.Many) {
-						uidMaps := []map[string]string{}
-						for _, rel := range data[field.FieldName].([]interface{}) {
-							dataMap := buildDataMap(isJSON, rel, field.RefDataType, cluster, ns)
-							uid, err := s.getUIDFromRelData(dataMap, field.RefDataType)
-							if err != nil {
-								log.Error(err)
-								return nil, err
-							}
-							uidMaps = append(uidMaps, map[string]string{util.UID: *uid})
-						}
-						data[field.FieldName] = uidMaps
-					} else {
-						uidMap := map[string]string{}
-						// pod can be owned by multi-objs like replicaset, daemonset
-						// FIX-later: hack to set refDataType to dynamic value from owner reference
-						if strings.EqualFold(meta, util.Pod) && strings.EqualFold(field.FieldName, util.Owner) {
-							field.RefDataType = data[util.OwnerType].(string)
-						}
-						dataMap := buildDataMap(isJSON, data[field.FieldName], field.RefDataType, cluster, ns)
+				if strings.EqualFold(field.Cardinality, util.Many) {
+					uidMaps := []map[string]string{}
+					for _, rel := range data[field.FieldName].([]interface{}) {
+						dataMap := buildDataMap(data[util.K8sObj], rel, field.RefDataType, cluster, ns)
 						uid, err := s.getUIDFromRelData(dataMap, field.RefDataType)
 						if err != nil {
 							log.Error(err)
 							return nil, err
 						}
-						uidMap[util.UID] = *uid
-						data[field.FieldName] = uidMap
+						uidMaps = append(uidMaps, map[string]string{util.UID: *uid})
 					}
+					data[field.FieldName] = uidMaps
+				} else {
+					uidMap := map[string]string{}
+					// pod can be owned by multi-objs like replicaset, daemonset
+					// FIX-later: hack to set refDataType to dynamic value from owner reference
+					if strings.EqualFold(meta, util.Pod) && strings.EqualFold(field.FieldName, util.Owner) {
+						field.RefDataType = data[util.OwnerType].(string)
+					}
+					dataMap := buildDataMap(data[util.K8sObj], data[field.FieldName], field.RefDataType, cluster, ns)
+					uid, err := s.getUIDFromRelData(dataMap, field.RefDataType)
+					if err != nil {
+						log.Error(err)
+						return nil, err
+					}
+					uidMap[util.UID] = *uid
+					data[field.FieldName] = uidMap
 				}
 			}
 		}
@@ -210,35 +187,37 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 // SyncEntities ...
 func (s EntityService) SyncEntities(meta string, data []map[string]interface{}) error {
 	// get all objects from database base on meta and k8 cluster
-	objs, err := s.dbclient.GetAllByClusterAndType(meta, data[0][util.Cluster].(string))
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-	// if obj not present in input, remove it from database
-	if len(objs[util.Objects].([]interface{})) > 0 {
-		for _, obj := range objs[util.Objects].([]interface{}) {
-			uid := obj.(map[string]interface{})[util.UID].(string)
-			rid := obj.(map[string]interface{})[util.ResourceID].(string)
-			name := obj.(map[string]interface{})[util.Name].(string)
-			var ns interface{}
-			if strings.Count(rid, ":") == 2 {
-				ns = rid[strings.Index(rid, ":")+1 : strings.LastIndex(rid, ":")]
-			}
-			found := false
-			for _, d := range data {
-				if name == d[util.Name].(string) && ns == d[util.Namespace] {
-					found = true
+	if len(data) > 0 {
+		objs, err := s.dbclient.GetAllByClusterAndType(meta, data[0][util.Cluster].(string))
+		if err != nil {
+			log.Error(err)
+			return err
+		}
+		// if obj not present in input, remove it from database
+		if len(objs[util.Objects].([]interface{})) > 0 {
+			for _, obj := range objs[util.Objects].([]interface{}) {
+				uid := obj.(map[string]interface{})[util.UID].(string)
+				rid := obj.(map[string]interface{})[util.ResourceID].(string)
+				name := obj.(map[string]interface{})[util.Name].(string)
+				var ns interface{}
+				if strings.Count(rid, ":") == 3 {
+					ns = strings.Split(rid, ":")[2]
+				}
+				found := false
+				for _, d := range data {
+					if name == d[util.Name].(string) && ns == d[util.Namespace] {
+						found = true
+					}
+				}
+				if !found {
+					s.dbclient.DeleteEntity(uid)
 				}
 			}
-			if !found {
-				s.dbclient.DeleteEntity(uid)
-			}
 		}
-	}
-	// create or update from input
-	for _, d := range data {
-		s.CreateEntity(meta, d)
+		// create or update from input
+		for _, d := range data {
+			s.CreateEntity(meta, d)
+		}
 	}
 	return nil
 }
@@ -259,26 +238,48 @@ func (s EntityService) UpdateEntity(meta string, uuid string, data map[string]in
 	return s.dbclient.UpdateEntity(meta, uuid, data)
 }
 
+// build resourceid
+func getResourceID(meta string, data map[string]interface{}) string {
+	ridPrefix := meta + ":"
+	if _, ok := data[util.K8sObj]; ok {
+		if _, ok := data[util.Cluster]; ok {
+			ridPrefix += data[util.Cluster].(string) + ":"
+		}
+		if _, ok := data[util.Namespace]; ok {
+			ridPrefix += data[util.Namespace].(string) + ":"
+		}
+	}
+	return ridPrefix + data[util.Name].(string)
+}
+
 // build data
-func buildDataMap(isJSON bool, relData interface{}, relType string, cluster string, ns string) map[string]interface{} {
+func buildDataMap(k8sObj interface{}, relData interface{}, relType string, cluster interface{}, ns interface{}) map[string]interface{} {
 	var dataMap map[string]interface{}
-	if isJSON { // json data
+	if reflect.TypeOf(relData).Kind() == reflect.String {
+		dataMap = make(map[string]interface{})
+		dataMap[util.Name] = relData.(string)
+	} else if reflect.TypeOf(relData).Kind() == reflect.Map {
 		dataMap = relData.(map[string]interface{})
 		dataMap[util.Name] = relData.(map[string]interface{})[util.Name]
-	} else {
-		dataMap = make(map[string]interface{})
+	}
+	if k8sObj != nil {
 		dataMap[util.K8sObj] = util.K8sObj
-		dataMap[util.Name] = relData.(string)
 	}
 	if strings.EqualFold(relType, util.Cluster) {
-		dataMap[util.ResourceID] = dataMap[util.Name]
+		dataMap[util.ResourceID] = relType + ":" + dataMap[util.Name].(string)
 	} else if strings.EqualFold(relType, util.Namespace) || strings.EqualFold(relType, util.Node) {
 		dataMap[util.Cluster] = cluster
-		dataMap[util.ResourceID] = cluster + ":" + dataMap[util.Name].(string)
+		dataMap[util.ResourceID] = relType + ":" + cluster.(string) + ":" + dataMap[util.Name].(string)
+	} else if strings.EqualFold(relType, util.Application) {
+		dataMap[util.ResourceID] = relType + ":" + dataMap[util.Name].(string)
 	} else {
-		dataMap[util.Cluster] = cluster
-		dataMap[util.Namespace] = ns
-		dataMap[util.ResourceID] = cluster + ":" + ns + ":" + dataMap[util.Name].(string)
+		if cluster != nil {
+			dataMap[util.Cluster] = cluster
+		}
+		if ns != nil {
+			dataMap[util.Namespace] = ns
+		}
+		dataMap[util.ResourceID] = getResourceID(relType, dataMap)
 	}
 	dataMap[util.ObjType] = relType
 	return dataMap

@@ -67,29 +67,14 @@ func TestIngress(t *testing.T) {
 
 		t.Logf("Ingresses: %s\n", listingresses.String())
 
-		output, err := ingresshandler.ObjectCreated(a)
+		err = ingresshandler.ObjectCreated(a)
 		if err != nil {
-			t.Errorf("error reading ingress : %v", err)
+			t.Errorf("error creating ingress : %v", err)
 		}
 		err = ingresshandler.ObjectUpdated(a, a)
-
-		if len(output) != len(test.out) {
-			t.Error("Informer did not get the added ingress diff length")
+		if err != nil {
+			t.Errorf("error updating ingress : %v", err)
 		}
-
-		for k, v := range output {
-			if k == "tls" || k == "rules" || k == "defaultbackend" || k == "labels" {
-				continue
-			}
-			if w, ok := test.out[k]; !ok || v != w {
-				t.Error("Informer did not get the added ingress diff values")
-				t.Errorf("output[%s]: %s\n", k, output[k])
-				t.Errorf("test.out[%s]: %s\n", k, test.out[k])
-			}
-		}
-
-		t.Logf("Got ingress from channel: %s/%s\n", output["ingress"], test.out["name"])
-
 	}
 
 	handlers.IngressSynchronize(client)

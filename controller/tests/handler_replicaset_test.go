@@ -76,29 +76,14 @@ func TestReplicaSet(t *testing.T) {
 
 		t.Logf("ReplicaSets: %s\n", listreplicasets.String())
 
-		output, err := replicasethandler.ObjectCreated(a)
+		err = replicasethandler.ObjectCreated(a)
 		if err != nil {
-			t.Errorf("error reading replicaset : %v", err)
+			t.Errorf("error creating replicaset : %v", err)
 		}
 		err = replicasethandler.ObjectUpdated(a, a)
-
-		if len(output) != len(test.out) {
-			t.Error("Informer did not get the added replicaset diff length")
+		if err != nil {
+			t.Errorf("error updating replicaset : %v", err)
 		}
-
-		for k, v := range output {
-			if k == "podspec" || k == "numreplicas" || k == "labels" || k == "creationtime" {
-				continue
-			}
-			if w, ok := test.out[k]; !ok || v != w {
-				t.Error("Informer did not get the added replicaset diff values")
-				t.Errorf("output[%s]: %s\n", k, output[k])
-				t.Errorf("output[%s]: %s\n", k, test.out[k])
-			}
-		}
-
-		t.Logf("Got replicaset from channel: %s/%s\n", output["replicaset"], test.out["name"])
-
 	}
 
 	handlers.ReplicaSetSynchronize(client)

@@ -85,30 +85,14 @@ func TestPod(t *testing.T) {
 		listpods, err := client.Core().Pods("test-namespace").List(metav1.ListOptions{})
 		t.Logf("Pods: %s\n", listpods.String())
 
-		output, err := podhandler.ObjectCreated(a)
-
+		err = podhandler.ObjectCreated(a)
 		if err != nil {
-			t.Errorf("error reading pod : %v", err)
+			t.Errorf("error creating pod : %v", err)
 		}
 		err = podhandler.ObjectUpdated(a, a)
-
-		if len(output) != len(test.out) {
-			t.Error("Informer did not get the added pod diff length")
+		if err != nil {
+			t.Errorf("error updating pod : %v", err)
 		}
-
-		for k, v := range output {
-			if k == "volumes" || k == "containers" || k == "labels" || k == "starttime" {
-				continue
-			}
-			if w, ok := test.out[k]; !ok || v != w {
-				t.Error("Informer did not get the added pod diff values")
-				t.Errorf("output[%s]: %s\n", k, output[k])
-				t.Errorf("output[%s]: %s\n", k, test.out[k])
-			}
-		}
-
-		t.Logf("Got pod from channel: %s/%s\n", output["namespace"], test.out["name"])
-
 	}
 
 	handlers.PodSynchronize(client)
