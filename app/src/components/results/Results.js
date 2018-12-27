@@ -97,7 +97,7 @@ class Results extends Component {
           ) : (
               <Grid container className={classes.root}>
                 <Grid item sm={12}>
-                <Typography variant="h5" gutterBottom>
+                <Typography variant="h6" gutterBottom>
                   Search Result: {query.current}
                 </Typography>
                 </Grid>
