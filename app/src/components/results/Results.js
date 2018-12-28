@@ -2,46 +2,27 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import PropTypes from 'prop-types';
-import { Link, withRouter } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Typography from '@material-ui/core/Typography';
 
 import EntityDetails from '../entityDetails/EntityDetails';
 import * as apiCfg from '../../config/apiConfig';
 import * as queryActions from '../../actions/queryActions';
-import './Results.css';
+import SplitterLayout from 'react-splitter-layout';
+import ResultList from './ResultList';
+
 
 const styles = theme => ({
-  container: {
-    width: '100%',
-    height: '100vh',
-    overflowX: 'auto',
-    minHeight: '100vh',
-  },
-  textField: {
-    marginLeft: theme.spacing.unit,
-    marginRight: theme.spacing.unit,
-  },
-  root: {
-    display: 'flex',
-    flexWrap: 'wrap',
-  },
-  table: {
-    minWidth: 700,
-  },
   progress: {
     margin: theme.spacing.unit * 2,
   },
   progressContainer: {
     textAlign: 'center',
+  },
+  resultTitle: {
+    marginTop: theme.spacing.unit * 2,
   },
 });
 
@@ -87,68 +68,24 @@ class Results extends Component {
   //TODO:DM - should we extract table construction into ResultList comp?
   render() {
     const { classes, query } = this.props;
+    const { selectedIdx } = this.state;
+
     return (
       <div className='Results'>
+        <Typography variant="h6" gutterBottom className={classes.resultTitle}>
+          Search Result: {query.current}
+        </Typography>
         {//selectively show progress spinner or table, once HTTP req resolves
           query.isWaiting ? (
             <div className={classes.progressContainer}>
               <CircularProgress className={classes.progress} color='secondary' />
             </div>
           ) : (
-              <Grid container className={classes.root}>
-                <Grid item sm={12}>
-                  <Typography variant="h6" gutterBottom>
-                    Search Result: {query.current}
-                  </Typography>
-                </Grid>
-                <Grid item sm={12} md={9} lg={8} className={classes.container}>
-                  <Paper>
-                    <Table padding='dense' className={classes.table}>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Type</TableCell>
-                          <TableCell>Name</TableCell>
-                          <TableCell>Namespace</TableCell>
-                          <TableCell>Creation Datetime</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {(query.results.length > 0) ? (
-                          query.results.map((item, idx) => {
-                            return (
-                              <TableRow hover key={item.uid}
-                                onClick={event => this.handleRowClick(event, idx)}>
-                                <TableCell component='th' scope='row'>
-                                  {item.objtype}
-                                </TableCell>
-                                <TableCell>
-                                  <Link
-                                    to={{
-                                      pathname: '/graph/' + item.uid,
-                                      state: { selectedObj: query.results[this.state.selectedIdx] }
-                                    }}>
-                                    {item.name}
-                                  </Link>
-                                </TableCell>
-                                <TableCell>{item.namespace ? item.namespace[0].name : ''}</TableCell>
-                                <TableCell>{item.starttime}</TableCell>
-                              </TableRow>
-                            );
-                          })
-                        ) : ( //TODO:DM determine if there is a more elegant 'toggle' pattern suggested in React/jsx community
-                            <TableRow>
-                              <TableCell />
-                              <TableCell>No data</TableCell>
-                              <TableCell />
-                            </TableRow>
-                          )}
-                      </TableBody>
-                    </Table>
-                  </Paper>
-                </Grid>
-                <Grid item sm={12} md={3} lg={4} className={classes.container}>
-                  <EntityDetails selectedObj={query.results[this.state.selectedIdx]} />
-                </Grid>
+              <Grid container>
+                <SplitterLayout percentage={true} secondaryInitialSize={30}>
+                  <ResultList query={query} selectedIdx={selectedIdx} onRowClick={this.handleRowClick} />
+                  <EntityDetails selectedObj={query.results[selectedIdx]} />
+                </SplitterLayout>
               </Grid>
             )}
       </div>
@@ -171,7 +108,5 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps
 )(
-  withStyles(styles)(
-    withRouter(Results)
-  )
+  withStyles(styles)(Results)
 );
