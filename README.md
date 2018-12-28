@@ -1,7 +1,8 @@
 # K-Atlas
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/intuit/katlas)](https://goreportcard.com/report/github.com/intuit/katlas)
+[![Build Status](https://api.travis-ci.org/intuit/katlas.svg?branch=master)](https://www.travis-ci.org/intuit/katlas)
 [![codecov](https://codecov.io/gh/intuit/katlas/branch/master/graph/badge.svg)](https://codecov.io/gh/intuit/katlas)
+[![Go Report Card](https://goreportcard.com/badge/github.com/intuit/katlas)](https://goreportcard.com/report/github.com/intuit/katlas)
 [![Slack Chat](https://img.shields.io/badge/slack-live-orange.svg)](https://katlasio.slack.com/)
 
 
