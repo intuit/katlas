@@ -6,11 +6,11 @@ import { withStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Typography from '@material-ui/core/Typography';
+import SplitterLayout from 'react-splitter-layout';
 
 import EntityDetails from '../entityDetails/EntityDetails';
 import * as apiCfg from '../../config/apiConfig';
 import * as queryActions from '../../actions/queryActions';
-import SplitterLayout from 'react-splitter-layout';
 import ResultList from './ResultList';
 
 
@@ -23,6 +23,7 @@ const styles = theme => ({
   },
   resultTitle: {
     marginTop: theme.spacing.unit * 2,
+    marginLeft: theme.spacing.unit,
   },
 });
 
@@ -65,7 +66,6 @@ class Results extends Component {
     this.setState({ selectedIdx: idx });
   };
 
-  //TODO:DM - should we extract table construction into ResultList comp?
   render() {
     const { classes, query } = this.props;
     const { selectedIdx } = this.state;

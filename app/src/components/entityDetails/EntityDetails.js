@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { withStyles } from '@material-ui/core/styles';
+import Paper from '@material-ui/core/Paper';
 import PropTypes from 'prop-types';
 import ReactJson from 'react-json-view';
-import Paper from '@material-ui/core/Paper';
 
 import './EntityDetails.css';
 

@@ -69,7 +69,7 @@ class ResultList extends Component {
                   </TableRow>
                 );
               })
-            ) : ( //TODO:DM determine if there is a more elegant 'toggle' pattern suggested in React/jsx community
+            ) : ( 
                 <TableRow>
                   <TableCell />
                   <TableCell>No data</TableCell>
