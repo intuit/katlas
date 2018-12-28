@@ -14,7 +14,7 @@ import (
 	"github.com/intuit/katlas/service/resources"
 )
 
-const CacheSize = 10
+const cacheSize = 10
 
 //Health checks service health
 func Health(w http.ResponseWriter, r *http.Request) {
