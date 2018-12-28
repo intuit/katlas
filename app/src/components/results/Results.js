@@ -87,6 +87,7 @@ class Results extends Component {
   //TODO:DM - should we extract table construction into ResultList comp?
   render() {
     const { classes, query } = this.props;
+    const { selectedIdx } = this.state;
     return (
       <div className='Results'>
         {//selectively show progress spinner or table, once HTTP req resolves
@@ -117,7 +118,7 @@ class Results extends Component {
                           query.results.map((item, idx) => {
                             return (
                               <TableRow hover key={item.uid}
-                                onClick={event => this.handleRowClick(event, idx)}>
+                                onClick={event => this.handleRowClick(event, idx)} selected={selectedIdx === idx}>
                                 <TableCell component='th' scope='row'>
                                   {item.objtype}
                                 </TableCell>
