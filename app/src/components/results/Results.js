@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import PropTypes from 'prop-types';
-import {Link, withRouter} from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Table from '@material-ui/core/Table';
@@ -12,6 +12,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Typography from '@material-ui/core/Typography';
 
 import EntityDetails from '../entityDetails/EntityDetails';
 import * as apiCfg from '../../config/apiConfig';
@@ -20,16 +21,18 @@ import './Results.css';
 
 const styles = theme => ({
   container: {
-    display: 'flex',
-    flexWrap: 'wrap',
+    width: '100%',
+    height: '100vh',
+    overflowX: 'auto',
+    minHeight: '100vh',
   },
   textField: {
     marginLeft: theme.spacing.unit,
     marginRight: theme.spacing.unit,
   },
   root: {
-    width: '100%',
-    overflowX: 'auto',
+    display: 'flex',
+    flexWrap: 'wrap',
   },
   table: {
     minWidth: 700,
@@ -42,7 +45,7 @@ const styles = theme => ({
   },
 });
 
-function getQueryParam(locationSearchStr, queryParamStr){
+function getQueryParam(locationSearchStr, queryParamStr) {
   const params = new URLSearchParams(locationSearchStr);
   return params.get(queryParamStr) || '';
 }
@@ -69,7 +72,7 @@ class Results extends Component {
     //recognize change in query param here and re-issue API request as necessary
     const currentQuery = getQueryParam(this.props.location.search, apiCfg.SERVICES.queryParamName);
     const prevQuery = getQueryParam(prevProps.location.search, apiCfg.SERVICES.queryParamName);
-    if (prevQuery !== currentQuery){
+    if (prevQuery !== currentQuery) {
       //should only run if query param changes
       this.props.queryActions.submitQuery(currentQuery);
       this.props.queryActions.fetchQuery(currentQuery);
@@ -88,61 +91,66 @@ class Results extends Component {
       <div className='Results'>
         {//selectively show progress spinner or table, once HTTP req resolves
           query.isWaiting ? (
-          <div className={classes.progressContainer}>
-            <CircularProgress className={classes.progress} color='secondary'/>
-          </div>
-        ) : (
-          <Grid container>
-            <Grid item sm={12} md={9} lg={8} className='Results-scroll-container'>
-              <Paper className={classes.root}>
-                <Table padding='dense' className={classes.table}>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Type</TableCell>
-                      <TableCell>Name</TableCell>
-                      <TableCell>Namespace</TableCell>
-                      <TableCell>Creation Datetime</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {(query.results.length > 0) ? (
-                      query.results.map((item, idx) => {
-                        return (
-                          <TableRow hover key={item.uid}
-                            onClick={event => this.handleRowClick(event, idx)}>
-                            <TableCell component='th' scope='row'>
-                              {item.objtype}
-                            </TableCell>
-                            <TableCell>
-                              <Link
-                              to={{
-                                pathname: '/graph/'+ item.uid,
-                                state: {selectedObj:query.results[this.state.selectedIdx]}
-                              }}>
-                                {item.name}
-                                </Link>
-                            </TableCell>
-                            <TableCell>{item.namespace ? item.namespace[0].name : ''}</TableCell>
-                            <TableCell>{item.starttime}</TableCell>
-                          </TableRow>
-                        );
-                      })
-                    ) : ( //TODO:DM determine if there is a more elegant 'toggle' pattern suggested in React/jsx community
-                    <TableRow>
-                      <TableCell/>
-                      <TableCell>No data</TableCell>
-                      <TableCell/>
-                    </TableRow>
-                  )}
-                  </TableBody>
-                </Table>
-              </Paper>
-            </Grid>
-            <Grid item sm={12} md={3} lg={4} className='Results-scroll-container'>
-              <EntityDetails selectedObj={query.results[this.state.selectedIdx]}/>
-            </Grid>
-          </Grid>
-        )}
+            <div className={classes.progressContainer}>
+              <CircularProgress className={classes.progress} color='secondary' />
+            </div>
+          ) : (
+              <Grid container className={classes.root}>
+                <Grid item sm={12}>
+                  <Typography variant="h6" gutterBottom>
+                    Search Result: {query.current}
+                  </Typography>
+                </Grid>
+                <Grid item sm={12} md={9} lg={8} className={classes.container}>
+                  <Paper>
+                    <Table padding='dense' className={classes.table}>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Type</TableCell>
+                          <TableCell>Name</TableCell>
+                          <TableCell>Namespace</TableCell>
+                          <TableCell>Creation Datetime</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {(query.results.length > 0) ? (
+                          query.results.map((item, idx) => {
+                            return (
+                              <TableRow hover key={item.uid}
+                                onClick={event => this.handleRowClick(event, idx)}>
+                                <TableCell component='th' scope='row'>
+                                  {item.objtype}
+                                </TableCell>
+                                <TableCell>
+                                  <Link
+                                    to={{
+                                      pathname: '/graph/' + item.uid,
+                                      state: { selectedObj: query.results[this.state.selectedIdx] }
+                                    }}>
+                                    {item.name}
+                                  </Link>
+                                </TableCell>
+                                <TableCell>{item.namespace ? item.namespace[0].name : ''}</TableCell>
+                                <TableCell>{item.starttime}</TableCell>
+                              </TableRow>
+                            );
+                          })
+                        ) : ( //TODO:DM determine if there is a more elegant 'toggle' pattern suggested in React/jsx community
+                            <TableRow>
+                              <TableCell />
+                              <TableCell>No data</TableCell>
+                              <TableCell />
+                            </TableRow>
+                          )}
+                      </TableBody>
+                    </Table>
+                  </Paper>
+                </Grid>
+                <Grid item sm={12} md={3} lg={4} className={classes.container}>
+                  <EntityDetails selectedObj={query.results[this.state.selectedIdx]} />
+                </Grid>
+              </Grid>
+            )}
       </div>
     );
   }
@@ -153,10 +161,10 @@ Results.propTypes = {
   query: PropTypes.object
 };
 
-const mapStateToProps = state => ({query: state.query});
+const mapStateToProps = state => ({ query: state.query });
 
 const mapDispatchToProps = dispatch => ({
-    queryActions: bindActionCreators(queryActions, dispatch)
+  queryActions: bindActionCreators(queryActions, dispatch)
 });
 
 export default connect(

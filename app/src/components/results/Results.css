@@ -1,8 +1,3 @@
 .Results {
   text-align: left;
 }
-
-.Results-scroll-container {
-  overflow: auto;
-  height: 800px;
-}

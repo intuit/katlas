@@ -1,5 +1,5 @@
 sudo: true
-go_import_path: intuit/katlas
+go_import_path: github.com/intuit/katlas
 
 dist: xenial
 language: go
@@ -20,5 +20,15 @@ before_script:
 script:
   - cd service
   - golint ./...
-  - go test -v ./... -coverprofile=service.coverprofile
+  - go test -v ./... -coverprofile=coverage.txt -covermode=atomic
   - docker build --no-cache -f Dockerfile -t katlas-service:${TRAVIS_COMMIT} .
+  - cd ../app
+  - yarn install
+  - yarn test --coverage
+  - docker build --no-cache -f Dockerfile -t katlas-browser:${TRAVIS_COMMIT} .
+
+after_success:
+  - cd ../service
+  - bash <(curl -s https://codecov.io/bash)
+  - cd ../app
+  - bash <(curl -s https://codecov.io/bash) -f coverage/coverage-final.json
