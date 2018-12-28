@@ -53,7 +53,7 @@ func serve() {
 
 	//Creates an LRU cache of the given size
 	var err error
-	db.LruCache, err = lru.New(CacheSize)
+	db.LruCache, err = lru.New(cacheSize)
 	if err != nil {
 		log.Errorf("err: %v", err)
 	}
