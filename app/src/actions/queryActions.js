@@ -3,10 +3,10 @@ import {apiService} from "../services/apiService";
 import * as notifyActions from './notifyActions';
 import history from '../history';
 import {QUERY_KEYWORD_SERVICE_PATH, QUERY_QSL_SERVICE_PATH, QUERY_PARAM_NAME, QSL_PARAM_NAME} from "../services/apiService";
+import {QUERY_LEN_ERR} from "../utils/errors";
 
 //QSL uses this symbol, which can be used as a Query type differentiator.
 const QSL_TAG = '@';
-export const QUERY_LEN_ERR = 'Minimum length of Search word must be 3 characters.';
 
 export const changeQuery = str => ({
   type: types.CHANGE_QUERY,
