@@ -74,6 +74,10 @@ const styles = theme => ({
       },
     },
   },
+  appLogoSmall: {
+    height: '36px',
+    width: 'auto',
+  },
 });
 
 class MenuBar extends Component {
@@ -100,7 +104,7 @@ class MenuBar extends Component {
         <Toolbar>
           <IconButton className={classes.menuButton}>
             <Link to="/">
-              <img src={logo} className="App-logo-small" alt="logo"/>
+              <img src={logo} className={classes.appLogoSmall} alt="logo"/>
             </Link>
           </IconButton>
           <Typography className={classes.title} variant="h6" color="inherit" noWrap>
