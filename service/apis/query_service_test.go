@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	log "github.com/Sirupsen/logrus"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/intuit/katlas/service/db"
 	"github.com/stretchr/testify/assert"
 )
@@ -48,13 +49,12 @@ func TestGetQueryResultByKeyValue(t *testing.T) {
 		log.Errorf("Query result err: [%v]\n", err)
 
 	}
-	fmt.Println(qr)
 	log.Infof("Query result: [%v]\n", qr)
 
 	if value, ok := qr[expectObjectsKey]; ok {
-		fmt.Println("value: ", value)
+		log.Debugln("value: ", value)
 		if reflect.TypeOf(value).Kind() == reflect.Slice {
-			fmt.Println("The interface is a slice.")
+			log.Debugln("The interface is a slice.")
 		}
 		if value != nil {
 			o := qr[expectObjectsKey].([]interface{})[0].(map[string]interface{})
@@ -71,6 +71,35 @@ func TestGetQueryResultByKeyValue(t *testing.T) {
 	}
 }
 
+func TestGetQueryResultByKeywordSearch(t *testing.T) {
+	dc := db.NewDGClient("127.0.0.1:9080")
+	defer dc.Close()
+
+	var err error
+	db.LruCache, err = lru.New(5)
+	if err != nil {
+		log.Errorf("err: %v", err)
+	}
+	log.Infoln("LRU cache created with given size")
+
+	s := NewQueryService(dc)
+
+	//Create query map
+	m := map[string][]string{
+		"keyword": {"pod"},
+	}
+
+	//Get QueryResult
+	qr := make(map[string]interface{})
+	qr, err = s.GetQueryResult(m)
+	if err != nil {
+		log.Errorf("Test Get Query result err: [%v]\n", err)
+
+	}
+	log.Infof("Test Get Query Result: [%v]\n", qr)
+	assert.Nil(t, err)
+}
+
 func createPod(dc *db.DGClient, ms *MetaService) (uid string) {
 	s := NewEntityService(dc, ms)
 	// create pod
@@ -84,8 +113,8 @@ func createPod(dc *db.DGClient, ms *MetaService) (uid string) {
 		"ip":              "172.20.32.128",
 	}
 	// create index for query
-	dc.CreateSchema(db.Schema{Predicate: "name", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "objtype", PType: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "name", PType: "string", Index: true, Tokenizer: []string{"term", "trigram"}})
+	dc.CreateSchema(db.Schema{Predicate: "objtype", PType: "string", Index: true, Tokenizer: []string{"term", "trigram"}})
 	dc.CreateSchema(db.Schema{Predicate: "ip", PType: "string", Index: true, Tokenizer: []string{"term"}})
 
 	pids, _ := s.CreateEntity("K8sPod", pod)
