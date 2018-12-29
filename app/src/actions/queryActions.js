@@ -13,8 +13,13 @@ export const changeQuery = str => ({
   query: str
 });
 
+const submitQueryAction = () => ({
+  type: types.SUBMIT_QUERY,
+})
+
 export function submitQuery(query) {
   return dispatch => {
+    dispatch(submitQueryAction());
     if(query !== '' && query.length >= 3) {
       history.push('/results?query=' + encodeURIComponent(query));
     } else {
