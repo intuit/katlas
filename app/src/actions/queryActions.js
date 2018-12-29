@@ -19,8 +19,8 @@ const submitQueryAction = () => ({
 
 export function submitQuery(query) {
   return dispatch => {
-    dispatch(submitQueryAction());
     if(query !== '' && query.length >= 3) {
+      dispatch(submitQueryAction());
       history.push('/results?query=' + encodeURIComponent(query));
     } else {
       dispatch(notifyActions.showNotify(QUERY_LEN_ERR));
