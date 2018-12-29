@@ -15,7 +15,7 @@ import (
 	"k8s.io/client-go/util/workqueue"
 )
 
-// retrieve the Kubernetes cluster client from outside of the cluster
+// GetKubernetesClient retrieve the Kubernetes cluster client from outside of the cluster
 func GetKubernetesClient() kubernetes.Interface {
 	// construct the path to resolve to `~/.kube/config`
 	kubeConfigPath := os.Getenv("HOME") + "/.kube/config"
@@ -44,7 +44,8 @@ func GetKubernetesClient() kubernetes.Interface {
 	return client
 }
 
-func CreateController(obj_type string) *Controller {
+// CreateController to build handler base on type
+func CreateController(objType string) *Controller {
 	client := GetKubernetesClient()
 
 	var informer cache.SharedIndexInformer
@@ -55,7 +56,7 @@ func CreateController(obj_type string) *Controller {
 	// so that it can be handled in the handler
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
 
-	switch obj_type {
+	switch objType {
 	case "Pod":
 		// create the informer so that we can not only list resources
 		// but also watch them for all pods in the default namespace
@@ -97,7 +98,7 @@ func CreateController(obj_type string) *Controller {
 			// convert the resource object into a key (in this case
 			// we are just doing it in the format of 'namespace/name')
 			key, err := cache.MetaNamespaceKeyFunc(obj)
-			log.Infof("Add %s: %s", obj_type, key)
+			log.Infof("Add %s: %s", objType, key)
 			if err == nil {
 				// add the key to the queue for the handler to get
 				queue.Add(key)
@@ -105,7 +106,7 @@ func CreateController(obj_type string) *Controller {
 		},
 		UpdateFunc: func(oldObj, newObj interface{}) {
 			key, err := cache.MetaNamespaceKeyFunc(newObj)
-			log.Infof("Update %s: %s", obj_type, key)
+			log.Infof("Update %s: %s", objType, key)
 			if err == nil {
 				queue.Add(key)
 			}
@@ -117,7 +118,7 @@ func CreateController(obj_type string) *Controller {
 			//
 			// this then in turn calls MetaNamespaceKeyFunc
 			key, err := cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
-			log.Infof("Delete %s: %s", obj_type, key)
+			log.Infof("Delete %s: %s", objType, key)
 			if err == nil {
 				queue.Add(key)
 			}
@@ -133,12 +134,13 @@ func CreateController(obj_type string) *Controller {
 		informer:  informer,
 		queue:     queue,
 		handler:   handlerc,
-		name:      obj_type,
+		name:      objType,
 	}
 
 	return &controller
 }
 
+// Synchronizer periodically sync resources with database
 func Synchronizer() {
 	client := GetKubernetesClient()
 	for {
@@ -156,7 +158,7 @@ func Synchronizer() {
 // main code path
 func main() {
 
-	log.Info("Current namespace: ", os.Getenv("APP_NAMESPACE"))
+	log.Info("Current namespace: ", os.Getenv("AppNamespace"))
 	podcontroller := CreateController("Pod")
 	svccontroller := CreateController("Service")
 	nscontroller := CreateController("Namespace")

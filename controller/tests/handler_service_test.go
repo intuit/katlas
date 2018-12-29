@@ -69,29 +69,14 @@ func TestService(t *testing.T) {
 		listservices, err := client.Core().Services("test-namespace").List(metav1.ListOptions{})
 		t.Logf("Services: %s\n", listservices.String())
 
-		output, err := servicehandler.ObjectCreated(a)
+		err = servicehandler.ObjectCreated(a)
 		if err != nil {
-			t.Errorf("error reading service : %v", err)
+			t.Errorf("error creating service : %v", err)
 		}
 		err = servicehandler.ObjectUpdated(a, a)
-
-		if len(output) != len(test.out) {
-			t.Error("Informer did not get the added service diff length")
+		if err != nil {
+			t.Errorf("error updating service : %v", err)
 		}
-
-		for k, v := range output {
-			if k == "selector" || k == "ports" || k == "labels" {
-				continue
-			}
-			if w, ok := test.out[k]; !ok || v != w {
-				t.Error("Informer did not get the added service diff values")
-				t.Errorf("output[%s]: %s\n", k, output[k])
-				t.Errorf("test.out[%s]: %s\n", k, test.out[k])
-			}
-		}
-
-		t.Logf("Got service from channel: %s/%s\n", output["namespace"], test.out["name"])
-
 	}
 
 	handlers.ServiceSynchronize(client)

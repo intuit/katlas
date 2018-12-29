@@ -28,6 +28,13 @@ const styles = theme => ({
   progressContainer: {
     textAlign: 'center',
   },
+  graphContainer: {
+    width: '100%',
+    height: '100vh',
+    overflowX: 'auto',
+    minHeight: '100vh',
+    textAlign: 'left',
+  },
 });
 
 class GraphContainer extends Component {
@@ -94,10 +101,10 @@ class GraphContainer extends Component {
           ) : null //TODO:DM - ideally want to select between spinner and graph here, but loading graph only after spinner disappears leads to graph not being correctly populated; understand why this is
         }
         <Grid container>
-          <Grid item sm={12} md={9} lg={8} className='Graph-scroll-container'>
+          <Grid item sm={12} md={9} lg={8} className={classes.graphContainer}>
             <Graph dataSet={this.state.data}/>
           </Grid>
-          <Grid item sm={12} md={3} lg={4} className='Graph-scroll-container'>
+          <Grid item sm={12} md={3} lg={4} className={classes.graphContainer}>
             <EntityDetails selectedObj={this.state.data.objects ? this.state.data.objects[0] : {}}/>
           </Grid>
         </Grid>

@@ -17,6 +17,7 @@ import (
 // NamespaceHandler is a sample implementation of Handler
 type NamespaceHandler struct{}
 
+// GetNamespaceInformer get index Informer to watch Namespace
 func GetNamespaceInformer(client kubernetes.Interface) cache.SharedIndexInformer {
 	informer := cache.NewSharedIndexInformer(
 		// the ListWatch contains two different functions that our
@@ -47,20 +48,19 @@ func (t *NamespaceHandler) Init() error {
 	return nil
 }
 
-func ValidateNamespace(pod *core_v1.Namespace) bool {
-	if pod.ObjectMeta.Name == "" {
+// ValidateNamespace check required attributes
+func ValidateNamespace(namespace *core_v1.Namespace) bool {
+	if namespace.ObjectMeta.Name == "" {
 		return false
 	}
-
-	if pod.ObjectMeta.ResourceVersion == "" {
+	if namespace.ObjectMeta.ResourceVersion == "" {
 		return false
 	}
-
 	return true
 }
 
 // ObjectCreated is called when an object is created
-func (t *NamespaceHandler) ObjectCreated(obj interface{}) (map[string]interface{}, error) {
+func (t *NamespaceHandler) ObjectCreated(obj interface{}) error {
 	log.Info("NamespaceHandler.ObjectCreated")
 	defer func() {
 		if r := recover(); r != nil {
@@ -70,23 +70,17 @@ func (t *NamespaceHandler) ObjectCreated(obj interface{}) (map[string]interface{
 	}()
 	// assert the type to a Namespace object to pull out relevant data
 	namespace := obj.(*core_v1.Namespace)
-
 	if !ValidateNamespace(namespace) {
-		return nil, errors.New("Could not validate namespace object " + namespace.ObjectMeta.Name)
+		return errors.New("Could not validate namespace object " + namespace.ObjectMeta.Name)
 	}
-	namespacedata := CreateNamespaceData(*namespace, CLUSTERNAME)
-
-	SendJSONQueryWithRetries(namespacedata, CMDBAPIENDPOINT+"v1/entity/Namespace")
-
-	return namespacedata, nil
+	SendJSONQueryWithRetries(namespace, RestSvcEndpoint+"v1/entity/Namespace")
+	return nil
 }
 
 // ObjectDeleted is called when an object is deleted
 func (t *NamespaceHandler) ObjectDeleted(obj interface{}, key string) error {
 	log.Info("NamespaceHandler.ObjectDeleted")
-
-	SendDeleteRequest(CMDBAPIENDPOINT + "v1/entity/Namespace/" + CLUSTERNAME + ":" + key)
-
+	SendDeleteRequest(RestSvcEndpoint + "v1/entity/Namespace/Namespace:" + ClusterName + ":" + key)
 	return nil
 }
 
@@ -96,26 +90,8 @@ func (t *NamespaceHandler) ObjectUpdated(objOld, objNew interface{}) error {
 	return nil
 }
 
-func CreateNamespaceData(namespace core_v1.Namespace, clustername string) map[string]interface{} {
-
-	namespacedata := map[string]interface{}{
-		"objtype":         "Namespace",
-		"name":            namespace.ObjectMeta.Name,
-		"creationtime":    namespace.ObjectMeta.CreationTimestamp,
-		"cluster":         clustername,
-		"resourceversion": namespace.ResourceVersion,
-		"k8sobj":          "K8sObj",
-		"labels":          namespace.ObjectMeta.GetLabels(),
-	}
-
-	return namespacedata
-}
-
+// NamespaceSynchronize sync all Namespaces periodically in case missing events
 func NamespaceSynchronize(client kubernetes.Interface) {
-	list := make([]map[string]interface{}, 0)
 	clusternamespaceslist, _ := client.CoreV1().Namespaces().List(v1.ListOptions{})
-	for _, data := range clusternamespaceslist.Items {
-		list = append(list, CreateNamespaceData(data, CLUSTERNAME))
-	}
-	SendJSONQueryWithRetries(list, CMDBAPIENDPOINT+"v1/sync/Namespace")
+	SendJSONQueryWithRetries(clusternamespaceslist.Items, RestSvcEndpoint+"v1/sync/Namespace")
 }
