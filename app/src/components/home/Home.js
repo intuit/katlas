@@ -6,10 +6,10 @@ import { withRouter } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 
+import './Home.css';
+import logo from './map.png';
 import { ENTER_KEYCODE, ENTER_KEYSTR } from "../../config/appConfig";
 import * as queryActions from '../../actions/queryActions';
-import logo from './map.png';
-import './Home.css';
 
 const styles = theme => ({
   container: {
@@ -42,20 +42,19 @@ class Home extends Component {
   };
 
   render() {
+    const { classes, query } = this.props;
     return (
       <div className="Home">
-        <div>
-          <h3>Welcome to Kubernetes Application Topology Browser</h3>
-          <h1>K-Atlas Browser</h1>
-        </div>
-        <div className={this.props.classes.container}>
+        <h3>Welcome to Kubernetes Application Topology Browser</h3>
+        <h1>K-Atlas Browser</h1>
+        <div className={classes.container}>
           <TextField
             label="Search..."
-            className={this.props.classes.textField}
+            className={classes.textField}
             fullWidth
             margin="normal"
             variant="filled"
-            value={this.props.query.current}
+            value={query.current}
             onChange={this.handleChange}
             onKeyPress={this.handleEnterPressCheck}
           />
