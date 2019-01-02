@@ -350,7 +350,7 @@ func (s DGClient) ExecuteDgraphQuery(query string) (map[string]interface{}, erro
 	resp, err := txn.Query(context.Background(), query)
 	if err != nil {
 		log.Errorf("query err: %#v\n", err)
-		return nil, errors.New("Could not successfully execute query. Please try again later.\n" + err.Error())
+		return nil, errors.New("could not successfully execute query. Please try again later\n" + err.Error())
 	}
 
 	respjson := map[string]interface{}{}
@@ -358,7 +358,7 @@ func (s DGClient) ExecuteDgraphQuery(query string) (map[string]interface{}, erro
 	err = json.Unmarshal(resp.GetJson(), &respjson)
 	if err != nil {
 		log.Errorf("unmarshal err: %#v\n", err)
-		return nil, errors.New("Could not successfully handle data from query. Please try again later.")
+		return nil, errors.New("could not successfully handle data from query. Please try again later")
 	}
 
 	// log.Infof("response from executing dgraph query: %#v\n", respjson)

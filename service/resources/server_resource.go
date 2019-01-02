@@ -570,6 +570,7 @@ func createAppNameList(obj interface{}) []interface{} {
 	return appList
 }
 
+// QSLHandler handles requests for QSL
 func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
 	queryMap := r.URL.Query()
 
