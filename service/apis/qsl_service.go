@@ -22,8 +22,8 @@ type QSLService struct {
 	metaSvc  *MetaService
 }
 
-// IsAlpha determine if string is made up of only alphanumeric characters
-func IsAlpha(s string) bool {
+// IsAlphaNum determine if string is made up of only alphanumeric characters
+func IsAlphaNum(s string) bool {
 	for _, r := range s {
 		if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
 			return false
@@ -78,8 +78,7 @@ func CreateFiltersQuery(filterlist string) (string, string, error) {
 		"=":  "eq",
 	}
 
-	for i, item := range splitlist {
-		_ = i
+	for _, item := range splitlist {
 		splitstring := strings.Split(item, ",")
 
 		interfilterfunc := []string{}
@@ -122,8 +121,7 @@ func CreateFieldsQuery(fieldlist string, metafieldslist []MetadataField, tabs in
 	}
 	if fieldlist == "*" {
 		returnlist := []string{}
-		for i, item := range metafieldslist {
-			_ = i
+		for _, item := range metafieldslist {
 			if item.FieldType != "relationship" {
 				returnlist = append(returnlist, strings.Repeat("\t", tabs+1)+item.FieldName)
 
@@ -148,10 +146,9 @@ func CreateFieldsQuery(fieldlist string, metafieldslist []MetadataField, tabs in
 	splitlist := strings.Split(fieldlist, ",")
 	returnlist := []string{}
 
-	for i, item := range splitlist {
-		_ = i
+	for _, item := range splitlist {
 		if strings.HasPrefix(item, "@") && len(item) > 1 {
-			if IsAlpha(item[1:]) {
+			if IsAlphaNum(item[1:]) {
 				returnlist = append(returnlist, strings.Repeat("\t", tabs+1)+item[1:])
 			} else {
 				return nil, errors.New("Field names must be composed of only alphanumeric characters [" + item[1:] + "]")
@@ -179,11 +176,8 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 	_ = basequery
 
 	// regex to match the string pattern
-	//r := regexp.MustCompile(`([a-zA-Z]+)\[(\@[\,\@\"\=a-zA-Z0-9\-\.\|]*)\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`)
-	//r := regexp.MustCompile(`([a-zA-Z]+)\[(?:(\@[\,\@\"\=a-zA-Z0-9\-\.\|\:_]*|\*))\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`)
 	r := regexp.MustCompile(blockRegex)
 	matches := r.FindStringSubmatch(query[0])
-	// log.Infof("%#v\n", splitquery)
 	log.Debugf("helpermatches %#v\n", matches)
 
 	// extract the values of the form objtype[filters]fields and assign to individual variables
@@ -213,8 +207,7 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 	// find if there's a relationship between the parent's and this object's type
 	// e.g. if we had cluster[...]{...}.pod[...]{...} parent=cluster
 	// and we will find the pods relation to cluster is called ~cluster
-	for i, item := range metafieldslist {
-		_ = i
+	for _, item := range metafieldslist {
 
 		if item.FieldType == "relationship" {
 			log.Debugf("1 found relationship for %s-%s->%s", objtype, item.FieldName, item.RefDataType)
@@ -236,8 +229,7 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 		log.Debugf("couldn't find relation for %s->%s,", parent, objtype)
 		log.Debugf("metadata fields for %s: %#v", parent, metafieldslist)
 
-		for i, item := range metafieldslist2 {
-			_ = i
+		for _, item := range metafieldslist2 {
 			if item.FieldType == "relationship" {
 				log.Debugf("2 found relationship for %s-%s->%s", parent, item.FieldName, item.RefDataType)
 				if item.RefDataType == strings.Title(objtype) {
@@ -248,7 +240,7 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 		}
 	}
 
-	// no relation found between the two objects
+	// still no relation found between the two objects
 	if !found {
 		return nil, errors.New("no relation found between " + objtype + " and " + parent)
 	}
@@ -301,8 +293,6 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 	}
 	_ = basequery
 	// extract the objtype, filters and fields to return from the query string
-	// r := regexp.MustCompile(`([a-zA-Z]+)\[(\@[\,\@\"\=a-zA-Z0-9\-\.]*)\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`)
-	// r := regexp.MustCompile(`([a-zA-Z]+)\[(?:(\@[\,\@\"\=a-zA-Z0-9\-\.\|\:_]*|\*))\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`)
 	r := regexp.MustCompile(blockRegex)
 	matches := r.FindStringSubmatch(splitquery[0])
 	log.Debugf("matches %#v\n", matches)
@@ -373,7 +363,6 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 
 	// create the string joining all the lines with newlines
 	finalquery := strings.Join(basequery, "\n")
-	// log.Infof("New Query: %s\n", finalquery)
 	return finalquery, nil
 
 }
