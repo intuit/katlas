@@ -34,9 +34,9 @@ export function fetchQuery(query) {
     let requestPromise;
 
     if (query.includes(QSL_TAG)) {
-      requestPromise = ApiService.getQueryResult(query);
-    } else {
       requestPromise = ApiService.getQSLResult(query);
+    } else {
+      requestPromise = ApiService.getQueryResult(query);
     }
 
     return requestPromise
