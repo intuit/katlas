@@ -4,12 +4,14 @@ export default {
     lastSubmitted: '',
     submitted: false,
     isWaiting: false,
-    results: []
+    results: [],
   },
   entity: {
-    uidsObj: {},
+    rootUid: '',
+    entitiesByUid: {},
     results: {},
     latestTimestamp: 0,
+    isWaiting: false,
   },
   notify: {
     msg: '',
