@@ -4,8 +4,8 @@ import { bindActionCreators } from 'redux';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
-import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import SplitterLayout from 'react-splitter-layout';
 
 import "./Graph.css";
 import Graph from './Graph';
@@ -92,14 +92,10 @@ class GraphContainer extends Component {
             </div>
           ) : null
         }
-        <Grid container>
-          <Grid item sm={12} md={9} lg={8} className={classes.graphContainer}>
-            <Graph dataSet={entity.results}/>
-          </Grid>
-          <Grid item sm={12} md={3} lg={4} className={classes.graphContainer}>
-            <EntityDetails selectedObj={entity.results}/>
-          </Grid>
-        </Grid>
+        <SplitterLayout percentage={true} secondaryInitialSize={30}>
+          <Graph dataSet={entity.results}/>
+          <EntityDetails selectedObj={entity.results}/>
+        </SplitterLayout>
       </div>
     );
   }
