@@ -33,7 +33,6 @@ func IsAlphaNum(s string) bool {
 }
 
 // IsStar determine if string is made up of only *
-// TODO: update regex so this isn't necessary
 func IsStar(s string) bool {
 	for _, r := range s {
 		if string(r) != "*" {
@@ -83,8 +82,7 @@ func CreateFiltersQuery(filterlist string) (string, string, error) {
 
 		interfilterfunc := []string{}
 
-		for j, item2 := range splitstring {
-			_ = j
+		for _, item2 := range splitstring {
 			// use regex to get the key, operator and value
 			r := regexp.MustCompile(filterRegex)
 			matches := r.FindStringSubmatch(item2)
@@ -173,7 +171,6 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 	basequery := []string{
 		strings.Repeat("\t", tabs) + "$RELATION @filter(eq(objtype, $OBJTYPE) and$FILTERSFUNC){",
 	}
-	_ = basequery
 
 	// regex to match the string pattern
 	r := regexp.MustCompile(blockRegex)
@@ -291,7 +288,6 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 		"query objects($objtype: string$FILTERSDEC){",
 		"objects(func: eq(objtype, $OBJTYPE)) @filter($FILTERSFUNC){",
 	}
-	_ = basequery
 	// extract the objtype, filters and fields to return from the query string
 	r := regexp.MustCompile(blockRegex)
 	matches := r.FindStringSubmatch(splitquery[0])
@@ -307,7 +303,6 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 	objtype := strings.Title(matches[1])
 	filters := matches[2]
 	fields := matches[3]
-	_ = fields
 
 	log.Debugf("helperobjtype %#v\n", objtype)
 

@@ -341,7 +341,7 @@ func (s DGClient) Close() error {
 	return s.conn.Close()
 }
 
-// Run query on a dgraph instance
+// ExecuteDgraphQuery - Takes a dgraph query as a string and executes on a dgraph instance
 func (s DGClient) ExecuteDgraphQuery(query string) (map[string]interface{}, error) {
 
 	txn := s.dc.NewTxn()
