@@ -29,6 +29,13 @@ const styles = theme => ({
   progressContainer: {
     textAlign: 'center',
   },
+  graphContainer: {
+    width: '100%',
+    height: '100vh',
+    overflowX: 'auto',
+    minHeight: '100vh',
+    textAlign: 'left',
+  },
 });
 
 class GraphContainer extends Component {
@@ -86,10 +93,10 @@ class GraphContainer extends Component {
           ) : null
         }
         <Grid container>
-          <Grid item sm={12} md={9} lg={8} className='Graph-scroll-container'>
+          <Grid item sm={12} md={9} lg={8} className={classes.graphContainer}>
             <Graph dataSet={entity.results}/>
           </Grid>
-          <Grid item sm={12} md={3} lg={4} className='Graph-scroll-container'>
+          <Grid item sm={12} md={3} lg={4} className={classes.graphContainer}>
             <EntityDetails selectedObj={entity.results}/>
           </Grid>
         </Grid>
