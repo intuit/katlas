@@ -95,21 +95,21 @@ func TestCreateFiltersQuery(t *testing.T) {
 
 func TestCreateFieldsQuery(t *testing.T) {
 	tests := map[string]FResult{
+		"*":                                  FResult{[]string{"k8sobj", "objtype", "name", "resourceid", "resourceversion", "uid"}, nil},
+		"**":                                 FResult{[]string{"expand(_all_){", "\texpand(_all_){", "\t}", "}"}, nil},
+		"***":                                FResult{[]string{"expand(_all_){", "\texpand(_all_){", "\t\texpand(_all_){", "\t\t}", "\t}", "}"}, nil},
+		"?":                                  FResult{nil, errors.New("Field names must be prefixed with @ sign and followed by an alphanumeric field name [?]")},
+		"name":                               FResult{nil, errors.New("Field names must be prefixed with @ sign and followed by an alphanumeric field name [name]")},
+		"@n@me":                              FResult{nil, errors.New("Field names must be composed of only alphanumeric characters [n@me]")},
+		"@*":                                 FResult{nil, errors.New("Field names must be composed of only alphanumeric characters [*]")},
+		"*@":                                 FResult{nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... not both [*@]")},
+		"*,@name":                            FResult{nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... not both [*,@name]")},
+		"@name,**":                           FResult{nil, errors.New("Field names must be prefixed with @ sign and followed by an alphanumeric field name [**]")},
+		"**,*":                               FResult{nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... not both [**,*]")},
 		"@name":                              FResult{[]string{"name", "uid"}, nil},
 		"@name,@resourceversion":             FResult{[]string{"name", "resourceversion", "uid"}, nil},
 		"@name,@resourceversion,@resourceid": FResult{[]string{"name", "resourceversion", "resourceid", "uid"}, nil},
 		"@name,@resourceversion,@k8sobj":     FResult{[]string{"name", "resourceversion", "k8sobj", "uid"}, nil},
-		"*":        FResult{[]string{"k8sobj", "objtype", "name", "resourceid", "resourceversion", "uid"}, nil},
-		"**":       FResult{[]string{"expand(_all_){", "\texpand(_all_){", "\t}", "}"}, nil},
-		"***":      FResult{[]string{"expand(_all_){", "\texpand(_all_){", "\t\texpand(_all_){", "\t\t}", "\t}", "}"}, nil},
-		"?":        FResult{nil, errors.New("Field names must be prefixed with @ sign and followed by an alphanumeric field name [?]")},
-		"name":     FResult{nil, errors.New("Field names must be prefixed with @ sign and followed by an alphanumeric field name [name]")},
-		"@n@me":    FResult{nil, errors.New("Field names must be composed of only alphanumeric characters [n@me]")},
-		"@*":       FResult{nil, errors.New("Field names must be composed of only alphanumeric characters [*]")},
-		"*@":       FResult{nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... not both [*@]")},
-		"*,@name":  FResult{nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... not both [*,@name]")},
-		"@name,**": FResult{nil, errors.New("Field names must be prefixed with @ sign and followed by an alphanumeric field name [**]")},
-		"**,*":     FResult{nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... not both [**,*]")},
 	}
 
 	namespacemetafieldslist := []MetadataField{MetadataField{FieldName: "k8sobj", FieldType: "string", Mandatory: true, Index: true, RefDataType: "", Cardinality: "One"}, MetadataField{FieldName: "objtype", FieldType: "string", Mandatory: true, Index: true, RefDataType: "", Cardinality: "One"}, MetadataField{FieldName: "name", FieldType: "string", Mandatory: true, Index: true, RefDataType: "", Cardinality: "One"}, MetadataField{FieldName: "resourceid", FieldType: "string", Mandatory: false, Index: true, RefDataType: "", Cardinality: "One"}, MetadataField{FieldName: "resourceversion", FieldType: "string", Mandatory: true, Index: false, RefDataType: "", Cardinality: "One"}}
