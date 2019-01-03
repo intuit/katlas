@@ -118,7 +118,6 @@ func CheckKeys(keys []string, data map[string]interface{}) error {
 
 func SetDefaultKey(dkMap map[string]interface{}, data map[string]interface{}) error {
 	for key := range dkMap {
-		//		log.Infof("keys with default %v, %v",key,dkMap[key])
 		if _, ok := data[key]; !ok {
 			data[key] = dkMap[key]
 			log.Infof("%v doesn't exist. set to default %#v", key, dkMap[key])
@@ -134,14 +133,9 @@ func (s MetaService) CreateMetadata(meta string, data map[string]interface{}) (m
 	if err != nil {
 		return nil, err
 	}
-/*
-	if data["objtype"] != "metadata" {
-		return nil, errors.New("For metadata create API, Object type should be metadata")
-	}
-	log.Debugf(" %#v ", data["fields"])
-*/
 	fMap := data["fields"].([]interface{})
 	log.Debugf("fMap is %#v",fMap)
+	const cardinality = "One"
 	if len(fMap)>0 {
 		for i := range fMap {
 			rkeys = []string{"fieldName","fieldType"}
@@ -150,7 +144,7 @@ func (s MetaService) CreateMetadata(meta string, data map[string]interface{}) (m
 				return nil, err
 			}
 			dkMap := map[string]interface{}{
-				"cardinality":"one",
+				"cardinality": cardinality,
 				"mandatory": false,
 				"index":false,
 			}
@@ -167,13 +161,12 @@ func (s MetaService) CreateMetadata(meta string, data map[string]interface{}) (m
 
 	e := NewEntityService(s.dbclient)
 	uids, err := e.CreateEntity("metadata", data)
-	log.Infof("metadata created/updated: %v", uids)
 
 	if err != nil {
 		log.Error(err)
 		return nil, fmt.Errorf("can't create metadata")
 	}
-
+	log.Infof("metadata created/updated: %v", uids)
 	return uids, nil
 }
 

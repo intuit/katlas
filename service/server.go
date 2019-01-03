@@ -2,15 +2,19 @@ package main
 
 import (
 	"flag"
+	"net/http"
+	"strings"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/intuit/katlas/service/apis"
 	"github.com/intuit/katlas/service/cfg"
 	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/resources"
-	"net/http"
-	"strings"
 )
+
+const cacheSize = 10
 
 //Health checks service health
 func Health(w http.ResponseWriter, r *http.Request) {
@@ -42,11 +46,19 @@ func serve() {
 	router.HandleFunc("/v1/query", res.QueryHandler).Methods("GET")
 
 	//Metadata
-	router.HandleFunc("/v1/meta/{name}", res.MetaGetHandler).Methods("GET")
-	router.HandleFunc("/v1/metacreate", res.MetaCreateHandler).Methods("POST")
+	router.HandleFunc("/v1/metadata/{name}", res.MetaGetHandler).Methods("GET")
+	router.HandleFunc("/v1/metadata/{metadata}", res.MetaCreateHandler).Methods("POST")
 
 	router.HandleFunc("/health", Health).Methods("GET")
 	router.HandleFunc("/", Up).Methods("GET", "POST")
+
+	//Creates an LRU cache of the given size
+	var err error
+	db.LruCache, err = lru.New(cacheSize)
+	if err != nil {
+		log.Errorf("err: %v", err)
+	}
+	log.Infoln("LRU cache created with given size")
 
 	log.Infof("Service started on port:8011, mode:%s", cfg.ServerCfg.ServerType)
 

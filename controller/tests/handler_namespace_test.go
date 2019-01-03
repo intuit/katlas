@@ -62,29 +62,14 @@ func TestNamespace(t *testing.T) {
 
 		t.Logf("Namespaces: %s\n", listnamespaces.String())
 
-		output, err := namespacehandler.ObjectCreated(a)
+		err = namespacehandler.ObjectCreated(a)
 		if err != nil {
-			t.Errorf("error reading namespace : %v", err)
+			t.Errorf("error creating namespace : %v", err)
 		}
 		err = namespacehandler.ObjectUpdated(a, a)
-
-		if len(output) != len(test.out) {
-			t.Error("Informer did not get the added namespace diff length")
+		if err != nil {
+			t.Errorf("error updating namespace : %v", err)
 		}
-
-		for k, v := range output {
-			if k == "volumes" || k == "containers" || k == "labels" || k == "creationtime" {
-				continue
-			}
-			if w, ok := test.out[k]; !ok || v != w {
-				t.Error("Informer did not get the added namespace diff values")
-				t.Errorf("output[%s]: %s\n", k, output[k])
-				t.Errorf("output[%s]: %s\n", k, test.out[k])
-			}
-		}
-
-		t.Logf("Got namespace from channel: %s/%s\n", output["namespace"], test.out["name"])
-
 	}
 
 	handlers.NamespaceSynchronize(client)

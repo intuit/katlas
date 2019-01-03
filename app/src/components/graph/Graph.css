@@ -11,12 +11,6 @@
   height: 500px;
 }
 
-.Graph-scroll-container {
-  overflow: auto;
-  height: 600px;
-  text-align: left;
-}
-
 .Graph-legend-container {
   overflow: auto;
   height: 100px;
