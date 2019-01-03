@@ -1,7 +1,7 @@
 import fetchMock from 'fetch-mock';
 import {HttpService} from './httpService';
 
-it('Test get method for response 200', () => {
+it('Returns 200 for GET request, then response is as expected', () => {
 
     let dummyUrl = "http://katlas.com/v1/qsl";
     let dummyParams = {qslstring: 'Cluster'};
@@ -22,7 +22,7 @@ it('Test get method for response 200', () => {
 
 });
 
-it('Test get method for response 204', () => {
+it('Returns 204 for GET request, then response is null', () => {
 
     let dummyUrl = "http://katlas.com/v1/qsl";
     let dummyParams = {qslstring: 'Cluster'};
@@ -43,7 +43,7 @@ it('Test get method for response 204', () => {
 
 });
 
-it('Test get method for error response', () => {
+it('Returns 400 for GET request, then response is null', () => {
 
     let dummyUrl = "http://katlas.com/v1/qsl";
     let dummyParams = {qslstring: 'Cluster'};

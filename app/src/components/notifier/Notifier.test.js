@@ -20,6 +20,9 @@ function sleep (time) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 
+//Using hostNodes hack instead of wrapper.find('.Notifier-root-120').length - refer https://github.com/airbnb/enzyme/issues/1253
+//expect(wrapper.find('.Notifier-root-120').hostNodes().length).toEqual(0);
+
 it('Notifier does not open snackbar for valid query', () => {
 
   const SEARCH_STR = 'foobar';
