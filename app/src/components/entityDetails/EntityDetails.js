@@ -21,7 +21,7 @@ class EntityDetails extends Component {
     const { classes } = this.props;
 
     return (
-      <Paper className={classes.root}>
+      <Paper className={classes.root} square={true}>
         <ReactJson src={this.props.selectedObj} theme="ocean"/>
       </Paper>
     );
