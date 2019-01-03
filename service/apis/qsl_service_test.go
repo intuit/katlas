@@ -9,6 +9,7 @@ import (
 	"github.com/intuit/katlas/service/db"
 )
 
+// FResult values is the expected output, err is the expected error
 type FResult struct {
 	values []string
 	err    error
@@ -17,42 +18,42 @@ type FResult struct {
 func TestCreateFiltersQuery(t *testing.T) {
 
 	tests := map[string]FResult{
-		`@name="paas-preprod-west2.cluster.k8s.local"|@k8sobj="K8sObj"|@resourceid="paas-preprod-west2.cluster.k8s.local"`: FResult{
+		`@name="paas-preprod-west2.cluster.k8s.local"||@k8sobj="K8sObj"||@resourceid="paas-preprod-west2.cluster.k8s.local"`: FResult{
 			[]string{
 				", $name: string, $k8sobj: string, $resourceid: string",
 				` ( eq(name,"paas-preprod-west2.cluster.k8s.local") or eq(k8sobj,"K8sObj") or eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
 			},
 			nil,
 		},
-		`@name="paas-preprod-west2.cluster.k8s.local",@k8sobj="K8sObj",@resourceid="paas-preprod-west2.cluster.k8s.local"`: FResult{
+		`@name="paas-preprod-west2.cluster.k8s.local"&&@k8sobj="K8sObj"&&@resourceid="paas-preprod-west2.cluster.k8s.local"`: FResult{
 			[]string{
 				", $name: string, $k8sobj: string, $resourceid: string",
 				` ( eq(name,"paas-preprod-west2.cluster.k8s.local") and eq(k8sobj,"K8sObj") and eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
 			},
 			nil,
 		},
-		`@name="paas-preprod-west2.cluster.k8s.local"|@k8sobj="K8sObj",@resourceid="paas-preprod-west2.cluster.k8s.local"`: FResult{
+		`@name="paas-preprod-west2.cluster.k8s.local"||@k8sobj="K8sObj"&&@resourceid="paas-preprod-west2.cluster.k8s.local"`: FResult{
 			[]string{
 				", $name: string, $k8sobj: string, $resourceid: string",
 				` ( eq(name,"paas-preprod-west2.cluster.k8s.local") or eq(k8sobj,"K8sObj") and eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
 			},
 			nil,
 		},
-		`@name="paas-preprod-west2.cluster.k8s.local"|@k8sobj="K8sObj""`: FResult{
+		`@name="paas-preprod-west2.cluster.k8s.local"||@k8sobj="K8sObj"`: FResult{
 			[]string{
 				", $name: string, $k8sobj: string",
 				` ( eq(name,"paas-preprod-west2.cluster.k8s.local") or eq(k8sobj,"K8sObj") )`,
 			},
 			nil,
 		},
-		`@k8sobj="K8sObj",@resourceid="paas-preprod-west2.cluster.k8s.local"`: FResult{
+		`@k8sobj="K8sObj"&&@resourceid="paas-preprod-west2.cluster.k8s.local"`: FResult{
 			[]string{
 				", $k8sobj: string, $resourceid: string",
 				` ( eq(k8sobj,"K8sObj") and eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
 			},
 			nil,
 		},
-		`@name="paas-preprod-west2.cluster.k8s.local""`: FResult{
+		`@name="paas-preprod-west2.cluster.k8s.local"`: FResult{
 			[]string{
 				", $name: string",
 				` ( eq(name,"paas-preprod-west2.cluster.k8s.local") )`,
@@ -65,6 +66,13 @@ func TestCreateFiltersQuery(t *testing.T) {
 				` ( eq(name,"paas-preprod-west2.cluster.k8s.local") )`,
 			},
 			errors.New("Invalid filters in @name=\"paas-preprod-west2.cluster.k8s.local?\""),
+		},
+		`@numreplicas>=1`: FResult{
+			[]string{
+				", $numreplicas: int",
+				` ( ge(numreplicas,1) )`,
+			},
+			nil,
 		},
 	}
 
@@ -159,7 +167,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 			"}",
 		}, nil},
 
-		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"|@name="default"]{*}`: FResult{[]string{
+		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"||@name="default"]{*}`: FResult{[]string{
 			"query objects($objtype: string, $name: string){",
 			"objects(func: eq(objtype, Cluster)) @filter( ( eq(name,\"paas-preprod-west2.cluster.k8s.local\") )){",
 			"\tcreationtime",
@@ -182,7 +190,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 			"}",
 			"}",
 		}, nil},
-		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa",@k8sobj="K8sObj"]{*}`: FResult{[]string{
+		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"&&@k8sobj="K8sObj"]{*}`: FResult{[]string{
 			"query objects($objtype: string, $name: string){",
 			"objects(func: eq(objtype, Cluster)) @filter( ( eq(name,\"paas-preprod-west2.cluster.k8s.local\") )){",
 			"\tcreationtime",

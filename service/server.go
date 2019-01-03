@@ -59,6 +59,7 @@ func serve() {
 }
 
 func main() {
+	log.SetLevel(log.DebugLevel)
 	// parse and print command line flags
 	flag.Parse()
 	log.Infof("EnvNamespace=%s", cfg.ServerCfg.EnvNamespace)

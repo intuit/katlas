@@ -590,7 +590,7 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	log.Infof("response for query %#v: %#v", queryMap["qslstring"][0], response)
+	log.Infof("response for query %#v: %#v ", queryMap["qslstring"][0], response)
 
 	ret, err := json.Marshal(response)
 	if err != nil {

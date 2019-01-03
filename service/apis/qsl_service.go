@@ -11,10 +11,10 @@ import (
 )
 
 // regex to get objtype[filters]{fields}
-var blockRegex = `([a-zA-Z0-9]+)\[(?:(\@[\"\,\@\=\>\<a-zA-Z0-9\-\.\|\:_]*|\*))\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
+var blockRegex = `([a-zA-Z0-9]+)\[(?:(\@[\"\,\@\=\>\<a-zA-Z0-9\-\.\|\&\:_]*|\*))\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
 
 // regex to get KeyOperatorValue from something like numreplicas>=2
-var filterRegex = `\@([a-zA-Z0-9]*)([\<\>\=]*)\"([a-zA-Z0-9\-\.\|\:_]*)\"`
+var filterRegex = `\@([a-zA-Z0-9]*)([\<\>\=]*)(\"?[a-zA-Z0-9\-\.\|\&\:_]*\"?)`
 
 // QSLService service for QSL
 type QSLService struct {
@@ -63,7 +63,7 @@ func CreateFiltersQuery(filterlist string) (string, string, error) {
 
 	// split the whole string by the | "or" symbol because of higher priority for ands
 	// e.g. a&b&c|d&e == (a&b&c) | (d&e)
-	splitlist := strings.Split(filterlist, "|")
+	splitlist := strings.Split(filterlist, "||")
 	// the variable definitions e.g. $name: string,
 	filterdeclaration := ""
 	// the eq functions eq(name,paas-preprod-west2.cluster.k8s.local)
@@ -78,7 +78,7 @@ func CreateFiltersQuery(filterlist string) (string, string, error) {
 	}
 
 	for _, item := range splitlist {
-		splitstring := strings.Split(item, ",")
+		splitstring := strings.Split(item, "&&")
 
 		interfilterfunc := []string{}
 
@@ -96,13 +96,26 @@ func CreateFiltersQuery(filterlist string) (string, string, error) {
 			operator := matches[2]
 			value := matches[3]
 
-			filterdeclaration = filterdeclaration + ", $" + keyname + ": string"
-			interfilterfunc = append(interfilterfunc, " "+operatorMap[operator]+"("+keyname+",\""+value+"\") ")
+			// if the value is meant to be an int, it won't have quotes around it
+			dectype := ": string"
+			if string(value[0]) != "\"" {
+				dectype = ": int"
+			}
+
+			// if the value is a string make sure it has quotes on both sides
+			if string(value[0]) == "\"" && !(string(value[len(value)-1]) == "\"") {
+				return "", "", errors.New("Invalid filters in " + filterlist)
+			}
+
+			filterdeclaration = filterdeclaration + ", $" + keyname + dectype
+			interfilterfunc = append(interfilterfunc, " "+operatorMap[operator]+"("+keyname+","+value+") ")
 		}
 
 		filterfunc = append(filterfunc, strings.Join(interfilterfunc, "and"))
 
 	}
+
+	log.Debugf("filter:[ %s ]\n filterdec: %s \n filterfunc: %s", filterlist, filterdeclaration, strings.Join(filterfunc, "or"))
 
 	return filterdeclaration, " (" + strings.Join(filterfunc, "or") + ")", nil
 
@@ -303,6 +316,10 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 	objtype := strings.Title(matches[1])
 	filters := matches[2]
 	fields := matches[3]
+	fd, ff, err := CreateFiltersQuery(filters)
+	if err != nil {
+		return "", err
+	}
 
 	log.Debugf("helperobjtype %#v\n", objtype)
 
@@ -322,10 +339,7 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 	log.Debugf("metafields for %s: %#v\n", objtype, metafieldslist)
 
 	// convert the filters and fields to corresponding dgraph lines for the query
-	fd, ff, err := CreateFiltersQuery(filters)
-	if err != nil {
-		return "", err
-	}
+
 	fl, err := CreateFieldsQuery(fields, metafieldslist, 0)
 	if err != nil {
 		return "", err
