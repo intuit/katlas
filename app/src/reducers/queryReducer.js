@@ -14,7 +14,13 @@ export default function query(state = initialState.query, action) {
       };
       return newState;
     case SUBMIT_QUERY:
-      return Object.assign({}, state, { submitted: true, isWaiting: true, results: [] });
+      newState = {
+        ...state,
+        submitted: true,
+        isWaiting: true,
+        results: [],
+      }
+      return newState;
     case RECEIVE_QUERY:
       newState = {
         current: state.current,
