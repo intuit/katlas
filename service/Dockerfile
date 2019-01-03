@@ -1,10 +1,13 @@
 FROM alpine:latest
 
-ADD bin/katlas /katlas
-RUN chmod 755 /katlas
+ARG appfolder
+ENV appfolder /etc/katlas
+RUN mkdir -p $appfolder
+ADD bin/katlas $appfolder/katlas
+RUN chmod 755 $appfolder/katlas
 EXPOSE 8011
 
-CMD /katlas \
+CMD $appfolder/katlas \
     -envNamespace=$ENV_NAMESPACE \
     -serverType=$SERVER_TYPE \
     -dgraphHost=$DGRAPH_HOST
