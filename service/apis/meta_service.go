@@ -136,8 +136,10 @@ func (s MetaService) CreateMetadata(data map[string]interface{}) (map[string]str
 	if err != nil {
 		return nil, err
 	}
-	fMap := data["fields"].([]interface{})
-	log.Debugf("fMap is %#v", fMap)
+	fMap, ok := data["fields"].([]interface{})
+	if ok {
+		log.Debugf("fMap is %#v", fMap)
+	}
 	const cardinality = "One"
 	if len(fMap) > 0 {
 		for i := range fMap {
