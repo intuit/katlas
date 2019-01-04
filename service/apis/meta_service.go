@@ -106,7 +106,7 @@ func (s MetaService) GetMetadataFields(name string) ([]MetadataField, error) {
 	}
 	return nil, nil
 }
-
+// CheckKeys checks if keys exist
 func CheckKeys(keys []string, data map[string]interface{}) error {
 	for k := range keys {
 		if _, ok := data[keys[k]]; !ok {
@@ -116,6 +116,7 @@ func CheckKeys(keys []string, data map[string]interface{}) error {
 	return nil
 }
 
+//SetDefaultKey sets default values for the keys if any isn't set
 func SetDefaultKey(dkMap map[string]interface{}, data map[string]interface{}) error {
 	for key := range dkMap {
 		if _, ok := data[key]; !ok {
