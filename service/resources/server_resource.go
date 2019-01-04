@@ -183,8 +183,8 @@ func (s ServerResource) QueryHandler(w http.ResponseWriter, r *http.Request) {
 
 // MetaCreateHandler REST API for create Metadata
 func (s ServerResource) MetaCreateHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	meta := vars[util.Metadata]
+	//vars := mux.Vars(r)
+	//meta := vars[util.Metadata]
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
@@ -197,7 +197,7 @@ func (s ServerResource) MetaCreateHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	uids, err := s.MetaSvc.CreateMetadata(meta, payload)
+	uids, err := s.MetaSvc.CreateMetadata(payload)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -2,6 +2,7 @@ package apis
 
 import (
 	"fmt"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/util"
@@ -14,7 +15,7 @@ type IMetaService interface {
 	//GetMetadata(name string) (Metadata, error)
 	GetMetadata(name string) (Metadata, error)
 	// Create new metadata
-	CreateMetadata(name string, data Metadata) (map[string]string, error)
+	CreateMetadata(data Metadata) (map[string]string, error)
 	// Delete metadata
 	DeleteMetadata(name string) error
 	// Delete metadata field
@@ -129,7 +130,7 @@ func SetDefaultKey(dkMap map[string]interface{}, data map[string]interface{}) er
 }
 
 // CreateMetadata save new metadata to the storage
-func (s MetaService) CreateMetadata(meta string, data map[string]interface{}) (map[string]string, error) {
+func (s MetaService) CreateMetadata(data map[string]interface{}) (map[string]string, error) {
 	var rkeys = []string{"name", "fields", "objtype"}
 	err := CheckKeys(rkeys, data)
 	if err != nil {
