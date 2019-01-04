@@ -137,10 +137,12 @@ func (s MetaService) CreateMetadata(data map[string]interface{}) (map[string]str
 		return nil, err
 	}
 	fMap, ok := data["fields"].([]interface{})
-	if ok {
-	    log.Debugf("fMap is %#v", fMap)
-	    const cardinality = "One"
-	    if len(fMap) > 0 {
+	if !ok {
+		return nil, fmt.Errorf("error in metadata field")
+	}
+	log.Debugf("fMap is %#v", fMap)
+	const cardinality = "One"
+	if len(fMap) > 0 {
 		for i := range fMap {
 			rkeys = []string{"fieldName", "fieldType"}
 			err = CheckKeys(rkeys, fMap[i].(map[string]interface{}))
@@ -161,7 +163,6 @@ func (s MetaService) CreateMetadata(data map[string]interface{}) (map[string]str
 				}
 			}
 		}
-	    }
 	}
 
 	e := NewEntityService(s.dbclient)
