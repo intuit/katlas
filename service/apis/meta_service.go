@@ -106,6 +106,7 @@ func (s MetaService) GetMetadataFields(name string) ([]MetadataField, error) {
 	}
 	return nil, nil
 }
+
 // CheckKeys checks if keys exist
 func CheckKeys(keys []string, data map[string]interface{}) error {
 	for k := range keys {

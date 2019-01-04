@@ -13,8 +13,8 @@ import (
 func TestCreateEntity(t *testing.T) {
 	dc := db.NewDGClient("127.0.0.1:9080")
 	defer dc.Close()
-	ms := NewMetaService(dc)
-	s := NewEntityService(dc, ms)
+	//	ms := NewMetaService(dc)
+	s := NewEntityService(dc)
 	// create node
 	node := map[string]interface{}{
 		"objtype": "K8sNode",
@@ -43,8 +43,8 @@ func TestCreateEntity(t *testing.T) {
 
 func TestDeleteEntityByRid(t *testing.T) {
 	dc := db.NewDGClient("127.0.0.1:9080")
-	ms := NewMetaService(dc)
-	s := NewEntityService(dc, ms)
+	//	ms := NewMetaService(dc)
+	s := NewEntityService(dc)
 	// create node
 	node := map[string]interface{}{
 		"objtype":    "K8sNode",
@@ -62,7 +62,7 @@ func TestCreateEntityWithMeta(t *testing.T) {
 	dc := db.NewDGClient("127.0.0.1:9080")
 	defer dc.Close()
 	ms := NewMetaService(dc)
-	s := NewEntityService(dc, ms)
+	s := NewEntityService(dc)
 	q := NewQueryService(dc)
 	// create index for query
 	dc.CreateSchema(db.Schema{Predicate: "name", PType: "string", Index: true, Tokenizer: []string{"term"}})
@@ -227,7 +227,7 @@ func TestSyncEntities(t *testing.T) {
 	dc := db.NewDGClient("127.0.0.1:9080")
 	defer dc.Close()
 	ms := NewMetaService(dc)
-	s := NewEntityService(dc, ms)
+	s := NewEntityService(dc)
 	q := NewQueryService(dc)
 	// create index for query
 	dc.CreateSchema(db.Schema{Predicate: "name", PType: "string", Index: true, Tokenizer: []string{"term"}})
@@ -445,8 +445,8 @@ func TestMultiCreateEntity(t *testing.T) {
 	dc := db.NewDGClient("127.0.0.1:9080")
 	q := NewQueryService(dc)
 	defer dc.Close()
-	ms := NewMetaService(dc)
-	s := NewEntityService(dc, ms)
+	//	ms := NewMetaService(dc)
+	s := NewEntityService(dc)
 
 	var wg sync.WaitGroup
 	rest := make(chan map[string]string)

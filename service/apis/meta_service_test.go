@@ -12,7 +12,7 @@ func TestMetaService(t *testing.T) {
 
 	q := NewQueryService(dc)
 	m := NewMetaService(dc)
-	e := NewEntityService(dc, m)
+	e := NewEntityService(dc)
 	// create pod metadata
 	podMeta := `{
 		"name": "pod_metadata",
