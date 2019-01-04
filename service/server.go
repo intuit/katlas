@@ -37,14 +37,15 @@ func serve() {
 	metaSvc := apis.NewMetaService(dc)
 	entitySvc := apis.NewEntityService(dc, metaSvc)
 	querySvc := apis.NewQueryService(dc)
-	res := resources.ServerResource{EntitySvc: entitySvc, QuerySvc: querySvc, MetaSvc: metaSvc}
+	qslSvc := apis.NewQSLService(dc, metaSvc)
+	res := resources.ServerResource{EntitySvc: entitySvc, QuerySvc: querySvc, MetaSvc: metaSvc, QSLSvc: qslSvc}
 	router.HandleFunc("/v1/entity/{metadata}/{uid}", res.EntityGetHandler).Methods("GET")
 	// TODO: wire up more resource APIs here
 	router.HandleFunc("/v1/entity/{metadata}", res.EntityCreateHandler).Methods("POST")
 	router.HandleFunc("/v1/sync/{metadata}", res.EntitySyncHandler).Methods("POST")
 	router.HandleFunc("/v1/entity/{metadata}/{resourceid}", res.EntityDeleteHandler).Methods("DELETE")
 	router.HandleFunc("/v1/query", res.QueryHandler).Methods("GET")
-
+	router.HandleFunc("/v1/qsl", res.QSLHandler).Methods("GET")
 	//Metadata
 	router.HandleFunc("/v1/meta/{name}", res.MetaGetHandler).Methods("GET")
 
@@ -69,6 +70,7 @@ func serve() {
 }
 
 func main() {
+	log.SetLevel(log.DebugLevel)
 	// parse and print command line flags
 	flag.Parse()
 	log.Infof("EnvNamespace=%s", cfg.ServerCfg.EnvNamespace)
