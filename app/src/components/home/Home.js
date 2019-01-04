@@ -17,6 +17,9 @@ const styles = theme => ({
     flexWrap: 'wrap',
     width: '30%'
   },
+  title: {
+    textAlign: 'center',
+  },
   textField: {
     marginLeft: theme.spacing.unit,
     marginRight: theme.spacing.unit,
@@ -45,8 +48,10 @@ class Home extends Component {
     const { classes, query } = this.props;
     return (
       <div className="Home">
-        <h3>Welcome to Kubernetes Application Topology Browser</h3>
-        <h1>K-Atlas Browser</h1>
+        <div className={classes.title}>
+          <h3>Welcome to Kubernetes Application Topology Browser</h3>
+          <h1>K-Atlas Browser</h1>
+        </div>
         <div className={classes.container}>
           <TextField
             label="Search..."
