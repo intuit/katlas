@@ -128,29 +128,29 @@ func SetDefaultKey(dkMap map[string]interface{}, data map[string]interface{}) er
 
 // CreateMetadata save new metadata to the storage
 func (s MetaService) CreateMetadata(meta string, data map[string]interface{}) (map[string]string, error) {
-	var rkeys = []string{"name","fields", "objtype"}
+	var rkeys = []string{"name", "fields", "objtype"}
 	err := CheckKeys(rkeys, data)
 	if err != nil {
 		return nil, err
 	}
 	fMap := data["fields"].([]interface{})
-	log.Debugf("fMap is %#v",fMap)
+	log.Debugf("fMap is %#v", fMap)
 	const cardinality = "One"
-	if len(fMap)>0 {
+	if len(fMap) > 0 {
 		for i := range fMap {
-			rkeys = []string{"fieldName","fieldType"}
+			rkeys = []string{"fieldName", "fieldType"}
 			err = CheckKeys(rkeys, fMap[i].(map[string]interface{}))
 			if err != nil {
 				return nil, err
 			}
 			dkMap := map[string]interface{}{
 				"cardinality": cardinality,
-				"mandatory": false,
-				"index":false,
+				"mandatory":   false,
+				"index":       false,
 			}
-			err = SetDefaultKey(dkMap,fMap[i].(map[string]interface{}))
+			err = SetDefaultKey(dkMap, fMap[i].(map[string]interface{}))
 			if fMap[i].(map[string]interface{})["index"].(bool) == true {
-				rkeys = []string{"upsert","tokenizer"}
+				rkeys = []string{"upsert", "tokenizer"}
 				err = CheckKeys(rkeys, fMap[i].(map[string]interface{}))
 				if err != nil {
 					return nil, err
@@ -169,4 +169,3 @@ func (s MetaService) CreateMetadata(meta string, data map[string]interface{}) (m
 	log.Infof("metadata created/updated: %v", uids)
 	return uids, nil
 }
-

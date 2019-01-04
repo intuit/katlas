@@ -210,6 +210,7 @@ func (s ServerResource) MetaCreateHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 	w.Write(ret)
+}
 func buildEntityData(clusterName string, meta string, body []byte, isArray bool) (interface{}, error) {
 	switch meta {
 	case "Namespace":
@@ -596,7 +597,6 @@ func createAppNameList(obj interface{}) []interface{} {
 		}
 	}
 	return appList
->>>>>>> adf9677b4537f537e9f9779b9502d463779036fc
 }
 
 // TODO:
