@@ -51,17 +51,25 @@ const entityWalk = (rootUid, entityObj) => {
   let results = entityObj[rootUid];
   //walk it (recursing into all arrs)
   //TODO:DM - this may not actually be recursing as deep as I want... more than 1 hop from root
-  for (let key in results) {
+  _.forOwn(results, (val, key) => {
     let candidate = results[key];
-    //ensure that the key is an expected relationship and dealing with an array
-    if ((EdgeLabels.indexOf(key) > -1) && _.isArray(candidate)) {
-      for (let idx in candidate) {
-        let node = candidate[idx];
-        if (entityObj[node.uid]) {
-          _.merge(node, entityObj[node.uid]);
-        }
-      }
+    if ((EdgeLabels.indexOf(key) > -1)){
+      entityWalkHelper(candidate, entityObj);
     }
-  }
+  });
   return results;
+};
+
+const entityWalkHelper = (candidate, entityObj) => {
+  //ensure that the key is an expected relationship and the val is an array
+  if (_.isArray(candidate)) {
+    _.forEach(candidate, (node) => {
+      if (entityObj[node.uid]) {
+        _.merge(node, entityObj[node.uid]);
+      }
+    });
+  } else {
+    //object or string
+    //how to recurse here?
+  }
 };

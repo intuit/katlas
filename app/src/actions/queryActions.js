@@ -51,19 +51,19 @@ export const receiveQuery = json => ({
 });
 
 function handleResponse(json) {
-    let results = [];
-    let existingUids = {};
-    for (let objKey in json){
-      let objArr = json[objKey];
-      if (objArr.length) {
-        objArr.forEach(obj => {
-          //screen out duplicate UID entries
-          if(!existingUids[obj.uid]){
-            results.push(obj);
-            existingUids[obj.uid] = true;
-          }
-        });
-      }
+  let results = [];
+  let existingUids = {};
+  for (let objKey in json){
+    let objArr = json[objKey];
+    if (objArr.length) {
+      objArr.forEach(obj => {
+        //screen out duplicate UID entries
+        if(!existingUids[obj.uid]){
+          results.push(obj);
+          existingUids[obj.uid] = true;
+        }
+      });
     }
-    return results;
   }
+  return results;
+}

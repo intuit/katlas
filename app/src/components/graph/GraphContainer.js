@@ -41,15 +41,13 @@ const styles = theme => ({
 class GraphContainer extends Component {
   componentDidMount() {
     this.setRootNode();
-    this.intervalHandle = setTimeout(() => this.getData(),
-      FETCH_PERIOD_PER_ENTITY_MS);
-    //delay the first call by no ms (therefore one scheduling cycle) which
-    //allows for webfont to be loaded before data inserted to graph
-    setTimeout(() => this.getData(), 0);
+    //run first data acquisition event immediately, maintain handle for
+    //cancellation purpose
+    this.intervalHandle = setTimeout(() => this.getDataInterval(), 0);
   }
 
   componentDidUpdate(prevProps) {
-    //recognize change in URL and re-issue API request as necessary
+    //recognize change in URL and re-issue API request in that case
     if (this.props.location !== prevProps.location){
       this.setRootNode();
       this.getData();
@@ -60,7 +58,7 @@ class GraphContainer extends Component {
     clearInterval(this.intervalHandle);
   }
 
-  setRootNode = () => {
+  setRootNode() {
     const pathComponents = this.props.location.pathname.split('/');
     //TODO:DM - simply grabbing last param after '/' feels fragile, how to more safely verify as UID?
     //could be empty string... a better default to use, if so?
@@ -68,18 +66,22 @@ class GraphContainer extends Component {
 
     this.props.entityActions.setRootEntity(uid);
     this.props.entityActions.addEntityWatch(uid);
+  }
 
-  };
-
-  getData = () => {
+  getDataInterval() {
+    this.getData();
     //reschedule next automatic data request while computing time value based
     //on number of entities and a min time between fetches
     const NUM_ENTITIES = Object.keys(this.props.entity.entitiesByUid).length;
-    this.intervalHandle = setTimeout(() => this.getData(), NUM_ENTITIES * FETCH_PERIOD_PER_ENTITY_MS);
+    this.intervalHandle = setTimeout(() => this.getDataInterval(),
+      NUM_ENTITIES * FETCH_PERIOD_PER_ENTITY_MS);
+  }
+
+  getData() {
     //fetch all entities currently represented as keys in the store
     this.props.entityActions.fetchEntities(Object.keys(
       this.props.entity.entitiesByUid));
-  };
+  }
 
   render() {
     const { classes, entity } = this.props;

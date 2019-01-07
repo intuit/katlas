@@ -21,9 +21,7 @@ export const fetchEntity = uid => {
 
 export const fetchEntities = uids => {
   return dispatch => {
-    return Promise.all(uids.map(uid =>
-      dispatch(fetchEntity(uid))
-    ));
+    uids.map(uid => dispatch(fetchEntity(uid)));
   };
 };
 

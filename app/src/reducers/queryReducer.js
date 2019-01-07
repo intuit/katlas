@@ -6,17 +6,14 @@ export default function query(state = initialState.query, action) {
   switch (action.type) {
     case CHANGE_QUERY:
       newState = {
+        ...state,
         current: action.query,
-        lastSubmitted: state.lastSubmitted,
         submitted: false,
-        isWaiting: state.isWaiting,
-        results: state.results,
       };
       return newState;
     case SUBMIT_QUERY:
       newState = {
-        current: state.current,
-        lastSubmitted: state.current,
+        ...state,
         submitted: true,
         isWaiting: true,
         results: [], //new array to clear out old results upon new submission
@@ -26,9 +23,7 @@ export default function query(state = initialState.query, action) {
       return action;
     case RECEIVE_QUERY:
       newState = {
-        current: state.current,
-        lastSubmitted: state.lastSubmitted,
-        submitted: state.submitted,
+        ...state,
         isWaiting: false,
         results: action.results
       };
