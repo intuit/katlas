@@ -34,7 +34,7 @@ export const NodeStatusColorMap = new Map([
   ['Running', '#25e293'],
   ['Bound', '#25e293'],
   //concerning, risky statuses - yellow
-  ['Terminating', '#e2cf25'], //this color doesn't matter since it will be overwritten thru pulsing... but probably good for the legend
+  ['Terminating', '#e2cf25'], //this color will be overwritten thru pulsing, but is still needed for the legend
   //error, fault statuses - red
   ['Stopped', '#e2254e'],
 ]);
@@ -50,5 +50,6 @@ export const EdgeColorMap = new Map([
 
 export const EdgeLabels = ['belongs_to', 'binds', 'claims', 'contains',
   'controlled_by', 'has', 'is_bound_to', 'routes_traffic', 'runs',
-  //relationship types used after dgraph metadata changes
-  'cluster', 'namespace', 'owner', 'nodename', '~cluster', '~owner', '~namespace'];
+  //relationship types used after dgraph metadata changes, not currently using
+  //'~cluster', '~namesapce' since they often have hundreds of children
+  'cluster', 'namespace', 'owner', 'nodename', '~owner'];

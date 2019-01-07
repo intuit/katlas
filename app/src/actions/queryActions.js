@@ -1,9 +1,9 @@
-import ApiService from "../services/ApiService";
 import * as types from './actionTypes';
 import * as notifyActions from './notifyActions';
 //Use of app history here so that route navigations can be occur in actions,
 //which are otherwise not wrappable withRouter
 import history from '../history';
+import ApiService from "../services/ApiService";
 import { QUERY_LEN_ERR } from '../utils/errors';
 
 //TODO:DM - is there a better place to define router related consts?
@@ -20,7 +20,7 @@ export const changeQuery = str => ({
 
 const submitQueryAction = () => ({
   type: types.SUBMIT_QUERY,
-})
+});
 
 export function submitQuery(query) {
   return dispatch => {
