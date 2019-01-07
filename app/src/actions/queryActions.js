@@ -4,6 +4,7 @@ import * as notifyActions from './notifyActions';
 //Use of app history here so that route navigations can be occur in actions,
 //which are otherwise not wrappable withRouter
 import history from '../history';
+import { QUERY_LEN_ERR } from '../utils/errors';
 
 //TODO:DM - is there a better place to define router related consts?
 const APP_RESULTS_ROUTE = '/results?query=';
@@ -11,8 +12,6 @@ const APP_RESULTS_ROUTE = '/results?query=';
 //QSL requests will always include this telltale character
 //TODO:SS - check with @kianjones4 to see if this is the best strategy and char to use. possibly square brackets are an even better choice? what's least likely to occur in kube elements which might otherwise end up in a naive keyword search?
 const QSL_TAG = '@';
-//TODO:SS - this doesn't feel like the best place for this string to occur, even if it is triggered from an action here
-export const QUERY_LEN_ERR = 'Minimum length of Search word must be 3 characters.';
 
 export const changeQuery = str => ({
   type: types.CHANGE_QUERY,
