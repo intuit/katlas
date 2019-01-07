@@ -9,6 +9,7 @@
     "@material-ui/icons": "^3.0.1",
     "enzyme": "^3.8.0",
     "enzyme-adapter-react-16": "^1.7.1",
+    "fetch-mock": "^7.2.8",
     "font-awesome": "^4.7.0",
     "history": "^4.7.2",
     "lodash": "^4.17.11",

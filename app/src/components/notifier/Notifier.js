@@ -9,7 +9,7 @@ const styles = {
     }
 };
 
-const AutoHideDuration = 10000;
+export const AutoHideDuration = 10000;
 
 class Notifier extends React.Component {
 
