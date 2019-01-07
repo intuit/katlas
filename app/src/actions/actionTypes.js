@@ -1,6 +1,5 @@
 export const CHANGE_QUERY = 'CHANGE_QUERY';
 export const SUBMIT_QUERY = 'SUBMIT_QUERY';
-export const FETCH_QUERY = 'FETCH_QUERY';
 export const RECEIVE_QUERY = 'RECEIVE_QUERY';
 
 export const SET_ROOT_ENTITY = 'SET_ROOT_ENTITY';

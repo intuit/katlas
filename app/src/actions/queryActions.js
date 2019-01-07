@@ -19,9 +19,14 @@ export const changeQuery = str => ({
   query: str
 });
 
+const submitQueryAction = () => ({
+  type: types.SUBMIT_QUERY,
+})
+
 export function submitQuery(query) {
   return dispatch => {
     if(query !== '' && query.length >= 3) {
+      dispatch(submitQueryAction());
       history.push(APP_RESULTS_ROUTE + encodeURIComponent(query));
     } else {
       dispatch(notifyActions.showNotify(QUERY_LEN_ERR));
