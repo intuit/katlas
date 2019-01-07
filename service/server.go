@@ -35,7 +35,7 @@ func serve() {
 	dc := db.NewDGClient(cfg.ServerCfg.DgraphHost)
 	defer dc.Close()
 	metaSvc := apis.NewMetaService(dc)
-	entitySvc := apis.NewEntityService(dc, metaSvc)
+	entitySvc := apis.NewEntityService(dc)
 	querySvc := apis.NewQueryService(dc)
 	qslSvc := apis.NewQSLService(dc, metaSvc)
 	res := resources.ServerResource{EntitySvc: entitySvc, QuerySvc: querySvc, MetaSvc: metaSvc, QSLSvc: qslSvc}
@@ -47,7 +47,8 @@ func serve() {
 	router.HandleFunc("/v1/query", res.QueryHandler).Methods("GET")
 	router.HandleFunc("/v1/qsl", res.QSLHandler).Methods("GET")
 	//Metadata
-	router.HandleFunc("/v1/meta/{name}", res.MetaGetHandler).Methods("GET")
+	router.HandleFunc("/v1/metadata/{name}", res.MetaGetHandler).Methods("GET")
+	router.HandleFunc("/v1/metadata/{metadata}", res.MetaCreateHandler).Methods("POST")
 
 	router.HandleFunc("/health", Health).Methods("GET")
 	router.HandleFunc("/", Up).Methods("GET", "POST")

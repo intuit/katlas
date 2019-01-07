@@ -101,7 +101,7 @@ func TestGetQueryResultByKeywordSearch(t *testing.T) {
 }
 
 func createPod(dc *db.DGClient, ms *MetaService) (uid string) {
-	s := NewEntityService(dc, ms)
+	s := NewEntityService(dc)
 	// create pod
 	pod := map[string]interface{}{
 		"objtype":         "Pod",
@@ -135,6 +135,6 @@ func createPod(dc *db.DGClient, ms *MetaService) (uid string) {
 }
 
 func deletePod(dc *db.DGClient, ms *MetaService, uid string) {
-	s := NewEntityService(dc, ms)
+	s := NewEntityService(dc)
 	s.DeleteEntity(uid)
 }
