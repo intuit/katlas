@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/dgraph-io/dgo"
@@ -66,6 +67,7 @@ type IDGClient interface {
 	UpdateEntity(meta string, uuid string, data map[string]interface{}) error
 	GetQueryResult(query string) (map[string]interface{}, error)
 	Close() error
+	ExecuteDgraphQuery(query string) (map[string]interface{}, error)
 }
 
 // NewDGClient create client instance
@@ -275,7 +277,11 @@ func (s DGClient) GetAllByClusterAndType(meta string, cluster string) (map[strin
 //GetCacheContainsDBSchema - Get cache which contains db schema
 func (s DGClient) GetCacheContainsDBSchema() (*lru.Cache, error) {
 	//Add db schema to the cache
+<<<<<<< HEAD
 	if InitLruCacheDBSchema == false {
+=======
+	if !InitLruCacheDBSchema {
+>>>>>>> upstream/master
 		dbSchemaNodes, err := s.GetSchemaFromDB()
 		if err != nil {
 			log.Errorf("err: %v", err)
@@ -398,4 +404,29 @@ func (s DGClient) DropSchema(name string) error {
 // Close - destroy connection
 func (s DGClient) Close() error {
 	return s.conn.Close()
+}
+
+// ExecuteDgraphQuery - Takes a dgraph query as a string and executes on a dgraph instance
+func (s DGClient) ExecuteDgraphQuery(query string) (map[string]interface{}, error) {
+
+	txn := s.dc.NewTxn()
+	defer txn.Discard(context.Background())
+
+	resp, err := txn.Query(context.Background(), query)
+	if err != nil {
+		log.Errorf("query err: %#v\n", err)
+		return nil, errors.New("could not successfully execute query. Please try again later\n" + err.Error())
+	}
+
+	respjson := map[string]interface{}{}
+
+	err = json.Unmarshal(resp.GetJson(), &respjson)
+	if err != nil {
+		log.Errorf("unmarshal err: %#v\n", err)
+		return nil, errors.New("could not successfully handle data from query. Please try again later")
+	}
+
+	// log.Infof("response from executing dgraph query: %#v\n", respjson)
+	return respjson, nil
+
 }

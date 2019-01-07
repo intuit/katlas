@@ -14,6 +14,8 @@ import (
 	"github.com/intuit/katlas/service/resources"
 )
 
+const cacheSize = 10
+
 //Health checks service health
 func Health(w http.ResponseWriter, r *http.Request) {
 	log.Info("RestService is still running")
@@ -35,14 +37,15 @@ func serve() {
 	metaSvc := apis.NewMetaService(dc)
 	entitySvc := apis.NewEntityService(dc, metaSvc)
 	querySvc := apis.NewQueryService(dc)
-	res := resources.ServerResource{EntitySvc: entitySvc, QuerySvc: querySvc, MetaSvc: metaSvc}
+	qslSvc := apis.NewQSLService(dc, metaSvc)
+	res := resources.ServerResource{EntitySvc: entitySvc, QuerySvc: querySvc, MetaSvc: metaSvc, QSLSvc: qslSvc}
 	router.HandleFunc("/v1/entity/{metadata}/{uid}", res.EntityGetHandler).Methods("GET")
 	// TODO: wire up more resource APIs here
 	router.HandleFunc("/v1/entity/{metadata}", res.EntityCreateHandler).Methods("POST")
 	router.HandleFunc("/v1/sync/{metadata}", res.EntitySyncHandler).Methods("POST")
 	router.HandleFunc("/v1/entity/{metadata}/{resourceid}", res.EntityDeleteHandler).Methods("DELETE")
 	router.HandleFunc("/v1/query", res.QueryHandler).Methods("GET")
-
+	router.HandleFunc("/v1/qsl", res.QSLHandler).Methods("GET")
 	//Metadata
 	router.HandleFunc("/v1/meta/{name}", res.MetaGetHandler).Methods("GET")
 
@@ -51,12 +54,19 @@ func serve() {
 
 	//Creates an LRU cache of the given size
 	var err error
+<<<<<<< HEAD
 	db.LruCache, err = lru.New(5)
+=======
+	db.LruCache, err = lru.New(cacheSize)
+>>>>>>> upstream/master
 	if err != nil {
 		log.Errorf("err: %v", err)
 	}
 	log.Infoln("LRU cache created with given size")
+<<<<<<< HEAD
 	db.InitLruCacheDBSchema = false
+=======
+>>>>>>> upstream/master
 
 	log.Infof("Service started on port:8011, mode:%s", cfg.ServerCfg.ServerType)
 
@@ -68,6 +78,7 @@ func serve() {
 }
 
 func main() {
+	log.SetLevel(log.DebugLevel)
 	// parse and print command line flags
 	flag.Parse()
 	log.Infof("EnvNamespace=%s", cfg.ServerCfg.EnvNamespace)

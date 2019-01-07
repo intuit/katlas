@@ -1,5 +1,5 @@
 import initialState from './initialState';
-import {CHANGE_QUERY, SUBMIT_QUERY, FETCH_QUERY, RECEIVE_QUERY} from '../actions/actionTypes';
+import {CHANGE_QUERY, SUBMIT_QUERY, RECEIVE_QUERY} from '../actions/actionTypes';
 
 export default function query(state = initialState.query, action) {
   let newState;
@@ -15,15 +15,12 @@ export default function query(state = initialState.query, action) {
       return newState;
     case SUBMIT_QUERY:
       newState = {
-        current: state.current,
-        lastSubmitted: state.current,
+        ...state,
         submitted: true,
         isWaiting: true,
-        results: [], //new array to clear out old results upon new submission
-      };
+        results: [],
+      }
       return newState;
-    case FETCH_QUERY:
-      return action;
     case RECEIVE_QUERY:
       newState = {
         current: state.current,
