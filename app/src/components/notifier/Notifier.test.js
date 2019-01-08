@@ -4,16 +4,13 @@ import { MemoryRouter } from 'react-router-dom';
 import { mount } from 'enzyme';
 import fetchMock from 'fetch-mock';
 
-import configureStore from '../../store/configureStore';
 import {AutoHideDuration} from './Notifier';
 import App from '../app/App';
-import {HttpService} from '../../services/httpService';
+import {HttpService} from '../../services/HttpService';
 import {QUERY_LEN_ERR} from "../../utils/errors";
 
 //Use the real store rather than mock Store to keep consistent with the same that is used by HttpService.
 import store from '../../store.js';
-
-const div = document.createElement('div');
 
 function sleep (time) {
   return new Promise((resolve) => setTimeout(resolve, time));
@@ -133,8 +130,6 @@ it('Notifier can open snackbar for errors returned from httpService', () => {
 
     //check for expected state of the store
     const nowStore = store.getState();
-    console.log('nowstore.notify.type=' + nowStore.notify.type);
-    console.log('nowstore.notify.msg=' + nowStore.notify.msg);
     expect(nowStore.notify.msg).not.toEqual('');
     expect(nowStore.notify.timestamp).not.toEqual(0);
     let timeDiff = +new Date() - nowStore.notify.timestamp;

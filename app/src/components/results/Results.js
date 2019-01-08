@@ -3,16 +3,14 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
-import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Typography from '@material-ui/core/Typography';
 import SplitterLayout from 'react-splitter-layout';
 
+import ResultList from './ResultList';
 import EntityDetails from '../entityDetails/EntityDetails';
 import * as apiCfg from '../../config/apiConfig';
 import * as queryActions from '../../actions/queryActions';
-import ResultList from './ResultList';
-
 
 const styles = theme => ({
   progress: {
@@ -81,12 +79,10 @@ class Results extends Component {
               <CircularProgress className={classes.progress} color='secondary' />
             </div>
           ) : (
-              <Grid container>
-                <SplitterLayout percentage={true} secondaryInitialSize={30}>
-                  <ResultList query={query} selectedIdx={selectedIdx} onRowClick={this.handleRowClick} />
-                  <EntityDetails selectedObj={query.results[selectedIdx]} />
-                </SplitterLayout>
-              </Grid>
+              <SplitterLayout percentage={true} secondaryInitialSize={30}>
+                <ResultList query={query} selectedIdx={selectedIdx} onRowClick={this.handleRowClick} />
+                <EntityDetails selectedObj={query.results[selectedIdx]} />
+              </SplitterLayout>
             )}
       </div>
     );

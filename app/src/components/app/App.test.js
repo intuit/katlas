@@ -4,8 +4,8 @@ import { render, unmountComponentAtNode } from 'react-dom';
 import { MemoryRouter } from 'react-router-dom';
 import { mount, shallow } from 'enzyme';
 
-import configureStore from '../../store/configureStore';
 import App from './App';
+import configureStore from '../../store/configureStore';
 //next import will load envVars from local override of app/public/conf.js
 import '../../../public/conf';
 
