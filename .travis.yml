@@ -29,8 +29,6 @@ script:
   - docker build --no-cache -f Dockerfile -t katlas-browser:${TRAVIS_COMMIT} .
   - cd $TRAVIS_BUILD_DIR/service
   - go run server.go &
-  
-after_deploy:
   - "curl -o queryResult.json -X GET -H 'Content-Type: application/json' \"http://127.0.0.1:8011/v1/query?name=pod\""
   - if [ $? -ne 0 ]; then
         echo “Integration Test - Success! Need to push image to docker hub!”;
