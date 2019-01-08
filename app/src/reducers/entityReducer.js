@@ -49,27 +49,25 @@ export default function entity(state = initialState.entity, action) {
 const entityWalk = (rootUid, entityObj) => {
   // start with root obj
   let results = entityObj[rootUid];
-  //walk it (recursing into all arrs)
-  //TODO:DM - this may not actually be recursing as deep as I want... more than 1 hop from root
-  _.forOwn(results, (val, key) => {
-    let candidate = results[key];
-    if ((EdgeLabels.indexOf(key) > -1)){
-      entityWalkHelper(candidate, entityObj);
-    }
-  });
+  let encounteredUids = {};
+  encounteredUids[rootUid] = true;
+
+  entityWalkHelper(results, entityObj, encounteredUids);
   return results;
 };
 
-const entityWalkHelper = (candidate, entityObj) => {
-  //ensure that the key is an expected relationship and the val is an array
-  if (_.isArray(candidate)) {
-    _.forEach(candidate, (node) => {
-      if (entityObj[node.uid]) {
-        _.merge(node, entityObj[node.uid]);
-      }
-    });
-  } else {
-    //object or string
-    //how to recurse here?
-  }
+const entityWalkHelper = (results, entityObj, encounteredUids) => {
+  _.forOwn(results, (childrenCandidate, key) => {
+    if ((EdgeLabels.indexOf(key) > -1) && _.isArray(childrenCandidate)){
+      _.forEach(childrenCandidate, node => {
+        if (node.uid && entityObj[node.uid] && !encounteredUids[node.uid]) {
+          _.assign(node, entityObj[node.uid]);
+          encounteredUids[node.uid] = true;
+        }
+        //recurse thru object if children are present, important to do this
+        //after this object is augmented so we won't later overwrite
+        entityWalkHelper(node, entityObj, encounteredUids);
+      });
+    }
+  });
 };

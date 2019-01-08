@@ -133,8 +133,6 @@ it('Notifier can open snackbar for errors returned from httpService', () => {
 
     //check for expected state of the store
     const nowStore = store.getState();
-    console.log('nowstore.notify.type=' + nowStore.notify.type);
-    console.log('nowstore.notify.msg=' + nowStore.notify.msg);
     expect(nowStore.notify.msg).not.toEqual('');
     expect(nowStore.notify.timestamp).not.toEqual(0);
     let timeDiff = +new Date() - nowStore.notify.timestamp;

@@ -199,6 +199,8 @@ class Graph extends Component {
         //TODO:DM - rather than just current node, could skip any already watched UIDs
         if (targetNodeUid !== currentNodeUid) {
           this.props.entityActions.addEntityWatch(targetNodeUid);
+          //and immediately attempt to fetch for the indicated UID
+          this.props.entityActions.fetchEntity(targetNodeUid);
         }
       }
     });
