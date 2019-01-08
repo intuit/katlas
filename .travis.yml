@@ -29,7 +29,6 @@ script:
   - docker build --no-cache -f Dockerfile -t katlas-browser:${TRAVIS_COMMIT} .
   - cd $TRAVIS_BUILD_DIR/service
   - go run server.go &
-  - curl -sw '%{http_code}' http://127.0.0.1:8011/v1/query?name=pod
 
 after_success:
   - cd $TRAVIS_BUILD_DIR/service
