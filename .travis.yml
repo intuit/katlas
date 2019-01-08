@@ -27,6 +27,8 @@ script:
   - cd $TRAVIS_BUILD_DIR/app
   - yarn test --coverage
   - docker build --no-cache -f Dockerfile -t katlas-browser:${TRAVIS_COMMIT} .
+  - cd $TRAVIS_BUILD_DIR/service
+  - go run server.go
 
 after_success:
   - cd $TRAVIS_BUILD_DIR/service
