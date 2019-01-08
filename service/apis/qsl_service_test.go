@@ -3,7 +3,10 @@ package apis
 import (
 	"errors"
 	"reflect"
+	"strings"
 	"testing"
+
+	"github.com/intuit/katlas/service/db"
 )
 
 // FResult values is the expected output, err is the expected error
@@ -18,56 +21,56 @@ func TestCreateFiltersQuery(t *testing.T) {
 		`@name="paas-preprod-west2.cluster.k8s.local"||@k8sobj="K8sObj"||@resourceid="paas-preprod-west2.cluster.k8s.local"`: FResult{
 			[]string{
 				", $name: string, $k8sobj: string, $resourceid: string",
-				` ( eq(name,"paas-preprod-west2.cluster.k8s.local") or eq(k8sobj,"K8sObj") or eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
+				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") or eq(k8sobj,"K8sObj") or eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
 			},
 			nil,
 		},
 		`@name="paas-preprod-west2.cluster.k8s.local"&&@k8sobj="K8sObj"&&@resourceid="paas-preprod-west2.cluster.k8s.local"`: FResult{
 			[]string{
 				", $name: string, $k8sobj: string, $resourceid: string",
-				` ( eq(name,"paas-preprod-west2.cluster.k8s.local") and eq(k8sobj,"K8sObj") and eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
+				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") and eq(k8sobj,"K8sObj") and eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
 			},
 			nil,
 		},
 		`@name="paas-preprod-west2.cluster.k8s.local"||@k8sobj="K8sObj"&&@resourceid="paas-preprod-west2.cluster.k8s.local"`: FResult{
 			[]string{
 				", $name: string, $k8sobj: string, $resourceid: string",
-				` ( eq(name,"paas-preprod-west2.cluster.k8s.local") or eq(k8sobj,"K8sObj") and eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
+				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") or eq(k8sobj,"K8sObj") and eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
 			},
 			nil,
 		},
 		`@name="paas-preprod-west2.cluster.k8s.local"||@k8sobj="K8sObj"`: FResult{
 			[]string{
 				", $name: string, $k8sobj: string",
-				` ( eq(name,"paas-preprod-west2.cluster.k8s.local") or eq(k8sobj,"K8sObj") )`,
+				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") or eq(k8sobj,"K8sObj") )`,
 			},
 			nil,
 		},
 		`@k8sobj="K8sObj"&&@resourceid="paas-preprod-west2.cluster.k8s.local"`: FResult{
 			[]string{
 				", $k8sobj: string, $resourceid: string",
-				` ( eq(k8sobj,"K8sObj") and eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
+				`@filter( eq(k8sobj,"K8sObj") and eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
 			},
 			nil,
 		},
 		`@name="paas-preprod-west2.cluster.k8s.local"`: FResult{
 			[]string{
 				", $name: string",
-				` ( eq(name,"paas-preprod-west2.cluster.k8s.local") )`,
+				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") )`,
 			},
 			nil,
 		},
 		`@name="paas-preprod-west2.cluster.k8s.local?"`: FResult{
 			[]string{
 				", $name: string",
-				` ( eq(name,"paas-preprod-west2.cluster.k8s.local") )`,
+				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") )`,
 			},
 			errors.New("Invalid filters in @name=\"paas-preprod-west2.cluster.k8s.local?\""),
 		},
 		`@numreplicas>=1`: FResult{
 			[]string{
 				", $numreplicas: int",
-				` ( ge(numreplicas,1) )`,
+				`@filter( ge(numreplicas,1) )`,
 			},
 			nil,
 		},
@@ -139,129 +142,198 @@ func TestCreateFieldsQuery(t *testing.T) {
 	}
 }
 
-// func TestCreateDgraphQuery(t *testing.T) {
-// 	tests := map[string]FResult{
-// 		`namespace[@name="default"]{*}`: FResult{[]string{
-// 			"query objects($objtype: string, $name: string){",
-// 			"objects(func: eq(objtype, Namespace)) @filter( ( eq(name,\"default\") )){",
-// 			"\tresourceversion",
-// 			"\tcreationtime",
-// 			"\tk8sobj",
-// 			"\tlabels",
-// 			"\tname",
-// 			"\tresourceid",
-// 			"\tobjtype",
-// 			"\tuid",
-// 			"}",
-// 			"}",
-// 		}, nil},
-// 		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{@name}`: FResult{[]string{
-// 			"query objects($objtype: string, $name: string){",
-// 			"objects(func: eq(objtype, Cluster)) @filter( ( eq(name,\"paas-preprod-west2.cluster.k8s.local\") )){",
-// 			"\tname",
-// 			"\tuid",
-// 			"}",
-// 			"}",
-// 		}, nil},
-//
-// 		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"||@name="default"]{*}`: FResult{[]string{
-// 			"query objects($objtype: string, $name: string){",
-// 			"objects(func: eq(objtype, Cluster)) @filter( ( eq(name,\"paas-preprod-west2.cluster.k8s.local\") )){",
-// 			"\tcreationtime",
-// 			"\tk8sobj",
-// 			"\tobjtype",
-// 			"\tname",
-// 			"\tresourceid",
-// 			"\tresourceversion",
-// 			"\tuid",
-// 			"\t~cluster @filter(eq(objtype, Namespace) and ( eq(name,\"opa\") or eq(name,\"default\") )){",
-// 			"\t\tresourceversion",
-// 			"\t\tcreationtime",
-// 			"\t\tk8sobj",
-// 			"\t\tlabels",
-// 			"\t\tname",
-// 			"\t\tresourceid",
-// 			"\t\tobjtype",
-// 			"\t\tuid",
-// 			"\t}",
-// 			"}",
-// 			"}",
-// 		}, nil},
-// 		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"&&@k8sobj="K8sObj"]{*}`: FResult{[]string{
-// 			"query objects($objtype: string, $name: string){",
-// 			"objects(func: eq(objtype, Cluster)) @filter( ( eq(name,\"paas-preprod-west2.cluster.k8s.local\") )){",
-// 			"\tcreationtime",
-// 			"\tk8sobj",
-// 			"\tobjtype",
-// 			"\tname",
-// 			"\tresourceid",
-// 			"\tresourceversion",
-// 			"\tuid",
-// 			"\t~cluster @filter(eq(objtype, Namespace) and ( eq(name,\"opa\") and eq(k8sobj,\"K8sObj\") )){",
-// 			"\t\tresourceversion",
-// 			"\t\tcreationtime",
-// 			"\t\tk8sobj",
-// 			"\t\tlabels",
-// 			"\t\tname",
-// 			"\t\tresourceid",
-// 			"\t\tobjtype",
-// 			"\t\tuid",
-// 			"\t}",
-// 			"}",
-// 			"}",
-// 		}, nil},
-// 		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="default"]{**}`: FResult{[]string{
-// 			"query objects($objtype: string, $name: string){",
-// 			"objects(func: eq(objtype, Cluster)) @filter( ( eq(name,\"paas-preprod-west2.cluster.k8s.local\") )){",
-// 			"\tcreationtime",
-// 			"\tk8sobj",
-// 			"\tobjtype",
-// 			"\tname",
-// 			"\tresourceid",
-// 			"\tresourceversion",
-// 			"\tuid",
-// 			"\t~cluster @filter(eq(objtype, Namespace) and ( eq(name,\"default\") )){",
-// 			"\t\texpand(_all_){",
-// 			"\t\t\texpand(_all_){",
-// 			"\t\t\t}",
-// 			"\t\t}",
-// 			"\t}",
-// 			"}",
-// 			"}",
-// 		}, nil},
-// 		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{**}`: FResult{[]string{
-// 			"query objects($objtype: string, $name: string){",
-// 			"objects(func: eq(objtype, Cluster)) @filter( ( eq(name,\"paas-preprod-west2.cluster.k8s.local\") )){",
-// 			"\texpand(_all_){",
-// 			"\t\texpand(_all_){",
-// 			"\t\t}",
-// 			"\t}",
-// 			"}",
-// 			"}",
-// 		}, nil},
-// 	}
-//
-// 	dgraphHost := "127.0.0.1:9080"
-// 	dc := db.NewDGClient(dgraphHost)
-// 	defer dc.Close()
-// 	metaSvc := NewMetaService(dc)
-// 	qslSvc := NewQSLService(dc, metaSvc)
-//
-// 	for k, v := range tests {
-// 		output, err := qslSvc.CreateDgraphQuery(k)
-// 		if err != nil {
-// 			if v.err != nil {
-// 				if err.Error() != v.err.Error() {
-// 					t.Errorf("query error incorrect\n input: %s\n testqueryerr: %s\n realqueryerr: %s", k, v.err.Error(), err.Error())
-// 				}
-// 			} else {
-// 				t.Errorf("query error incorrect\n input: %s\n testqueryerr: %s\n realqueryerr: %s", k, "no error expected", err.Error())
-// 			}
-// 		} else {
-// 			if !(output == strings.Join(v.values, "\n")) {
-// 				t.Errorf("query incorrect\n input: %s\n testquery: \n%s\n realquery: \n%s", k, strings.Join(v.values, "\n"), output)
-// 			}
-// 		}
-// 	}
-//
-// }
+func TestCreateDgraphQuery(t *testing.T) {
+	tests := map[string]FResult{
+		`namespace[@name="default"]{*}`: FResult{[]string{
+			"query objects($objtype: string, $name: string){",
+			"objects(func: eq(objtype, Namespace)) @filter( eq(name,\"default\") ){",
+			"\tresourceversion",
+			"\tcreationtime",
+			"\tk8sobj",
+			"\tlabels",
+			"\tname",
+			"\tresourceid",
+			"\tobjtype",
+			"\tuid",
+			"}",
+			"}",
+		}, nil},
+		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{@name}`: FResult{[]string{
+			"query objects($objtype: string, $name: string){",
+			"objects(func: eq(objtype, Cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ){",
+			"\tname",
+			"\tuid",
+			"}",
+			"}",
+		}, nil},
+
+		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"||@name="default"]{*}`: FResult{[]string{
+			"query objects($objtype: string, $name: string){",
+			"objects(func: eq(objtype, Cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ){",
+			"\tcreationtime",
+			"\tk8sobj",
+			"\tobjtype",
+			"\tname",
+			"\tresourceid",
+			"\tresourceversion",
+			"\tuid",
+			"\t~cluster @filter(eq(objtype, Namespace) and eq(name,\"opa\") or eq(name,\"default\") ){",
+			"\t\tresourceversion",
+			"\t\tcreationtime",
+			"\t\tk8sobj",
+			"\t\tlabels",
+			"\t\tname",
+			"\t\tresourceid",
+			"\t\tobjtype",
+			"\t\tuid",
+			"\t}",
+			"}",
+			"}",
+		}, nil},
+		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"&&@k8sobj="K8sObj"]{*}`: FResult{[]string{
+			"query objects($objtype: string, $name: string){",
+			"objects(func: eq(objtype, Cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ){",
+			"\tcreationtime",
+			"\tk8sobj",
+			"\tobjtype",
+			"\tname",
+			"\tresourceid",
+			"\tresourceversion",
+			"\tuid",
+			"\t~cluster @filter(eq(objtype, Namespace) and eq(name,\"opa\") and eq(k8sobj,\"K8sObj\") ){",
+			"\t\tresourceversion",
+			"\t\tcreationtime",
+			"\t\tk8sobj",
+			"\t\tlabels",
+			"\t\tname",
+			"\t\tresourceid",
+			"\t\tobjtype",
+			"\t\tuid",
+			"\t}",
+			"}",
+			"}",
+		}, nil},
+		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="default"]{**}`: FResult{[]string{
+			"query objects($objtype: string, $name: string){",
+			"objects(func: eq(objtype, Cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ){",
+			"\tcreationtime",
+			"\tk8sobj",
+			"\tobjtype",
+			"\tname",
+			"\tresourceid",
+			"\tresourceversion",
+			"\tuid",
+			"\t~cluster @filter(eq(objtype, Namespace) and eq(name,\"default\") ){",
+			"\t\texpand(_all_){",
+			"\t\t\texpand(_all_){",
+			"\t\t\t}",
+			"\t\t}",
+			"\t}",
+			"}",
+			"}",
+		}, nil},
+		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{**}`: FResult{[]string{
+			"query objects($objtype: string, $name: string){",
+			"objects(func: eq(objtype, Cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ){",
+			"\texpand(_all_){",
+			"\t\texpand(_all_){",
+			"\t\t}",
+			"\t}",
+			"}",
+			"}",
+		}, nil},
+		`cluster[]{*}`: FResult{[]string{
+			"query objects($objtype: string){",
+			"objects(func: eq(objtype, Cluster)) {",
+			"\tcreationtime",
+			"\tk8sobj",
+			"\tobjtype",
+			"\tname",
+			"\tresourceid",
+			"\tresourceversion",
+			"\tuid",
+			"}",
+			"}",
+		}, nil},
+		`cluster[ ]{ }`: FResult{[]string{
+			"query objects($objtype: string){",
+			"objects(func: eq(objtype, Cluster)) {",
+			"}",
+			"}",
+		}, nil},
+		`cluster[@name =  "paas-preprod-west2.cluster.k8s.local"]{ * }`: FResult{[]string{
+			"query objects($objtype: string, $name: string){",
+			"objects(func: eq(objtype, Cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ){",
+			"\tcreationtime",
+			"\tk8sobj",
+			"\tobjtype",
+			"\tname",
+			"\tresourceid",
+			"\tresourceversion",
+			"\tuid",
+			"}",
+			"}",
+		}, nil},
+		`cluster[]{@name}`: FResult{[]string{
+			"query objects($objtype: string){",
+			"objects(func: eq(objtype, Cluster)) {",
+			"\tname",
+			"\tuid",
+			"}",
+			"}",
+		}, nil},
+		`cluster[]{}.namespace[@name="default"]{*}`: FResult{[]string{
+			"query objects($objtype: string){",
+			"objects(func: eq(objtype, Cluster)) {",
+			"\t~cluster @filter(eq(objtype, Namespace) and eq(name,\"default\") ){",
+			"\t\tresourceid",
+			"\t\tlabels",
+			"\t\tcreationtime",
+			"\t\tobjtype",
+			"\t\tk8sobj",
+			"\t\tname",
+			"\t\tresourceversion",
+			"\t\tuid",
+			"\t}",
+			"}",
+			"}",
+		}, nil},
+	}
+
+	dgraphHost := "127.0.0.1:9080"
+	dc := db.NewDGClient(dgraphHost)
+	defer dc.Close()
+	metaSvc := NewMetaService(dc)
+	qslSvc := NewQSLService(dc, metaSvc)
+
+	for k, v := range tests {
+		output, err := qslSvc.CreateDgraphQuery(k)
+		if err != nil {
+			if v.err != nil {
+				if err.Error() != v.err.Error() {
+					t.Errorf("query error incorrect\n input: %s\n testqueryerr: %s\n realqueryerr: %s", k, v.err.Error(), err.Error())
+				}
+			} else {
+				t.Errorf("query error incorrect\n input: %s\n testqueryerr: %s\n realqueryerr: %s", k, "no error expected", err.Error())
+			}
+		} else {
+			// check to see that the output has the same lines as the test output
+			// because we can't assure that the metadata api will return fields
+			// in the same order every time
+			testmap := make(map[string]bool)
+
+			for _, line := range v.values {
+				testmap[line] = true
+			}
+
+			for _, line := range strings.Split(output, "\n") {
+				if !(testmap[line]) {
+					t.Errorf("query incorrect\n input: %s\n testquery: \n%s\n realquery: \n%s", k, strings.Join(v.values, "\n"), output)
+					return
+				}
+			}
+
+		}
+	}
+
+}

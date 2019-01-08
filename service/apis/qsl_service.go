@@ -4,6 +4,7 @@ import (
 	"errors"
 	"regexp"
 	"strings"
+	"time"
 	"unicode"
 
 	log "github.com/Sirupsen/logrus"
@@ -11,7 +12,7 @@ import (
 )
 
 // regex to get objtype[filters]{fields}
-var blockRegex = `([a-zA-Z0-9]+)\[(?:(\@[\"\,\@\=\>\<a-zA-Z0-9\-\.\|\&\:_]*|\*))\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
+var blockRegex = `([a-zA-Z0-9]+)\[(?:(\@[\"\,\@\=\>\<a-zA-Z0-9\-\.\|\&\:_]*|\**))\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
 
 // regex to get KeyOperatorValue from something like numreplicas>=2
 var filterRegex = `\@([a-zA-Z0-9]*)([\<\>\=]*)(\"?[a-zA-Z0-9\-\.\|\&\:_]*\"?)`
@@ -42,6 +43,25 @@ func IsStar(s string) bool {
 	return true
 }
 
+func (qa *QSLService) GetMetadata(objtype string) ([]MetadataField, error) {
+	// get a list of the fields supoorted for this object type
+	start := time.Now()
+	metafieldslist, err := qa.metaSvc.GetMetadataFields(objtype)
+	if err != nil {
+		log.Error("err in getting metadata fields")
+		log.Error(err)
+		return []MetadataField{}, errors.New("Failed to connect to dgraph to get metadata")
+	}
+
+	if len(metafieldslist) == 0 {
+		log.Error("metadata for " + objtype + " not found in db. Will not be able to use * or find relationships")
+	}
+	end := time.Now()
+	elapsed := end.Sub(start)
+	log.Debugf("[elapsedtime: %s] metafields for %s: %#v\n", elapsed, objtype, metafieldslist)
+	return metafieldslist, err
+}
+
 // NewQSLService creates an instance of a QSLService
 func NewQSLService(host db.IDGClient, m *MetaService) *QSLService {
 	return &QSLService{host, m}
@@ -56,9 +76,9 @@ func NewQSLService(host db.IDGClient, m *MetaService) *QSLService {
 // @name="paas-preprod-west2.cluster.k8s.local",@k8sobj="K8sObj",@resourceid="paas-preprod-west2.cluster.k8s.local"
 // -> , $name: string, $k8sobj: string, $resourceid: string
 func CreateFiltersQuery(filterlist string) (string, string, error) {
-
+	// default for empty filters is assume no filters
 	if len(filterlist) == 0 {
-		return "", "", errors.New("Filters must be nonempty")
+		return "", "", nil
 	}
 
 	// split the whole string by the | "or" symbol because of higher priority for ands
@@ -88,6 +108,8 @@ func CreateFiltersQuery(filterlist string) (string, string, error) {
 			matches := r.FindStringSubmatch(item2)
 			log.Debugf("filtermatches %s %#v\n", item2, matches)
 
+			// should be 4 elements in matches
+			// the whole string, key, operator, value
 			if len(matches) < 4 {
 				return "", "", errors.New("Invalid filters in " + filterlist)
 			}
@@ -117,7 +139,7 @@ func CreateFiltersQuery(filterlist string) (string, string, error) {
 
 	log.Debugf("filter:[ %s ]\n filterdec: %s \n filterfunc: %s", filterlist, filterdeclaration, strings.Join(filterfunc, "or"))
 
-	return filterdeclaration, " (" + strings.Join(filterfunc, "or") + ")", nil
+	return filterdeclaration, "@filter(" + strings.Join(filterfunc, "or") + ")", nil
 
 }
 
@@ -126,12 +148,15 @@ func CreateFiltersQuery(filterlist string) (string, string, error) {
 // will be joined with newlines for the resulting query
 // e.g. @name,@resourceversion -> [name, resourceversion]
 func CreateFieldsQuery(fieldlist string, metafieldslist []MetadataField, tabs int) ([]string, error) {
-
+	// default case for empty fields is to display nothing
 	if len(fieldlist) == 0 {
-		return nil, errors.New("Fields must be nonempty")
+		return []string{}, nil
 	}
+	// if one star, show all fields
 	if fieldlist == "*" {
 		returnlist := []string{}
+		// use list of metadatafields from metadata api to get names of all the fields
+		// for this object type
 		for _, item := range metafieldslist {
 			if item.FieldType != "relationship" {
 				returnlist = append(returnlist, strings.Repeat("\t", tabs+1)+item.FieldName)
@@ -141,6 +166,8 @@ func CreateFieldsQuery(fieldlist string, metafieldslist []MetadataField, tabs in
 		}
 		returnlist = append(returnlist, strings.Repeat("\t", tabs+1)+"uid")
 		return returnlist, nil
+
+		// if n stars show the direct relationships n levels deep
 	} else if string(fieldlist[0]) == "*" && len(fieldlist) > 1 {
 		returnlist := []string{}
 		if IsStar(fieldlist) {
@@ -156,8 +183,9 @@ func CreateFieldsQuery(fieldlist string, metafieldslist []MetadataField, tabs in
 
 	splitlist := strings.Split(fieldlist, ",")
 	returnlist := []string{}
-
+	// if we have a list of fields e.g. @name,@resourceversion,@creationtime
 	for _, item := range splitlist {
+		// each item must begin with @ followed by an alphanumeric string
 		if strings.HasPrefix(item, "@") && len(item) > 1 {
 			if IsAlphaNum(item[1:]) {
 				returnlist = append(returnlist, strings.Repeat("\t", tabs+1)+item[1:])
@@ -182,7 +210,7 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 
 	// string that we're going to replace
 	basequery := []string{
-		strings.Repeat("\t", tabs) + "$RELATION @filter(eq(objtype, $OBJTYPE) and$FILTERSFUNC){",
+		strings.Repeat("\t", tabs) + "$RELATION @filter(eq(objtype, $OBJTYPE) $FILTERSFUNC){",
 	}
 
 	// regex to match the string pattern
@@ -196,18 +224,10 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 	fields := matches[3]
 
 	// get a list of the metadata fields for this object type
-	metafieldslist, err := qa.metaSvc.GetMetadataFields(objtype)
+	metafieldslist, err := qa.GetMetadata(objtype)
 	if err != nil {
-		log.Error("err in getting metadata fields for " + objtype)
-		log.Error(err)
 		return nil, errors.New("Failed to connect to dgraph to get metadata")
 	}
-
-	if len(metafieldslist) == 0 {
-		log.Error("metadata for " + objtype + " not found in db. Will not be able to use * or find relationships")
-	}
-
-	log.Debugf("metadata fields for %s: %#v", objtype, metafieldslist)
 
 	// declare relation variable
 	relation := ""
@@ -259,6 +279,10 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 	if err != nil {
 		return nil, err
 	}
+	if len(ff) > 0 {
+		ff = "and" + ff[8:len(ff)-1]
+	}
+
 	fl, err := CreateFieldsQuery(fields, metafieldslist, tabs)
 	if err != nil {
 		return nil, err
@@ -292,14 +316,19 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 
 // CreateDgraphQuery translates the querystring to a dgraph query
 func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
-	// e.g. cluster[@name="cluster1"]{@name,@region}.pod[@name="pod1"]{@phase,@image}
-	// split by }. to get each individual block
 	log.Info("Received Query: ", strings.Split(query, "}."))
 
-	splitquery := strings.Split(query, "}.")
+	// remove all whitespace
+	whitespace := regexp.MustCompile("\\s*")
+	querys := whitespace.ReplaceAllString(query, "")
+
+	// e.g. cluster[@name="cluster1.k8s.local"]{@name,@region}.pod[@name="pod1"]{@phase,@image}
+	// split by }. to get each individual block
+	// cannot split by . because . may be present in some object names
+	splitquery := strings.Split(querys, "}.")
 	basequery := []string{
 		"query objects($objtype: string$FILTERSDEC){",
-		"objects(func: eq(objtype, $OBJTYPE)) @filter($FILTERSFUNC){",
+		"objects(func: eq(objtype, $OBJTYPE)) $FILTERSFUNC{",
 	}
 	// extract the objtype, filters and fields to return from the query string
 	r := regexp.MustCompile(blockRegex)
@@ -324,19 +353,11 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 	log.Debugf("helperobjtype %#v\n", objtype)
 
 	log.Debugf("objecttype %#v\n", objtype)
-	// get a list of the fields supoorted for this object type
-	metafieldslist, err := qa.metaSvc.GetMetadataFields(objtype)
+
+	metafieldslist, err := qa.GetMetadata(objtype)
 	if err != nil {
-		log.Error("err in getting metadata fields")
-		log.Error(err)
-		return "", errors.New("Failed to connect to dgraph to get metadata")
+		return "", err
 	}
-
-	if len(metafieldslist) == 0 {
-		log.Error("metadata for " + objtype + " not found in db. Will not be able to use * or find relationships")
-	}
-
-	log.Debugf("metafields for %s: %#v\n", objtype, metafieldslist)
 
 	// convert the filters and fields to corresponding dgraph lines for the query
 
@@ -356,7 +377,7 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 	basequery = append(basequery[0:2], fl...)
 
 	// if there's relations, this length will be greater than 1
-	if len(splitquery) > 1 && !(string(fields[0]) == "*" && len(fields) > 1) {
+	if len(splitquery) > 1 && !(len(fields) > 1 && string(fields[0]) == "*") {
 		// recursively create the intermediate relations
 		middlefilter, err := qa.CreateDgraphQueryHelper(splitquery[1:], 1, objtype)
 		if err != nil {
