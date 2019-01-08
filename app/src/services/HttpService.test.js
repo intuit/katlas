@@ -1,5 +1,5 @@
 import fetchMock from 'fetch-mock';
-import {HttpService} from './httpService';
+import {HttpService} from './HttpService';
 
 it('Returns 200 for GET request, then response is as expected', () => {
 
