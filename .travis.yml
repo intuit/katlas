@@ -27,7 +27,7 @@ before_script:
 
 script:
   - cd $TRAVIS_BUILD_DIR/service
-  #- go test -v ./... -coverprofile=coverage.txt -covermode=atomic
+  - go test -v ./... -coverprofile=coverage.txt -covermode=atomic
   #- docker build --no-cache -f Dockerfile -t katlas-service:${TRAVIS_COMMIT} .
   #- cd $TRAVIS_BUILD_DIR/app
   #- yarn test --coverage
