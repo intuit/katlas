@@ -37,7 +37,8 @@ script:
   - sleep 10s
   - cat ./output.out
   - lsof -i :8011
-  - curl -sw '%{http_code}' http://127.0.0.1:8011/v1/query?name=pod
+  - rt=$(curl -sw '%{http_code}' http://127.0.0.1:8011/v1/query?name=pod)
+  - echo $rt
   - "curl -o queryResult.json -X GET -H 'Content-Type: application/json' \"http://127.0.0.1:8011/v1/query?name=pod\""
   - if [ $? -ne 0 ]; then
         echo "Integration Test - Success! Need to push image to docker hub!";
