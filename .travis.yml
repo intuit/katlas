@@ -36,9 +36,9 @@ script:
   - go run server.go &
   - "curl -o queryResult.json -X GET -H 'Content-Type: application/json' \"http://127.0.0.1:8011/v1/query?name=pod\""
   - if [ $? -ne 0 ]; then
-        echo “Integration Test - Success! Need to push image to docker hub!”;
+        echo "Integration Test - Success! Need to push image to docker hub!";
     else
-    	echo "Integration Test - Fail!”;
+    	  echo "Integration Test - Fail!";
     fi
 
 after_success:
