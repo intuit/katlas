@@ -27,13 +27,12 @@ before_script:
 
 script:
   - cd $TRAVIS_BUILD_DIR/service
-  - go test -v ./... -coverprofile=coverage.txt -covermode=atomic
+  #- go test -v ./... -coverprofile=coverage.txt -covermode=atomic
   #- docker build --no-cache -f Dockerfile -t katlas-service:${TRAVIS_COMMIT} .
   #- cd $TRAVIS_BUILD_DIR/app
   #- yarn test --coverage
   #- docker build --no-cache -f Dockerfile -t katlas-browser:${TRAVIS_COMMIT} .
   #- cd $TRAVIS_BUILD_DIR/service
-  - lsof -i :8011
   - go run server.go 2> output.out &
   - sleep 5s
   - cat ./output.out
@@ -45,6 +44,7 @@ script:
     else
     	  echo "Integration Test - Fail!";
     fi
+  - cat ./queryResult.json
 
 after_success:
   #- cd $TRAVIS_BUILD_DIR/service
