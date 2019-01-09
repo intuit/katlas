@@ -33,7 +33,8 @@ script:
   - yarn test --coverage
   - docker build --no-cache -f Dockerfile -t katlas-browser:${TRAVIS_COMMIT} .
   - cd $TRAVIS_BUILD_DIR/service
-  - go run server.go &
+  - lsof -i :8011
+  - go run server.go
   - lsof -i :8011
   - cat /etc/hosts
   - "curl -o queryResult.json -X GET -H 'Content-Type: application/json' \"http://127.0.0.1:8011/v1/query?name=pod\""
