@@ -34,7 +34,7 @@ script:
   #- docker build --no-cache -f Dockerfile -t katlas-browser:${TRAVIS_COMMIT} .
   #- cd $TRAVIS_BUILD_DIR/service
   - lsof -i :8011
-  - go run server.go &> output.out
+  - go run server.go 2> output.out &
   - cat ./output.out
   - lsof -i :8011
   - cat /etc/hosts
