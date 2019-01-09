@@ -35,6 +35,7 @@ script:
   #- cd $TRAVIS_BUILD_DIR/service
   - lsof -i :8011
   - go run server.go 2> output.out &
+  - sleep 5s
   - cat ./output.out
   - lsof -i :8011
   - cat /etc/hosts
