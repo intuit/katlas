@@ -28,11 +28,10 @@ script:
   - yarn test --coverage
   - docker build --no-cache -f Dockerfile -t katlas-browser:${TRAVIS_COMMIT} .
   - cd $TRAVIS_BUILD_DIR/service
-  #- go run server.go 2> output.out &
-  #- sleep 10s
-  #- cat ./output.out
-  #- lsof -i :8011
-  #- rt=$(curl -sw '%{http_code}' http://127.0.0.1:8011/v1/query?name=pod)
+  - go run server.go 2> output.out &
+  - sleep 10s
+  - cat ./output.out
+  - lsof -i :8011
   - statusCode=$(curl -sw '%{http_code}\n' http://127.0.0.1:8011/v1/query?name=pod -o /dev/null)
   - echo $statusCode
   - |
