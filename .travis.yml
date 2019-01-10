@@ -9,7 +9,7 @@ go:
 
 services:
   - docker
-
+  
 install:
   - cd $TRAVIS_BUILD_DIR/service && make all
   - cd $TRAVIS_BUILD_DIR/app && yarn install
