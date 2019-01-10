@@ -55,19 +55,11 @@ func serve() {
 
 	//Creates an LRU cache of the given size
 	var err error
-<<<<<<< HEAD
-	db.LruCache, err = lru.New(5)
-=======
 	db.LruCache, err = lru.New(cacheSize)
->>>>>>> upstream/master
 	if err != nil {
 		log.Errorf("err: %v", err)
 	}
 	log.Infoln("LRU cache created with given size")
-<<<<<<< HEAD
-	db.InitLruCacheDBSchema = false
-=======
->>>>>>> upstream/master
 
 	log.Infof("Service started on port:8011, mode:%s", cfg.ServerCfg.ServerType)
 
