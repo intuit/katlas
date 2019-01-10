@@ -12,7 +12,7 @@ import (
 )
 
 // regex to get objtype[filters]{fields}
-var blockRegex = `([a-zA-Z0-9]+)\[(?:(\@[\"\,\@\=\>\<a-zA-Z0-9\-\.\|\&\:_]*|\**))\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
+var blockRegex = `([a-zA-Z0-9]+)\[(?:(\@[\"\,\@\$\=\>\<a-zA-Z0-9\-\.\|\&\:_]*|\**|\$\$[a-zA-Z0-9\,\=]+))\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
 
 // regex to get KeyOperatorValue from something like numreplicas>=2
 var filterRegex = `\@([a-zA-Z0-9]*)([\<\>\=]*)(\"?[a-zA-Z0-9\-\.\|\&\:_]*\"?)`
@@ -43,8 +43,9 @@ func IsStar(s string) bool {
 	return true
 }
 
+// GetMetadata - get a list of the fields supoorted for this object type
 func (qa *QSLService) GetMetadata(objtype string) ([]MetadataField, error) {
-	// get a list of the fields supoorted for this object type
+
 	start := time.Now()
 	metafieldslist, err := qa.metaSvc.GetMetadataFields(objtype)
 	if err != nil {
@@ -71,19 +72,43 @@ func NewQSLService(host db.IDGClient, m *MetaService) *QSLService {
 // filterfunc
 // @name="cluster1" -> eq(name,cluster1)
 // @name="paas-preprod-west2.cluster.k8s.local",@k8sobj="K8sObj",@resourceid="paas-preprod-west2.cluster.k8s.local"
-// -> eq(name,paas-preprod-west2.cluster.k8s.local) and eq(k8sobj,K8sObj) and eq(resourceid,paas-preprod-west2.cluster.k8s.local)
+// -> @filter( eq(name,paas-preprod-west2.cluster.k8s.local) and eq(k8sobj,K8sObj) and eq(resourceid,paas-preprod-west2.cluster.k8s.local) )
 // filterdeclaraction
 // @name="paas-preprod-west2.cluster.k8s.local",@k8sobj="K8sObj",@resourceid="paas-preprod-west2.cluster.k8s.local"
 // -> , $name: string, $k8sobj: string, $resourceid: string
-func CreateFiltersQuery(filterlist string) (string, string, error) {
+// pagination
+// $$first=2,offset=2
+// -> first: 2,offset: 2
+func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 	// default for empty filters is assume no filters
 	if len(filterlist) == 0 {
-		return "", "", nil
+		return "", "", "", nil
+	}
+
+	// for the pagination
+	paginate := ""
+
+	filtersAndPages := strings.Split(filterlist, "$$")
+	if len(filtersAndPages) > 1 {
+		splitlist := strings.Split(filtersAndPages[1], ",")
+		for _, item := range splitlist {
+			splitval := strings.Split(item, "=")
+			if splitval[0] == "first" || splitval[0] == "offset" {
+				paginate += "," + splitval[0] + ": " + splitval[1]
+			} else {
+				return "", "", "", errors.New("Invalid pagination filters in " + filterlist)
+			}
+
+		}
+		paginate = paginate[0:]
+		if strings.HasPrefix(filterlist, "$$") {
+			return "", "", paginate, nil
+		}
 	}
 
 	// split the whole string by the | "or" symbol because of higher priority for ands
 	// e.g. a&b&c|d&e == (a&b&c) | (d&e)
-	splitlist := strings.Split(filterlist, "||")
+	splitlist := strings.Split(filtersAndPages[0], "||")
 	// the variable definitions e.g. $name: string,
 	filterdeclaration := ""
 	// the eq functions eq(name,paas-preprod-west2.cluster.k8s.local)
@@ -111,7 +136,7 @@ func CreateFiltersQuery(filterlist string) (string, string, error) {
 			// should be 4 elements in matches
 			// the whole string, key, operator, value
 			if len(matches) < 4 {
-				return "", "", errors.New("Invalid filters in " + filterlist)
+				return "", "", "", errors.New("Invalid filters in " + filterlist)
 			}
 
 			keyname := matches[1]
@@ -126,7 +151,7 @@ func CreateFiltersQuery(filterlist string) (string, string, error) {
 
 			// if the value is a string make sure it has quotes on both sides
 			if string(value[0]) == "\"" && !(string(value[len(value)-1]) == "\"") {
-				return "", "", errors.New("Invalid filters in " + filterlist)
+				return "", "", "", errors.New("Invalid filters in " + filterlist)
 			}
 
 			filterdeclaration = filterdeclaration + ", $" + keyname + dectype
@@ -139,7 +164,7 @@ func CreateFiltersQuery(filterlist string) (string, string, error) {
 
 	log.Debugf("filter:[ %s ]\n filterdec: %s \n filterfunc: %s", filterlist, filterdeclaration, strings.Join(filterfunc, "or"))
 
-	return filterdeclaration, "@filter(" + strings.Join(filterfunc, "or") + ")", nil
+	return filterdeclaration, "@filter(" + strings.Join(filterfunc, "or") + ")", paginate, nil
 
 }
 
@@ -210,7 +235,7 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 
 	// string that we're going to replace
 	basequery := []string{
-		strings.Repeat("\t", tabs) + "$RELATION @filter(eq(objtype, $OBJTYPE) $FILTERSFUNC){",
+		strings.Repeat("\t", tabs) + "$RELATION @filter(eq(objtype, $OBJTYPE) $FILTERSFUNC)",
 	}
 
 	// regex to match the string pattern
@@ -275,7 +300,7 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 		return nil, errors.New("no relation found between " + objtype + " and " + parent)
 	}
 
-	_, ff, err := CreateFiltersQuery(filters)
+	_, ff, pag, err := CreateFiltersQuery(filters)
 	if err != nil {
 		return nil, err
 	}
@@ -290,10 +315,17 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 
 	// replace filters and object type accordingly
 	basequery[0] = strings.Replace(basequery[0], "$FILTERSFUNC", ff, -1)
+
+	// if pagination values were supplied, add and get rid of the comma at the beginning
+	if len(pag) > 1 {
+		basequery[0] += "(" + pag[1:] + ")"
+	}
+
 	basequery[0] = strings.Replace(basequery[0], "$OBJTYPE", strings.Title(objtype), -1)
 
 	// add the tilde because we are adding an inverse relationship
 	basequery[0] = strings.Replace(basequery[0], "$RELATION", relation, -1)
+	basequery[0] += "{"
 
 	// append the fields to be returned
 	basequery = append(basequery, fl...)
@@ -328,7 +360,7 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 	splitquery := strings.Split(querys, "}.")
 	basequery := []string{
 		"query objects($objtype: string$FILTERSDEC){",
-		"objects(func: eq(objtype, $OBJTYPE)) $FILTERSFUNC{",
+		"objects(func: eq(objtype, $OBJTYPE)$PAGINATE) $FILTERSFUNC{",
 	}
 	// extract the objtype, filters and fields to return from the query string
 	r := regexp.MustCompile(blockRegex)
@@ -345,7 +377,7 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 	objtype := strings.Title(matches[1])
 	filters := matches[2]
 	fields := matches[3]
-	fd, ff, err := CreateFiltersQuery(filters)
+	fd, ff, pag, err := CreateFiltersQuery(filters)
 	if err != nil {
 		return "", err
 	}
@@ -367,12 +399,13 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 	}
 
 	log.Debugf("Objtype: %#v\n", objtype)
-	log.Debugf("Filterfunc: %#v\nFilterdec: %#v\n", ff, fd)
+	log.Debugf("Filterfunc: %#v\nFilterdec: %#v\nPagination: %#v\n", ff, fd, pag)
 	log.Debugf("Fieldlist: %#v\n", fl)
 
 	// replace the filters and object type and add the list of fields
 	basequery[0] = strings.Replace(basequery[0], "$FILTERSDEC", fd, -1)
 	basequery[1] = strings.Replace(basequery[1], "$FILTERSFUNC", ff, -1)
+	basequery[1] = strings.Replace(basequery[1], "$PAGINATE", pag, -1)
 	basequery[1] = strings.Replace(basequery[1], "$OBJTYPE", objtype, -1)
 	basequery = append(basequery[0:2], fl...)
 

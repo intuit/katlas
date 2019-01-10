@@ -22,6 +22,7 @@ func TestCreateFiltersQuery(t *testing.T) {
 			[]string{
 				", $name: string, $k8sobj: string, $resourceid: string",
 				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") or eq(k8sobj,"K8sObj") or eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
+				"",
 			},
 			nil,
 		},
@@ -29,6 +30,7 @@ func TestCreateFiltersQuery(t *testing.T) {
 			[]string{
 				", $name: string, $k8sobj: string, $resourceid: string",
 				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") and eq(k8sobj,"K8sObj") and eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
+				"",
 			},
 			nil,
 		},
@@ -36,6 +38,7 @@ func TestCreateFiltersQuery(t *testing.T) {
 			[]string{
 				", $name: string, $k8sobj: string, $resourceid: string",
 				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") or eq(k8sobj,"K8sObj") and eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
+				"",
 			},
 			nil,
 		},
@@ -43,6 +46,7 @@ func TestCreateFiltersQuery(t *testing.T) {
 			[]string{
 				", $name: string, $k8sobj: string",
 				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") or eq(k8sobj,"K8sObj") )`,
+				"",
 			},
 			nil,
 		},
@@ -50,6 +54,7 @@ func TestCreateFiltersQuery(t *testing.T) {
 			[]string{
 				", $k8sobj: string, $resourceid: string",
 				`@filter( eq(k8sobj,"K8sObj") and eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
+				"",
 			},
 			nil,
 		},
@@ -57,6 +62,7 @@ func TestCreateFiltersQuery(t *testing.T) {
 			[]string{
 				", $name: string",
 				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") )`,
+				"",
 			},
 			nil,
 		},
@@ -64,6 +70,7 @@ func TestCreateFiltersQuery(t *testing.T) {
 			[]string{
 				", $name: string",
 				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") )`,
+				"",
 			},
 			errors.New("Invalid filters in @name=\"paas-preprod-west2.cluster.k8s.local?\""),
 		},
@@ -71,13 +78,30 @@ func TestCreateFiltersQuery(t *testing.T) {
 			[]string{
 				", $numreplicas: int",
 				`@filter( ge(numreplicas,1) )`,
+				"",
+			},
+			nil,
+		},
+		`@name="paas-preprod-west2.cluster.k8s.local"$$first=2`: FResult{
+			[]string{
+				", $name: string",
+				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") )`,
+				",first: 2",
+			},
+			nil,
+		},
+		`@name="paas-preprod-west2.cluster.k8s.local"$$first=2,offset=4`: FResult{
+			[]string{
+				", $name: string",
+				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") )`,
+				",first: 2,offset: 4",
 			},
 			nil,
 		},
 	}
 
 	for k, v := range tests {
-		realOut1, realOut2, err := CreateFiltersQuery(k)
+		realOut1, realOut2, realPag, err := CreateFiltersQuery(k)
 		if err == nil {
 			if !(v.values[0] == realOut1) {
 				t.Errorf("filter declaration incorrect\n input: %s\n testdec: %s\n realdec: %s", k, v.values[0], realOut1)
@@ -85,6 +109,10 @@ func TestCreateFiltersQuery(t *testing.T) {
 
 			if !(v.values[1] == realOut2) {
 				t.Errorf("filter function incorrect\n input: %s\n testfunc: %s\n realfunc: %s", k, v.values[1], realOut2)
+			}
+
+			if !(v.values[2] == realPag) {
+				t.Errorf("filter pagination incorrect\n input: %s\n testpag: %s\n realpag: %s", k, v.values[2], realPag)
 			}
 		} else {
 			if v.err != nil {
@@ -298,6 +326,54 @@ func TestCreateDgraphQuery(t *testing.T) {
 			"}",
 			"}",
 		}, nil},
+		`cluster[$$first=2]{}.namespace[@name="default"]{*}`: FResult{[]string{
+			"query objects($objtype: string){",
+			"objects(func: eq(objtype, Cluster),first: 2) {",
+			"\t~cluster @filter(eq(objtype, Namespace) and eq(name,\"default\") ){",
+			"\t\tresourceid",
+			"\t\tlabels",
+			"\t\tcreationtime",
+			"\t\tobjtype",
+			"\t\tk8sobj",
+			"\t\tname",
+			"\t\tresourceversion",
+			"\t\tuid",
+			"\t}",
+			"}",
+			"}",
+		}, nil},
+		`cluster[$$first=2,offset=2]{}.namespace[@name="default"$$first=2]{*}`: FResult{[]string{
+			"query objects($objtype: string){",
+			"objects(func: eq(objtype, Cluster),first: 2,offset: 2) {",
+			"\t~cluster @filter(eq(objtype, Namespace) and eq(name,\"default\") )(first: 2){",
+			"\t\tresourceid",
+			"\t\tlabels",
+			"\t\tcreationtime",
+			"\t\tobjtype",
+			"\t\tk8sobj",
+			"\t\tname",
+			"\t\tresourceversion",
+			"\t\tuid",
+			"\t}",
+			"}",
+			"}",
+		}, nil},
+		`cluster[@objtype="Cluster"$$first=2,offset=2]{}.namespace[@name="default"$$first=2,offset=2]{*}`: FResult{[]string{
+			"query objects($objtype: string, $objtype: string){",
+			"objects(func: eq(objtype, Cluster),first: 2,offset: 2) @filter( eq(objtype,\"Cluster\") ){",
+			"\t~cluster @filter(eq(objtype, Namespace) and eq(name,\"default\") )(first: 2,offset: 2){",
+			"\t\tresourceid",
+			"\t\tlabels",
+			"\t\tcreationtime",
+			"\t\tobjtype",
+			"\t\tk8sobj",
+			"\t\tname",
+			"\t\tresourceversion",
+			"\t\tuid",
+			"\t}",
+			"}",
+			"}",
+		}, nil},
 	}
 
 	dgraphHost := "127.0.0.1:9080"
@@ -329,7 +405,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 			for _, line := range strings.Split(output, "\n") {
 				if !(testmap[line]) {
 					t.Errorf("query incorrect\n input: %s\n testquery: \n%s\n realquery: \n%s", k, strings.Join(v.values, "\n"), output)
-					return
+					break
 				}
 			}
 
