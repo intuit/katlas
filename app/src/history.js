@@ -7,4 +7,4 @@ export default createBrowserHistory({
   //provided by "homepage" attribute in package.json at webpack build time
   //further info here: https://www.npmjs.com/package/history#using-a-base-url
   basename: process.env.PUBLIC_URL
-})
+});

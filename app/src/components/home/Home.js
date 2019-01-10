@@ -6,10 +6,10 @@ import { withRouter } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 
+import './Home.css';
+import logo from './map.png';
 import { ENTER_KEYCODE, ENTER_KEYSTR } from "../../config/appConfig";
 import * as queryActions from '../../actions/queryActions';
-import logo from './map.png';
-import './Home.css';
 
 const styles = theme => ({
   container: {
@@ -45,7 +45,7 @@ class Home extends Component {
   };
 
   render() {
-    const { classes } = this.props;
+    const { classes, query } = this.props;
     return (
       <div className="Home">
         <div className={classes.title}>
@@ -59,7 +59,7 @@ class Home extends Component {
             fullWidth
             margin="normal"
             variant="filled"
-            value={this.props.query.current}
+            value={query.current}
             onChange={this.handleChange}
             onKeyPress={this.handleEnterPressCheck}
           />
@@ -75,14 +75,14 @@ Home.propTypes = {
   query: PropTypes.object
 };
 
-const mapStateToProps = state => ({query: state.query});
+const mapStoreToProps = store => ({query: store.query});
 
 const mapDispatchToProps = dispatch => ({
   queryActions: bindActionCreators(queryActions, dispatch)
 });
 
 export default connect(
-  mapStateToProps,
+  mapStoreToProps,
   mapDispatchToProps
 )(
   withStyles(styles)(

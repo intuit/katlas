@@ -31,6 +31,7 @@ export const options = {
     zoomView: true
   },
   layout: {
+    randomSeed: 42,
     improvedLayout: true,
   },
 };

@@ -1,13 +1,18 @@
 import React, { Component } from 'react';
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
 import { withRouter } from 'react-router-dom';
 import _ from 'lodash';
 import vis from 'vis';
 import { Grid } from '@material-ui/core';
 
-import {options} from "../../config/visjsConfig";
-import {getVisData, clearVisData, colorMixer, getLegends} from "../../utils/graph";
-import {NodeStatusPulseColors} from "../../config/appConfig";
+import * as entityActions from "../../actions/entityActions";
+import { options } from "../../config/visjsConfig";
+import { getVisData, clearVisData, colorMixer, getLegends } from "../../utils/graph";
+import { NodeStatusPulseColors } from "../../config/appConfig";
 import './Graph.css';
+
+const PULSE_TIME_STEP_MS = 100;
 
 class Graph extends Component {
   constructor(props) {
@@ -31,11 +36,9 @@ class Graph extends Component {
       statuses: {}
     };
 
-
-    this.setDetailsTab = this.setDetailsTab.bind(this);
+    //TODO:DM - can I mitigate need for these hard binds with => fns or something else?
     this.validateInputs = this.validateInputs.bind(this);
     this.renderGraph = this.renderGraph.bind(this);
-    this.renderGraphExpanded = this.renderGraphExpanded.bind(this);
     this.renderVisGraph = this.renderVisGraph.bind(this);
     this.clearNetwork = this.clearNetwork.bind(this);
   }
@@ -45,9 +48,8 @@ class Graph extends Component {
   }
 
   componentWillReceiveProps(nextProps){
-    if(!_.isEqual(nextProps, this.props)){
-      this.clearNetwork();
-      this.setState({data: nextProps.dataSet});
+    if(!_.isEqual(nextProps.dataSet, this.props.dataSet)){
+      this.renderGraph(nextProps.dataSet)
     }
   }
 
@@ -65,7 +67,6 @@ class Graph extends Component {
   }
 
   render() {
-    this.renderGraphExpanded(this.state.data);
       return (
         <div className="Graph">
           {/*Graph Visualization*/}
@@ -115,54 +116,43 @@ class Graph extends Component {
   }
 
   renderGraph(jsonData) {
-    console.debug(`Got data ${JSON.stringify(jsonData)}`);
-
-    const {nodes, edges} = getVisData(jsonData);
-    this._nodes = nodes;
-    this._edges = edges;
-
-    this.renderVisGraph();
-  }
-
-  renderGraphExpanded(jsonData) {
     if (_.isEmpty(jsonData)) return;
 
-    this.nodesDataset.clear();
-    this.edgesDataset.clear();
-    this._nodes = [];
-    this._edges = [];
-
     const {nodes, edges} = getVisData(jsonData);
-    const nodesNew = nodes;
-    const edgesNew = edges;
+    this._edges = edges;
     this._legends = getLegends();
 
-    //Avoid adding duplicate selected node, as vis.js does not allow duplicates.
-    for (let i = 0; i < nodesNew.length; i++) {
-      this._nodes.push(nodesNew[i]);
+    for (let i = 0; i < nodes.length; i++) {
+      this._nodes.push(nodes[i]);
     }
-    this._edges.push(edgesNew);
-
     this.renderVisGraph();
   }
 
   renderVisGraph() {
-      this.nodesDataset = new vis.DataSet();
-      for (let i = 0; i < this._nodes.length; i++) {
+    //determine if we have any newnodes to add to the graph dataset
+    for (let i = 0; i < this._nodes.length; i++) {
+      if(!this.nodesDataset.get(this._nodes[i].uid)){
         this.nodesDataset.add(this._nodes[i]);
       }
-      this.edgesDataset = new vis.DataSet();
-      for (let i = 0; i < this._edges.length; i++) {
+    }
+    //determine if we have any new edges to add to the graph dataset
+    for (let i = 0; i < this._edges.length; i++) {
+      //edge IDs are a concatenation of from and to IDs
+      if(!this.edgesDataset.get(this._edges[i].from + this._edges[i].to)){
         this.edgesDataset.add(this._edges[i]);
       }
-      this._data = {nodes: this.nodesDataset, edges: this.edgesDataset};
+    }
+    this._data = {nodes: this.nodesDataset, edges: this.edgesDataset};
 
-      const container = document.getElementById("graph"); //id of div container for graph.
-      this._network = new vis.Network(container, this._data, options);
+    //id of div container for graph
+    const container = document.getElementById("graph");
+    this._network = new vis.Network(container, this._data, options);
 
-      this.configNetwork(this._network);
-      //must bind call to handleColorPulse since it'll be called by browser otherwise with Window as "this" context
-      this.pulseIntervalHandle = setInterval(this.handleColorPulse.bind(this), 100);//TODO:DM-constantize time!
+    this.configNetwork(this._network);
+    //must bind call to handleColorPulse since it'll be called by browser
+    //otherwise with window as "this" context
+    this.pulseIntervalHandle = setInterval(this.handleColorPulse.bind(this),
+      PULSE_TIME_STEP_MS);
   }
 
   handleColorPulse() {
@@ -183,17 +173,6 @@ class Graph extends Component {
     });
   }
 
-  setDetailsTab(attributesMap) {
-      const attributes = [];
-      for (const [k, v] of attributesMap.entries()) {
-          if (v !== undefined && v !== "") {
-              const entry = `  ${k} : ${v}`;
-              attributes.push(entry);
-          }
-      }
-      this.setState({detailsTab: attributes});
-  }
-
   clearNetwork() {
     //cancel node pulse timers, before this._data is cleared
     clearInterval(this.pulseIntervalHandle);
@@ -210,20 +189,31 @@ class Graph extends Component {
 
   //configure custom behaviors for network object
   configNetwork(network) {
-    network.on("doubleClick", params => {
+    network.on("doubleClick", element => {
       //ensure the double click was on a graph node
-      if (params.nodes.length > 0) {
-        const targetNodeUid = params.nodes[0];
+      if (element.nodes.length > 0) {
+        const targetNodeUid = element.nodes[0];
         const pathComponents = this.props.location.pathname.split('/');
         const currentNodeUid = pathComponents[pathComponents.length - 1];
-        //only update props if target node is not current node
+        //only add node data if target node is not current node
+        //TODO:DM - rather than just current node, could skip any already watched UIDs
         if (targetNodeUid !== currentNodeUid) {
-          this.clearNetwork();
-          this.props.history.push('/graph/'+targetNodeUid);
+          this.props.entityActions.addEntityWatch(targetNodeUid);
+          //and immediately attempt to fetch for the indicated UID
+          this.props.entityActions.fetchEntity(targetNodeUid);
         }
       }
     });
   }
 }
 
-export default withRouter(Graph);
+const mapStoreToProps = store => ({entity: store.entity});
+
+const mapDispatchToProps = dispatch => ({
+  entityActions: bindActionCreators(entityActions, dispatch)
+});
+
+export default connect(
+  mapStoreToProps,
+  mapDispatchToProps
+)(withRouter(Graph));
