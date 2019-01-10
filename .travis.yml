@@ -27,22 +27,29 @@ script:
   - cd $TRAVIS_BUILD_DIR/app
   - yarn test --coverage
   - docker build --no-cache -f Dockerfile -t katlas-browser:${TRAVIS_COMMIT} .
-  - cd $TRAVIS_BUILD_DIR/service
+  #- cd $TRAVIS_BUILD_DIR/service
   #- go run server.go 2> output.out &
   #- sleep 10s
   #- cat ./output.out
   #- lsof -i :8011
-  - rt=$(curl -sw '%{http_code}' http://127.0.0.1:8011/v1/query?name=pod)
-  - echo $rt
-  - "curl -o queryResult.json -X GET -H 'Content-Type: application/json' \"http://127.0.0.1:8011/v1/query?name=pod\""
-  - if [ $? -ne 0 ]; then
-        echo "Integration Test - Success! Need to push image to docker hub!";
-    else
-    	  echo "Integration Test - Fail!";
-    fi
+  #- rt=$(curl -sw '%{http_code}' http://127.0.0.1:8011/v1/query?name=pod)
+  #- echo $rt
+  #- "curl -o queryResult.json -X GET -H 'Content-Type: application/json' \"http://127.0.0.1:8011/v1/query?name=pod\""
 
 after_success:
   - cd $TRAVIS_BUILD_DIR/service
   - bash <(curl -s https://codecov.io/bash)
   - cd $TRAVIS_BUILD_DIR/app
   - bash <(curl -s https://codecov.io/bash) -f coverage/coverage-final.json
+  - cd $TRAVIS_BUILD_DIR/service
+  - go run server.go 2> output.out &
+  - sleep 10s
+  - cat ./output.out
+  - lsof -i :8011
+  - statusCode=$(curl -L -X GET -H 'Content-Type: application/json' http://127.0.0.1:8011/v1/query?name=pod -o /dev/null -w '%{http_code}\n' -s)
+  - echo $statusCode
+  - if [ $statusCode -ne "200" ]; then
+        echo "Integration Test - Fail!";
+    else
+    	  echo "Integration Test - Success!";
+    fi
