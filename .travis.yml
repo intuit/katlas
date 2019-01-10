@@ -33,12 +33,10 @@ script:
   - cat ./output.out
   - lsof -i :8011
   #- rt=$(curl -sw '%{http_code}' http://127.0.0.1:8011/v1/query?name=pod)
-  - rt=$(curl -sw '%{http_code}\n' http://127.0.0.1:8011/v1/query?name=pod -o /dev/null)
-  - echo $rt
-  #- statusCode=$(curl -L -X GET -H 'Content-Type: application/json' http://127.0.0.1:8011/v1/query?name=pod -o /dev/null -w '%{http_code}\n' -s)
-  - statusCode=$(curl -L -X GET -H 'Content-Type: application/json' http://127.0.0.1:8011/v1/query?name=pod -o /dev/null -w '%{http_code}\n' -s)
+  - statusCode=$(curl -sw '%{http_code}\n' http://127.0.0.1:8011/v1/query?name=pod -o /dev/null)
   - echo $statusCode
-  - if [ $statusCode -ne "200" ]; then
+  - |
+    if [ $statusCode -ne "200" ]; then
         echo "Integration Test - Fail!";
     else
     	  echo "Integration Test - Success!";
