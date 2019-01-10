@@ -44,5 +44,5 @@ after_success:
     if [ $statusCode -ne "200" ]; then
         echo "Integration Test - Fail!";
     else
-    	  echo "Integration Test - Success!";
+    	 echo "Integration Test - Success!";
     fi
