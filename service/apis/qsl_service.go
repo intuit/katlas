@@ -69,6 +69,7 @@ func NewQSLService(host db.IDGClient, m *MetaService) *QSLService {
 }
 
 // CreateFiltersQuery translates the filters part of the qsl string to dgraph
+// input @name="name",@objtype="objtype"$$first=2,offset=2
 // filterfunc
 // @name="cluster1" -> eq(name,cluster1)
 // @name="paas-preprod-west2.cluster.k8s.local",@k8sobj="K8sObj",@resourceid="paas-preprod-west2.cluster.k8s.local"
@@ -93,6 +94,7 @@ func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 		splitlist := strings.Split(filtersAndPages[1], ",")
 		for _, item := range splitlist {
 			splitval := strings.Split(item, "=")
+
 			if splitval[0] == "first" || splitval[0] == "offset" {
 				paginate += "," + splitval[0] + ": " + splitval[1]
 			} else {
@@ -100,6 +102,7 @@ func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 			}
 
 		}
+		// get rid of the first comma
 		paginate = paginate[0:]
 		if strings.HasPrefix(filterlist, "$$") {
 			return "", "", paginate, nil
@@ -169,6 +172,7 @@ func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 }
 
 // CreateFieldsQuery translates the fields part of the qsl string to dgraph
+// input @name,@resourceversion, metadata fields for this block's object type,
 // creates a list of the fields of an object we want to return
 // will be joined with newlines for the resulting query
 // e.g. @name,@resourceversion -> [name, resourceversion]
