@@ -183,6 +183,34 @@ func (s ServerResource) QueryHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(ret)
 }
 
+// MetaCreateHandler REST API for create Metadata
+func (s ServerResource) MetaCreateHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Error(err)
+	}
+	var payload map[string]interface{}
+	err = json.Unmarshal(body, &payload)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	uids, err := s.MetaSvc.CreateMetadata(payload)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	ret, err := json.Marshal(uids)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(ret)
+}
 func buildEntityData(clusterName string, meta string, body []byte, isArray bool) (interface{}, error) {
 	switch meta {
 	case "Namespace":

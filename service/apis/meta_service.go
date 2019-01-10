@@ -1,6 +1,8 @@
 package apis
 
 import (
+	"fmt"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/util"
@@ -13,7 +15,7 @@ type IMetaService interface {
 	//GetMetadata(name string) (Metadata, error)
 	GetMetadata(name string) (Metadata, error)
 	// Create new metadata
-	CreateMetadata(name string, data Metadata) (map[string]string, error)
+	CreateMetadata(data Metadata) (map[string]string, error)
 	// Delete metadata
 	DeleteMetadata(name string) error
 	// Delete metadata field
@@ -104,4 +106,72 @@ func (s MetaService) GetMetadataFields(name string) ([]MetadataField, error) {
 		return metadata.Fields, nil
 	}
 	return nil, nil
+}
+
+// CheckKeys checks if keys exist
+func CheckKeys(keys []string, data map[string]interface{}) error {
+	for k := range keys {
+		if _, ok := data[keys[k]]; !ok {
+			return fmt.Errorf("%q doesn't exist", keys[k])
+		}
+	}
+	return nil
+}
+
+//SetDefaultKey sets default values for the keys if any isn't set
+func SetDefaultKey(dkMap map[string]interface{}, data map[string]interface{}) error {
+	for key := range dkMap {
+		if _, ok := data[key]; !ok {
+			data[key] = dkMap[key]
+			log.Infof("%v doesn't exist. set to default %#v", key, dkMap[key])
+		}
+	}
+	return nil
+}
+
+// CreateMetadata save new metadata to the storage
+func (s MetaService) CreateMetadata(data map[string]interface{}) (map[string]string, error) {
+	var rkeys = []string{"name", "fields", "objtype"}
+	err := CheckKeys(rkeys, data)
+	if err != nil {
+		return nil, err
+	}
+	fMap, ok := data["fields"].([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("error in metadata field")
+	}
+	log.Debugf("fMap is %#v", fMap)
+	const cardinality = "One"
+	if len(fMap) > 0 {
+		for i := range fMap {
+			rkeys = []string{"fieldName", "fieldType"}
+			err = CheckKeys(rkeys, fMap[i].(map[string]interface{}))
+			if err != nil {
+				return nil, err
+			}
+			dkMap := map[string]interface{}{
+				"cardinality": cardinality,
+				"mandatory":   false,
+				"index":       false,
+			}
+			err = SetDefaultKey(dkMap, fMap[i].(map[string]interface{}))
+			if fMap[i].(map[string]interface{})["index"].(bool) == true {
+				rkeys = []string{"upsert", "tokenizer"}
+				err = CheckKeys(rkeys, fMap[i].(map[string]interface{}))
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+
+	e := NewEntityService(s.dbclient)
+	uids, err := e.CreateEntity("metadata", data)
+
+	if err != nil {
+		log.Error(err)
+		return nil, fmt.Errorf("can't create metadata")
+	}
+	log.Infof("metadata created/updated: %v", uids)
+	return uids, nil
 }

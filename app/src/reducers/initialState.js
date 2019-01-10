@@ -4,11 +4,17 @@ export default {
     lastSubmitted: '',
     submitted: false,
     isWaiting: false,
-    results: []
+    results: [],
   },
-  entity: {},
+  entity: {
+    rootUid: '',
+    entitiesByUid: {},
+    results: {},
+    latestTimestamp: 0,
+    isWaiting: false,
+  },
   notify: {
     msg: '',
-    timestamp: 0
+    timestamp: 0,
   }
 };

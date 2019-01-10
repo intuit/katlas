@@ -38,12 +38,11 @@ type IEntityService interface {
 // EntityService provides service for controller and frontend by implement IEntityService interface
 type EntityService struct {
 	dbclient db.IDGClient
-	metaSvc  *MetaService
 }
 
 // NewEntityService creates a new EntityService with the given dgraph client.
-func NewEntityService(dc db.IDGClient, msvc *MetaService) *EntityService {
-	return &EntityService{dc, msvc}
+func NewEntityService(dc db.IDGClient) *EntityService {
+	return &EntityService{dc}
 }
 
 // GetEntity get entity return the object with specified ID
@@ -85,7 +84,9 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 	if _, ok := data[util.ResourceID]; !ok {
 		data[util.ResourceID] = getResourceID(meta, data)
 	}
-	fs, err := s.metaSvc.GetMetadataFields(meta)
+
+	m := NewMetaService(s.dbclient)
+	fs, err := m.GetMetadataFields(meta)
 	if err != nil {
 		log.Debug(err)
 		return nil, err

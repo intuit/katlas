@@ -1,0 +1,1 @@
+export const QUERY_LEN_ERR = 'Minimum length of Search word must be 3 characters.';

@@ -1,3 +1,35 @@
+sudo: true
+go_import_path: github.com/intuit/katlas
+
+dist: xenial
 language: go
-  go:
-    - "1.10"
+
+go:
+  - 1.11.x
+
+services:
+  - docker
+
+install:
+  - cd $TRAVIS_BUILD_DIR/service && make all
+  - cd $TRAVIS_BUILD_DIR/app && yarn install
+
+before_script:
+  - docker pull dgraph/dgraph
+  - mkdir -p /tmp/data
+  - docker run -d -it -p 5080:5080 -p 6080:6080 -p 8080:8080 -p 9080:9080 -p 8000:8000 -v /tmp/data:/dgraph --name diggy dgraph/dgraph dgraph zero
+  - docker exec -d -it diggy dgraph alpha --lru_mb 2048 --zero localhost:5080
+
+script:
+  - cd $TRAVIS_BUILD_DIR/service
+  - go test -v ./... -coverprofile=coverage.txt -covermode=atomic
+  - docker build --no-cache -f Dockerfile -t katlas-service:${TRAVIS_COMMIT} .
+  - cd $TRAVIS_BUILD_DIR/app
+  - yarn test --coverage
+  - docker build --no-cache -f Dockerfile -t katlas-browser:${TRAVIS_COMMIT} .
+
+after_success:
+  - cd $TRAVIS_BUILD_DIR/service
+  - bash <(curl -s https://codecov.io/bash)
+  - cd $TRAVIS_BUILD_DIR/app
+  - bash <(curl -s https://codecov.io/bash) -f coverage/coverage-final.json

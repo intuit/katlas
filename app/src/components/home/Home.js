@@ -6,16 +6,19 @@ import { withRouter } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 
+import './Home.css';
+import logo from './map.png';
 import { ENTER_KEYCODE, ENTER_KEYSTR } from "../../config/appConfig";
 import * as queryActions from '../../actions/queryActions';
-import logo from './map.png';
-import './Home.css';
 
 const styles = theme => ({
   container: {
     display: 'flex',
     flexWrap: 'wrap',
     width: '30%'
+  },
+  title: {
+    textAlign: 'center',
   },
   textField: {
     marginLeft: theme.spacing.unit,
@@ -42,20 +45,21 @@ class Home extends Component {
   };
 
   render() {
+    const { classes, query } = this.props;
     return (
       <div className="Home">
-        <div>
+        <div className={classes.title}>
           <h3>Welcome to Kubernetes Application Topology Browser</h3>
           <h1>K-Atlas Browser</h1>
         </div>
-        <div className={this.props.classes.container}>
+        <div className={classes.container}>
           <TextField
             label="Search..."
-            className={this.props.classes.textField}
+            className={classes.textField}
             fullWidth
             margin="normal"
             variant="filled"
-            value={this.props.query.current}
+            value={query.current}
             onChange={this.handleChange}
             onKeyPress={this.handleEnterPressCheck}
           />
@@ -71,14 +75,14 @@ Home.propTypes = {
   query: PropTypes.object
 };
 
-const mapStateToProps = state => ({query: state.query});
+const mapStoreToProps = store => ({query: store.query});
 
 const mapDispatchToProps = dispatch => ({
   queryActions: bindActionCreators(queryActions, dispatch)
 });
 
 export default connect(
-  mapStateToProps,
+  mapStoreToProps,
   mapDispatchToProps
 )(
   withStyles(styles)(

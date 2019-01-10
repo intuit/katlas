@@ -2,9 +2,10 @@ package apis
 
 import (
 	"encoding/json"
+	"testing"
+
 	"github.com/intuit/katlas/service/db"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestMetaService(t *testing.T) {
@@ -12,7 +13,7 @@ func TestMetaService(t *testing.T) {
 
 	q := NewQueryService(dc)
 	m := NewMetaService(dc)
-	e := NewEntityService(dc, m)
+	e := NewEntityService(dc)
 	// create pod metadata
 	podMeta := `{
 		"name": "pod_metadata",
@@ -23,13 +24,18 @@ func TestMetaService(t *testing.T) {
 				"fieldType": "json",
 				"mandatory": true,
 				"index": true,
-				"cardinality": "One"
+				"cardinality": "One",
+                                "upsert": true,
+                                "tokenizer": [
+                                        "term",
+                                        "trigram"
+                                ]
 			},
 			{
 				"fieldName": "status",
 				"fieldType": "string",
 				"mandatory": true,
-				"index": true,
+				"index": false,
 				"cardinality": "One"
 			},
 			{
@@ -51,7 +57,7 @@ func TestMetaService(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	e.CreateEntity("K8Metadata", dataMap)
+	m.CreateMetadata(dataMap)
 	// query to get created pod metadata
 	qm := map[string][]string{"name": {"pod_metadata"}, "objtype": {"metadata"}}
 	n, _ := q.GetQueryResult(qm)
