@@ -1,17 +1,20 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
-	"net/http"
-	"strings"
-
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
-	lru "github.com/hashicorp/golang-lru"
+	"github.com/hashicorp/golang-lru"
 	"github.com/intuit/katlas/service/apis"
 	"github.com/intuit/katlas/service/cfg"
 	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/resources"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"strings"
 )
 
 const cacheSize = 10
@@ -63,6 +66,31 @@ func serve() {
 
 	log.Infof("Service started on port:8011, mode:%s", cfg.ServerCfg.ServerType)
 
+	// create dgraph schema
+	data, err := ioutil.ReadFile("util/dbschema.json")
+	if err != nil {
+		fmt.Printf("File error: %v\n", err)
+		os.Exit(1)
+	}
+	var predicates []db.Schema
+	json.Unmarshal(data, &predicates)
+	for _, p := range predicates {
+		dc.CreateSchema(p)
+	}
+
+	// Initialize metadata
+	meta, err := ioutil.ReadFile("util/meta.json")
+	if err != nil {
+		fmt.Printf("File error: %v\n", err)
+		os.Exit(1)
+	}else {
+		fmt.Printf("metadata initialized\n")
+	}
+	var jsonData []map[string]interface{}
+	json.Unmarshal(meta, &jsonData)
+	for _, data := range jsonData {
+		entitySvc.CreateEntity("metadata", data)
+	}
 	if strings.EqualFold(cfg.ServerCfg.ServerType, "https") {
 		log.Fatal(http.ListenAndServeTLS(":8011", "server.crt", "server.key", router))
 	} else {
@@ -84,3 +112,4 @@ func main() {
 	}
 	serve()
 }
+

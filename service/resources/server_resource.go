@@ -3,6 +3,7 @@ package resources
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/intuit/katlas/service/db"
 	"io/ioutil"
 	"net/http"
 
@@ -188,6 +189,7 @@ func (s ServerResource) MetaCreateHandler(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		log.Error(err)
 	}
+
 	var payload map[string]interface{}
 	err = json.Unmarshal(body, &payload)
 	if err != nil {
@@ -196,19 +198,33 @@ func (s ServerResource) MetaCreateHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	uids, err := s.MetaSvc.CreateMetadata(payload)
-	if err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	metaMap := payload["metadata"].([]interface{})
+	if len(metaMap) > 0 {
+		for i := range metaMap {
+			uids, err := s.MetaSvc.CreateMetadata(metaMap[i].(map[string]interface{}))
+			if err != nil {
+				log.Error(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			ret, err := json.Marshal(uids)
+			if err != nil {
+				log.Error(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Write(ret)
+		}
 	}
-	ret, err := json.Marshal(uids)
-	if err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+
+	var predicates map[string][]db.Schema
+	json.Unmarshal(body, &predicates)
+	schemaMap := predicates["schema"]
+
+	for _, schema := range schemaMap {
+		s.MetaSvc.CreateSchema(schema)
+		fmt.Printf("Schema %s was created\n", schema.Predicate)
 	}
-	w.Write(ret)
 }
 func buildEntityData(clusterName string, meta string, body []byte, isArray bool) (interface{}, error) {
 	switch meta {

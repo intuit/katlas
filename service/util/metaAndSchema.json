@@ -1,50 +1,4 @@
-[{
-  "name": "Application",
-  "objtype": "metadata",
-  "fields": [{
-    "fieldName": "creationtime",
-    "fieldType": "string",
-    "mandatory": true,
-    "index": false,
-    "cardinality": "One"
-  }, {
-    "fieldName": "k8sobj",
-    "fieldType": "string",
-    "mandatory": true,
-    "index": true,
-    "cardinality": "One"
-  }, {
-    "fieldName": "objtype",
-    "fieldType": "string",
-    "mandatory": true,
-    "index": true,
-    "cardinality": "One"
-  }, {
-    "fieldName": "name",
-    "fieldType": "string",
-    "mandatory": true,
-    "index": true,
-    "cardinality": "One"
-  }, {
-    "fieldName": "resourceid",
-    "fieldType": "string",
-    "mandatory": false,
-    "index": true,
-    "cardinality": "One"
-  }, {
-    "fieldName": "labels",
-    "fieldType": "json",
-    "mandatory": false,
-    "index": true,
-    "cardinality": "One"
-  }, {
-    "fieldName": "resourceversion",
-    "fieldType": "string",
-    "mandatory": true,
-    "index": false,
-    "cardinality": "One"
-  }]
-}, {
+{"metadata":[{
   "name": "Namespace",
   "objtype": "metadata",
   "fields": [{
@@ -58,37 +12,67 @@
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": false,
+    "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "resourceid",
     "fieldType": "string",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "labels",
     "fieldType": "json",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "resourceversion",
@@ -111,24 +95,44 @@
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "resourceid",
     "fieldType": "string",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "resourceversion",
@@ -151,31 +155,56 @@
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": false,
+    "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "resourceid",
     "fieldType": "string",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "resourceversion",
@@ -198,32 +227,45 @@
     "fieldType": "string",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "cluster",
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": false,
+    "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
-  }, {
-    "fieldName": "application",
-    "fieldType": "relationship",
-    "refDataType": "Application",
-    "mandatory": false,
-    "index": false,
-    "cardinality": "Many"
   }, {
     "fieldName": "k8sobj",
     "fieldType": true,
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "availablereplicas",
@@ -236,12 +278,22 @@
     "fieldType": "json",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "namespace",
@@ -249,6 +301,11 @@
     "refDataType": "Namespace",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "numreplicas",
@@ -261,12 +318,22 @@
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "strategy",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }]
 }, {
@@ -283,38 +350,56 @@
     "fieldType": "string",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "cluster",
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": false,
+    "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
-  }, {
-    "fieldName": "application",
-    "fieldType": "relationship",
-    "refDataType": "Application",
-    "mandatory": false,
-    "index": false,
-    "cardinality": "Many"
   }, {
     "fieldName": "k8sobj",
     "fieldType": true,
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "namespace",
@@ -322,12 +407,22 @@
     "refDataType": "Namespace",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "labels",
     "fieldType": "json",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "defaultbackend",
@@ -352,6 +447,11 @@
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }]
 }, {
@@ -368,31 +468,56 @@
     "fieldType": "string",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "cluster",
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": false,
+    "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
     "fieldType": true,
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "namespace",
@@ -400,12 +525,22 @@
     "refDataType": "Namespace",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "labels",
     "fieldType": "json",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "owner",
@@ -413,6 +548,11 @@
     "refDataType": "Deployment",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "numreplicas",
@@ -431,6 +571,11 @@
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }]
 }, {
@@ -447,31 +592,56 @@
     "fieldType": "string",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "cluster",
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": false,
+    "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
     "fieldType": true,
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "namespace",
@@ -479,12 +649,22 @@
     "refDataType": "Namespace",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "labels",
     "fieldType": "json",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "numreplicas",
@@ -497,6 +677,11 @@
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }]
 }, {
@@ -513,38 +698,56 @@
     "fieldType": "string",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "cluster",
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": false,
+    "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
-  },{
-    "fieldName": "application",
-    "fieldType": "relationship",
-    "refDataType": "Application",
-    "mandatory": false,
-    "index": false,
-    "cardinality": "Many"
   }, {
     "fieldName": "k8sobj",
     "fieldType": true,
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "namespace",
@@ -552,42 +755,77 @@
     "refDataType": "Namespace",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "labels",
     "fieldType": "json",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "resourceversion",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "selector",
     "fieldType": "json",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "clusterip",
     "fieldType": "string",
     "mandatory": false,
-    "index": false,
+    "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "servicetype",
     "fieldType": "string",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "ports",
     "fieldType": "json",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "Many"
   }]
 }, {
@@ -604,31 +842,56 @@
     "fieldType": "string",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "cluster",
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": false,
+    "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
     "fieldType": true,
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "namespace",
@@ -636,18 +899,33 @@
     "refDataType": "Namespace",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "labels",
     "fieldType": "json",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "resourceversion",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "starttime",
@@ -660,6 +938,11 @@
     "fieldType": "string",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "nodename",
@@ -667,12 +950,22 @@
     "refDataType": "Node",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "ip",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "containers",
@@ -692,6 +985,11 @@
     "refDataType": "ReplicaSet",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "ownertype",
@@ -714,31 +1012,56 @@
     "fieldType": "string",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "cluster",
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": false,
+    "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
     "fieldType": true,
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "namespace",
@@ -746,18 +1069,282 @@
     "refDataType": "Namespace",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "labels",
     "fieldType": "json",
     "mandatory": false,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }, {
     "fieldName": "resourceversion",
     "fieldType": "string",
     "mandatory": true,
     "index": true,
+    "upsert": false,
+    "tokenizer": [
+         "term",
+         "trigram"
+    ],
     "cardinality": "One"
   }]
-}]
+}],
+"schema": [{
+		"predicate": "cluster",
+		"type": "uid",
+		"index": false,
+		"count": false,
+		"reverse": true
+	},
+	{
+		"predicate": "namespace",
+		"type": "uid",
+		"index": false,
+		"count": false,
+		"reverse": true
+	},
+	{
+		"predicate": "nodename",
+		"type": "uid",
+		"index": false,
+		"count": false,
+		"reverse": true
+	},
+	{
+		"predicate": "owner",
+		"type": "uid",
+		"index": false,
+		"count": false,
+		"reverse": true
+	},
+	{
+		"predicate": "resourceid",
+		"type": "string",
+		"index": true,
+		"upsert": true,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "resourceversion",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "availablereplicas",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "clusterip",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "containers",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "creationtime",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "defaultbackend",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "ip",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "k8sobj",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "labels",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "name",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "numreplicas",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "objtype",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "phase",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "podspec",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "ports",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "rules",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "selector",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "servicetype",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "strategy",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "tls",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	},
+	{
+		"predicate": "volumes",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	}
+]}

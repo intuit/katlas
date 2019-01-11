@@ -140,7 +140,6 @@ func (s MetaService) CreateMetadata(data map[string]interface{}) (map[string]str
 	if !ok {
 		return nil, fmt.Errorf("error in metadata field")
 	}
-	log.Debugf("fMap is %#v", fMap)
 	const cardinality = "One"
 	if len(fMap) > 0 {
 		for i := range fMap {
@@ -174,4 +173,8 @@ func (s MetaService) CreateMetadata(data map[string]interface{}) (map[string]str
 	}
 	log.Infof("metadata created/updated: %v", uids)
 	return uids, nil
+}
+func (s MetaService) CreateSchema(sm db.Schema) error {
+	err := s.dbclient.CreateSchema(sm)
+	return err
 }
