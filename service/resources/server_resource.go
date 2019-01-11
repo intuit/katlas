@@ -223,7 +223,7 @@ func (s ServerResource) MetaCreateHandler(w http.ResponseWriter, r *http.Request
 
 	for _, schema := range schemaMap {
 		s.MetaSvc.CreateSchema(schema)
-		fmt.Printf("Schema %s was created\n", schema.Predicate)
+		log.Infof("Schema %s was created\n", schema.Predicate)
 	}
 }
 func buildEntityData(clusterName string, meta string, body []byte, isArray bool) (interface{}, error) {

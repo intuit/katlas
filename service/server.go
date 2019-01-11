@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/golang-lru"
@@ -69,7 +68,7 @@ func serve() {
 	// create dgraph schema
 	data, err := ioutil.ReadFile("util/dbschema.json")
 	if err != nil {
-		fmt.Printf("File error: %v\n", err)
+		log.Infof("File error: %v\n", err)
 		os.Exit(1)
 	}
 	var predicates []db.Schema
@@ -81,16 +80,15 @@ func serve() {
 	// Initialize metadata
 	meta, err := ioutil.ReadFile("util/meta.json")
 	if err != nil {
-		fmt.Printf("File error: %v\n", err)
+		log.Infof("File error: %v\n", err)
 		os.Exit(1)
-	} else {
-		fmt.Printf("metadata initialized\n")
 	}
 	var jsonData []map[string]interface{}
 	json.Unmarshal(meta, &jsonData)
 	for _, data := range jsonData {
 		entitySvc.CreateEntity("metadata", data)
 	}
+
 	if strings.EqualFold(cfg.ServerCfg.ServerType, "https") {
 		log.Fatal(http.ListenAndServeTLS(":8011", "server.crt", "server.key", router))
 	} else {
