@@ -2,7 +2,6 @@ package apis
 
 import (
 	"fmt"
-
 	log "github.com/Sirupsen/logrus"
 	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/util"
@@ -16,6 +15,8 @@ type IMetaService interface {
 	GetMetadata(name string) (Metadata, error)
 	// Create new metadata
 	CreateMetadata(data Metadata) (map[string]string, error)
+	// Create schema
+	CreateSchema(sm db.Schema) error
 	// Delete metadata
 	DeleteMetadata(name string) error
 	// Delete metadata field
@@ -177,6 +178,7 @@ func (s MetaService) CreateMetadata(data map[string]interface{}) (map[string]str
 
 //CreateSchema creates schema
 func (s MetaService) CreateSchema(sm db.Schema) error {
+	s.dbclient.RemoveDBSchemaFromCache(db.LruCache)
 	err := s.dbclient.CreateSchema(sm)
 	return err
 }
