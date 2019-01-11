@@ -36,7 +36,8 @@ after_success:
   - cd $TRAVIS_BUILD_DIR/service
   #- go run server.go 2> output.out &
   - docker run -d -p 8011:8011 katlas-service:${TRAVIS_COMMIT}
-  - sleep 10s
+  - sleep 20s
+  - docker ps -a
   #- cat ./output.out
   - lsof -i :8011
   - statusCode=$(curl -sw '%{http_code}\n' http://127.0.0.1:8011/v1/query?name=pod -o /dev/null)
