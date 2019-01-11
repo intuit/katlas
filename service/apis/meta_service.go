@@ -174,6 +174,8 @@ func (s MetaService) CreateMetadata(data map[string]interface{}) (map[string]str
 	log.Infof("metadata created/updated: %v", uids)
 	return uids, nil
 }
+
+//CreateSchema creates schema
 func (s MetaService) CreateSchema(sm db.Schema) error {
 	err := s.dbclient.CreateSchema(sm)
 	return err

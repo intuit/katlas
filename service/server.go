@@ -83,7 +83,7 @@ func serve() {
 	if err != nil {
 		fmt.Printf("File error: %v\n", err)
 		os.Exit(1)
-	}else {
+	} else {
 		fmt.Printf("metadata initialized\n")
 	}
 	var jsonData []map[string]interface{}
@@ -112,4 +112,3 @@ func main() {
 	}
 	serve()
 }
-
