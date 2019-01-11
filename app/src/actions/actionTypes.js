@@ -2,10 +2,11 @@ export const CHANGE_QUERY = 'CHANGE_QUERY';
 export const SUBMIT_QUERY = 'SUBMIT_QUERY';
 export const RECEIVE_QUERY = 'RECEIVE_QUERY';
 
-export const SET_ROOT_ENTITY = 'SET_ROOT_ENTITY';
-export const ADD_ENTITY_WATCH = 'ADD_ENTITY_WATCH';
+export const SET_ROOT_UID = 'SET_ROOT_UID';
+export const ADD_WATCH_UID = 'ADD_WATCH_UID';
 export const FETCH_ENTITY = 'FETCH_ENTITY';
 export const FETCH_ENTITIES = 'FETCH_ENTITIES';
 export const RECEIVE_ENTITY = 'RECEIVE_ENTITY';
+export const RECEIVE_QSL_RESP = 'RECEIVE_QSL_RESP';
 
 export const SHOW_NOTIFY = 'SHOW_NOTIFY';

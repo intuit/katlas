@@ -23,7 +23,7 @@ const styles = theme => ({
     width: '100%',
     overflowX: 'auto',
   },
-    progress: {
+  progress: {
     margin: theme.spacing.unit * 2,
   },
   progressContainer: {
@@ -62,10 +62,17 @@ class GraphContainer extends Component {
     const pathComponents = this.props.location.pathname.split('/');
     //TODO:DM - simply grabbing last param after '/' feels fragile, how to more safely verify as UID?
     //could be empty string... a better default to use, if so?
-    const uid = pathComponents[pathComponents.length - 1];
+    const potentialUid = pathComponents[pathComponents.length - 1];
 
-    this.props.entityActions.setRootEntity(uid);
-    this.props.entityActions.addEntityWatch(uid);
+    //temporarily use 0x telltale to indicate uid vs QSL query
+    //TODO:DM - change this since it would be too fragile and inside of "setRootNode" doesn't make sense if just now finding QSL str
+    if (potentialUid.substring(0,2) !== '0x') {
+      //console.log('QSL str: ', uid);
+      this.props.entityActions.fetchQslResp(potentialUid);
+    } else {
+      this.props.entityActions.setRootUid(potentialUid);
+      this.props.entityActions.addWatchUid(potentialUid);
+    }
   }
 
   getDataInterval() {

@@ -1,20 +1,22 @@
 import _ from 'lodash';
 
 import initialState from './initialState';
-import { SET_ROOT_ENTITY, ADD_ENTITY_WATCH, FETCH_ENTITY,
-  FETCH_ENTITIES, RECEIVE_ENTITY} from '../actions/actionTypes';
+import {
+  SET_ROOT_UID, ADD_WATCH_UID, FETCH_ENTITY,
+  FETCH_ENTITIES, RECEIVE_ENTITY, RECEIVE_QSL_RESP
+} from '../actions/actionTypes';
 import { EdgeLabels } from '../config/appConfig';
 
 export default function entity(state = initialState.entity, action) {
   let newState, now, potentialResults;
   switch (action.type) {
-    case SET_ROOT_ENTITY:
+    case SET_ROOT_UID:
       newState = {
         ...state, //start with a copy of existing state
         rootUid: action.uid, //and apply changes on top of existing state attrs
       };
       return newState;
-    case ADD_ENTITY_WATCH:
+    case ADD_WATCH_UID:
       newState = {
         ...state,
         isWaiting: true,
@@ -40,6 +42,15 @@ export default function entity(state = initialState.entity, action) {
       if (!_.isEqual(state.results, potentialResults)) {
         newState.results = potentialResults;
       }
+      return newState;
+    case RECEIVE_QSL_RESP:
+      now = +new Date();
+      newState = {
+        ...state,
+        latestTimestamp: now,
+        isWaiting: false,
+        results: action.results
+      };
       return newState;
     default:
       return state;

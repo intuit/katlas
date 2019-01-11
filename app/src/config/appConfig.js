@@ -26,6 +26,7 @@ export const NodeIconMap = new Map([
   ['StatefulSet', '\uf0c5'], //fa-copy
   ['Ingress', '\uf090'], //fa-sign-in
   ['Node', '\uf233'], //fa-server
+  ['DaemonSet', '\uf2ac'], //fa-snapchat-ghost
 ]);
 
 export const NodeStatusColorMap = new Map([

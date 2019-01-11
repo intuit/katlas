@@ -90,7 +90,7 @@ class Graph extends Component {
                       style={{color: '#000000'}}>
                       {this._legends.types[typeKey].code}
                     </span>
-                    <p>{typeKey}</p>
+                    <p>{typeKey || 'Unknown'}</p>
                   </Grid>
                 )
               })}
@@ -198,7 +198,7 @@ class Graph extends Component {
         //only add node data if target node is not current node
         //TODO:DM - rather than just current node, could skip any already watched UIDs
         if (targetNodeUid !== currentNodeUid) {
-          this.props.entityActions.addEntityWatch(targetNodeUid);
+          this.props.entityActions.addWatchUid(targetNodeUid);
           //and immediately attempt to fetch for the indicated UID
           this.props.entityActions.fetchEntity(targetNodeUid);
         }

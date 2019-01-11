@@ -1,13 +1,13 @@
 import * as types from './actionTypes';
 import ApiService from "../services/ApiService";
 
-export const setRootEntity = uid => ({
-  type: types.SET_ROOT_ENTITY,
+export const setRootUid = uid => ({
+  type: types.SET_ROOT_UID,
   uid
 });
 
-export const addEntityWatch = uid => ({
-  type: types.ADD_ENTITY_WATCH,
+export const addWatchUid = uid => ({
+  type: types.ADD_WATCH_UID,
   uid
 });
 
@@ -25,7 +25,19 @@ export const fetchEntities = uids => {
   };
 };
 
-export const receiveEntity = json => ({
+export const receiveEntity = results => ({
   type: types.RECEIVE_ENTITY,
-  results: json
+  results
+});
+
+export const fetchQslResp = str => {
+  return dispatch => {
+    return ApiService.getQSLResult(str)
+      .then(json => dispatch(receiveQslResp(json.objects[0])));
+  };
+};
+
+export const receiveQslResp = results => ({
+  type: types.RECEIVE_QSL_RESP,
+  results
 });
