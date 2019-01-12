@@ -16,6 +16,9 @@ function sleep (time) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 
+//Using hostNodes hack instead of wrapper.find('.Notifier-root-120').length - refer https://github.com/airbnb/enzyme/issues/1253
+//expect(wrapper.find('.Notifier-root-120').hostNodes().length).toEqual(0);
+
 it('Notifier does not open snackbar for valid query', () => {
 
   const SEARCH_STR = 'foobar';
@@ -27,8 +30,8 @@ it('Notifier does not open snackbar for valid query', () => {
       </MemoryRouter>
     </Provider>);
 
-  //Check for id of Notifier Snack Bar. Initially not present.
-  expect(wrapper.find('#snackbar-message-id').length).toEqual(0);
+  //Check for class name of Notifier Snack Bar. Initially not present.
+  expect(wrapper.find('.Notifier-root-120').hostNodes().length).toEqual(0);
 
   let input = wrapper.find('input').last();
   input.simulate('change', { target: { value: SEARCH_STR}});
@@ -39,8 +42,8 @@ it('Notifier does not open snackbar for valid query', () => {
   const nowStore = store.getState();
   expect(nowStore.notify.msg).toEqual('');
 
-  //Check for id of Notifier Snack Bar. Present now.
-  expect(wrapper.find('#snackbar-message-id').length).toEqual(0);
+  //Check for class name of Notifier Snack Bar. Present now.
+  expect(wrapper.find('.Notifier-root-120').hostNodes().length).toEqual(0);
 });
 
 it('Notifier can open snackbar for empty query', () => {
@@ -54,8 +57,8 @@ it('Notifier can open snackbar for empty query', () => {
       </MemoryRouter>
     </Provider>);
 
-  //Check for id of Notifier Snack Bar. Initially not present.
-  expect(wrapper.find('#snackbar-message-id').length).toEqual(0);
+  //Check for class name of Notifier Snack Bar. Initially not present.
+  expect(wrapper.find('.Notifier-root-120').hostNodes().length).toEqual(0);
 
   let input = wrapper.find('input').last();
   input.simulate('change', { target: { value: SEARCH_STR}});
@@ -66,8 +69,8 @@ it('Notifier can open snackbar for empty query', () => {
   const nowStore = store.getState();
   expect(nowStore.notify.msg).toEqual(QUERY_LEN_ERR);
 
-  //Check for id of Notifier Snack Bar. Present now.
-  expect(wrapper.find('#snackbar-message-id').length).toEqual(1);
+  //Check for class name of Notifier Snack Bar. Present now.
+  expect(wrapper.find('.Notifier-root-120').hostNodes().length).toEqual(1);
 });
 
 it('Notifier can open snackbar for short query', () => {
@@ -81,8 +84,8 @@ it('Notifier can open snackbar for short query', () => {
         </MemoryRouter>
       </Provider>);
 
-    //Check for id of Notifier Snack Bar. Initially not present.
-    expect(wrapper.find('#snackbar-message-id').length).toEqual(0);
+    //Check for class name of Notifier Snack Bar. Initially not present.
+    expect(wrapper.find('.Notifier-root-120').hostNodes().length).toEqual(0);
 
     let input = wrapper.find('input').last();
     input.simulate('change', { target: { value: SEARCH_STR}});
@@ -93,8 +96,8 @@ it('Notifier can open snackbar for short query', () => {
     const nowStore = store.getState();
     expect(nowStore.notify.msg).toEqual(QUERY_LEN_ERR);
 
-    //Check for id of Notifier Snack Bar. Present now.
-    expect(wrapper.find('#snackbar-message-id').length).toEqual(1);
+    //Check for class name of Notifier Snack Bar. Present now.
+    expect(wrapper.find('.Notifier-root-120').hostNodes().length).toEqual(1);
 });
 
 it('Notifier can open snackbar for errors returned from httpService', () => {
@@ -106,8 +109,8 @@ it('Notifier can open snackbar for errors returned from httpService', () => {
       </MemoryRouter>
     </Provider>);
 
-  //Check for id of Notifier Snack Bar. Initially not present.
-  expect(wrapper.find('#snackbar-message-id').length).toEqual(0);
+  //Check for class name of Notifier Snack Bar. Initially not present.
+  expect(wrapper.find('.Notifier-root-120').hostNodes().length).toEqual(0);
 
   let dummyUrl = "http://katlas.com/v1/qsl";
   let dummyParams = {qslstring: 'Cluster'};
@@ -149,8 +152,8 @@ it('Notifier can close snackbar after AutoHideDuration', () => {
       </MemoryRouter>
     </Provider>);
 
-  //Check for id of Notifier Snack Bar. Initially not present.
-  expect(wrapper.find('#snackbar-message-id').length).toEqual(0);
+  //Check for class name of Notifier Snack Bar. Initially not present.
+  expect(wrapper.find('.Notifier-root-120').hostNodes().length).toEqual(0);
 
   input = wrapper.find('input').last();
   input.simulate('change', { target: { value: SEARCH_STR}});
@@ -161,13 +164,12 @@ it('Notifier can close snackbar after AutoHideDuration', () => {
   const nowStore = store.getState();
   expect(nowStore.notify.msg).toEqual(QUERY_LEN_ERR);
 
-  //Check for id of Notifier Snack Bar. Present now.
-  expect(wrapper.find('#snackbar-message-id').length).toEqual(1);
+  //Check for class name of Notifier Snack Bar. Present now.
+  expect(wrapper.find('.Notifier-root-120').hostNodes().length).toEqual(1);
 
   sleep(AutoHideDuration).then(() => {
-    //Check for id of Notifier Snack Bar. Not present now as we are over the AutoHideDuration.
-    //TODO:SS - this expectation isn't actually being executed during the lifespan of the test, if I introduce the "done()" async feature of the test, it exceeds jest timeout. overall, I think you'll need to fix the test to simulate the time rather than actually sleep for it
-    expect(wrapper.find('#snackbar-message-id').length).toEqual(0);
+    //Check for class name of Notifier Snack Bar. Not present now as we are over the AutoHideDuration.
+    expect(wrapper.find('.Notifier-root-120').hostNodes().length).toEqual(0);
   });
 
 });
