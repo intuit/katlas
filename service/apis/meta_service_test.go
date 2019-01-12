@@ -48,9 +48,28 @@ func TestMetaService(t *testing.T) {
 			}
 		]
 	}`
+
+	schema := `[{
+		"predicate": "cluster",
+		"type": "uid",
+		"index": false,
+		"count": false,
+		"reverse": true
+	},
+	{
+		"predicate": "namespace",
+		"type": "string",
+		"index": true,
+		"upsert": false,
+		"tokenizer": [
+			"term",
+			"trigram"
+		]
+	}]`
 	// create index for query
 	dc.CreateSchema(db.Schema{Predicate: "name", PType: "string", Index: true, Tokenizer: []string{"term"}})
 	dc.CreateSchema(db.Schema{Predicate: "objtype", PType: "string", Index: true, Tokenizer: []string{"term"}})
+
 	// create pod metadata
 	dataMap := make(map[string]interface{})
 	err := json.Unmarshal([]byte(podMeta), &dataMap)
@@ -58,6 +77,16 @@ func TestMetaService(t *testing.T) {
 		panic(err)
 	}
 	m.CreateMetadata(dataMap)
+	//create schema data
+	predicates := make(map[string]db.Schema)
+	json.Unmarshal([]byte(schema), &predicates)
+	for _, p := range predicates {
+		m.CreateSchema(p)
+
+	}
+	//	dc.CreateSchema(p)
+	//m.CreateSchema(schemaMap)
+
 	// query to get created pod metadata
 	qm := map[string][]string{"name": {"pod_metadata"}, "objtype": {"metadata"}}
 	n, _ := q.GetQueryResult(qm)

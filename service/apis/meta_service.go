@@ -141,6 +141,7 @@ func (s MetaService) CreateMetadata(data map[string]interface{}) (map[string]str
 	if !ok {
 		return nil, fmt.Errorf("error in metadata field")
 	}
+	log.Debugf("fMap is %#v", fMap)
 	const cardinality = "One"
 	if len(fMap) > 0 {
 		for i := range fMap {

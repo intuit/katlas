@@ -223,6 +223,7 @@ func (s ServerResource) MetaCreateHandler(w http.ResponseWriter, r *http.Request
 
 	for _, schema := range schemaMap {
 		s.MetaSvc.CreateSchema(schema)
+		log.Infof("Schema %#v \n", schema)
 		log.Infof("Schema %s was created\n", schema.Predicate)
 	}
 }

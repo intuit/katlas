@@ -86,7 +86,7 @@ func serve() {
 	var jsonData []map[string]interface{}
 	json.Unmarshal(meta, &jsonData)
 	for _, data := range jsonData {
-		entitySvc.CreateEntity("metadata", data)
+		metaSvc.CreateMetadata(data)
 	}
 
 	if strings.EqualFold(cfg.ServerCfg.ServerType, "https") {
