@@ -37,8 +37,9 @@ after_success:
   - bash <(curl -s https://codecov.io/bash) -f coverage/coverage-final.json
   #- cd $TRAVIS_BUILD_DIR/service
   #- go run server.go 2> output.out &
-  - docker run -d -p 8011:8011 katlas-service:${TRAVIS_COMMIT}
-  - sleep 20s
+  #- docker run -d -p 8011:8011 katlas-service:${TRAVIS_COMMIT}
+  - docker run -it -p 8011:8011 --name katlas-service katlas-service:${TRAVIS_COMMIT}  http http 127.0.0.1:9080
+  - sleep 10s
   - docker ps -a
   #- cat ./output.out
   - lsof -i :8011
