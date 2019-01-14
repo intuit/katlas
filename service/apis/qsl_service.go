@@ -47,6 +47,7 @@ func IsStar(s string) bool {
 func (qa *QSLService) GetMetadata(objtype string) ([]MetadataField, error) {
 
 	start := time.Now()
+	log.Infof("[starttime: %s] getting metadata for %s", start, objtype)
 	metafieldslist, err := qa.metaSvc.GetMetadataFields(objtype)
 	if err != nil {
 		log.Error("err in getting metadata fields")
