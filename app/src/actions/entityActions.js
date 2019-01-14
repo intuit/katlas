@@ -33,7 +33,7 @@ export const receiveEntity = results => ({
 export const fetchQslResp = str => {
   return dispatch => {
     return ApiService.getQSLResult(str)
-      .then(json => dispatch(receiveQslResp(json.objects[0])));
+      .then(json => dispatch(receiveQslResp(json.objects[56])));
   };
 };
 
