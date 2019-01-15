@@ -187,6 +187,7 @@ func (s ServerResource) QueryHandler(w http.ResponseWriter, r *http.Request) {
 
 // MetaCreateHandler REST API for create Metadata
 func (s ServerResource) MetaCreateHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
@@ -224,6 +225,7 @@ func (s ServerResource) MetaCreateHandler(w http.ResponseWriter, r *http.Request
 // SchemaCreateHandler REST API for create Schema
 func (s ServerResource) SchemaCreateHandler(w http.ResponseWriter, r *http.Request) {
 	defer s.MetaSvc.RemoveSchemaCache(db.LruCache)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
