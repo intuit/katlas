@@ -5,43 +5,36 @@
     "fieldName": "creationtime",
     "fieldType": "string",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "resourceid",
     "fieldType": "string",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "labels",
     "fieldType": "json",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "resourceversion",
     "fieldType": "string",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }]
 }, {
@@ -51,50 +44,42 @@
     "fieldName": "creationtime",
     "fieldType": "string",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "cluster",
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "resourceid",
     "fieldType": "string",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "labels",
     "fieldType": "json",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "resourceversion",
     "fieldType": "string",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }]
 }, {
@@ -104,37 +89,31 @@
     "fieldName": "creationtime",
     "fieldType": "string",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "resourceid",
     "fieldType": "string",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "resourceversion",
     "fieldType": "string",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }]
 }, {
@@ -144,44 +123,37 @@
     "fieldName": "creationtime",
     "fieldType": "string",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "cluster",
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "resourceid",
     "fieldType": "string",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "resourceversion",
     "fieldType": "string",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }]
 }, {
@@ -191,82 +163,69 @@
     "fieldName": "creationtime",
     "fieldType": "string",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "resourceid",
     "fieldType": "string",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "cluster",
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "application",
     "fieldType": "relationship",
     "refDataType": "Application",
     "mandatory": false,
-    "index": false,
     "cardinality": "Many"
   }, {
     "fieldName": "k8sobj",
     "fieldType": true,
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "availablereplicas",
     "fieldType": "int",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "labels",
     "fieldType": "json",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "namespace",
     "fieldType": "relationship",
     "refDataType": "Namespace",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "numreplicas",
     "fieldType": "int",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "resourceversion",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "strategy",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }]
 }, {
@@ -276,82 +235,69 @@
     "fieldName": "creationtime",
     "fieldType": "string",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "resourceid",
     "fieldType": "string",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "cluster",
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "application",
     "fieldType": "relationship",
     "refDataType": "Application",
     "mandatory": false,
-    "index": false,
     "cardinality": "Many"
   }, {
     "fieldName": "k8sobj",
     "fieldType": true,
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "namespace",
     "fieldType": "relationship",
     "refDataType": "Namespace",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "labels",
     "fieldType": "json",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "defaultbackend",
     "fieldType": "json",
     "mandatory": false,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "rules",
     "fieldType": "json",
     "mandatory": true,
-    "index": false,
     "cardinality": "Many"
   }, {
     "fieldName": "tls",
     "fieldType": "json",
     "mandatory": false,
-    "index": false,
     "cardinality": "Many"
   }, {
     "fieldName": "resourceversion",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }]
 }, {
@@ -361,76 +307,64 @@
     "fieldName": "creationtime",
     "fieldType": "string",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "resourceid",
     "fieldType": "string",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "cluster",
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
     "fieldType": true,
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "namespace",
     "fieldType": "relationship",
     "refDataType": "Namespace",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "labels",
     "fieldType": "json",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "owner",
     "fieldType": "relationship",
     "refDataType": "Deployment",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "numreplicas",
     "fieldType": "int",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "podspec",
     "fieldType": "json",
     "mandatory": false,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "resourceversion",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }]
 }, {
@@ -440,63 +374,53 @@
     "fieldName": "creationtime",
     "fieldType": "string",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "resourceid",
     "fieldType": "string",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "cluster",
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
     "fieldType": true,
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "namespace",
     "fieldType": "relationship",
     "refDataType": "Namespace",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "labels",
     "fieldType": "json",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "numreplicas",
     "fieldType": "int",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "resourceversion",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }]
 }, {
@@ -506,88 +430,76 @@
     "fieldName": "creationtime",
     "fieldType": "string",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "resourceid",
     "fieldType": "string",
     "mandatory": false,
-    "index": true,
+   
     "cardinality": "One"
   }, {
     "fieldName": "cluster",
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": false,
+    
     "cardinality": "One"
   },{
     "fieldName": "application",
     "fieldType": "relationship",
     "refDataType": "Application",
     "mandatory": false,
-    "index": false,
     "cardinality": "Many"
   }, {
     "fieldName": "k8sobj",
     "fieldType": true,
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "namespace",
     "fieldType": "relationship",
     "refDataType": "Namespace",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "labels",
     "fieldType": "json",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "resourceversion",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "selector",
     "fieldType": "json",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "clusterip",
     "fieldType": "string",
     "mandatory": false,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "servicetype",
     "fieldType": "string",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "ports",
     "fieldType": "json",
     "mandatory": false,
-    "index": true,
     "cardinality": "Many"
   }]
 }, {
@@ -597,107 +509,90 @@
     "fieldName": "creationtime",
     "fieldType": "string",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "resourceid",
     "fieldType": "string",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "cluster",
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
     "fieldType": true,
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "namespace",
     "fieldType": "relationship",
     "refDataType": "Namespace",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "labels",
     "fieldType": "json",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "resourceversion",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "starttime",
     "fieldType": "string",
     "mandatory": false,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "phase",
     "fieldType": "string",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "nodename",
     "fieldType": "relationship",
     "refDataType": "Node",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "ip",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "containers",
     "fieldType": "json",
     "mandatory": false,
-    "index": false,
     "cardinality": "Many"
   }, {
     "fieldName": "volumes",
     "fieldType": "json",
     "mandatory": false,
-    "index": false,
     "cardinality": "Many"
   }, {
     "fieldName": "owner",
     "fieldType": "relationship",
     "refDataType": "ReplicaSet",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "ownertype",
     "fieldType": "string",
     "mandatory": false,
-    "index": false,
     "cardinality": "One"
   }]
 }, {
@@ -707,57 +602,48 @@
     "fieldName": "creationtime",
     "fieldType": "string",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "resourceid",
     "fieldType": "string",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "cluster",
     "fieldType": "relationship",
     "refDataType": "Cluster",
     "mandatory": true,
-    "index": false,
     "cardinality": "One"
   }, {
     "fieldName": "k8sobj",
     "fieldType": true,
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "objtype",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "name",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "namespace",
     "fieldType": "relationship",
     "refDataType": "Namespace",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "labels",
     "fieldType": "json",
     "mandatory": false,
-    "index": true,
     "cardinality": "One"
   }, {
     "fieldName": "resourceversion",
     "fieldType": "string",
     "mandatory": true,
-    "index": true,
     "cardinality": "One"
   }]
 }]

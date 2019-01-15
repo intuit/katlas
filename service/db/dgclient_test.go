@@ -81,7 +81,7 @@ func TestDGClient(t *testing.T) {
 
 func TestCreateIndex(t *testing.T) {
 	client := NewDGClient("127.0.0.1:9080")
-	s := Schema{Predicate: "testindex", PType: "string", Count: true, List: true, Index: true,
+	s := Schema{Predicate: "testindex", Type: "string", Count: true, List: true, Index: true,
 		Upsert: true, Tokenizer: []string{"hash", "fulltext"},
 	}
 	err := client.CreateSchema(s)
