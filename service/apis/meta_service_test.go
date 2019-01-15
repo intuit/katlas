@@ -23,19 +23,12 @@ func TestMetaService(t *testing.T) {
 				"fieldName": "name",
 				"fieldType": "json",
 				"mandatory": true,
-				"index": true,
-				"cardinality": "One",
-                                "upsert": true,
-                                "tokenizer": [
-                                        "term",
-                                        "trigram"
-                                ]
+				"cardinality": "One"
 			},
 			{
 				"fieldName": "status",
 				"fieldType": "string",
 				"mandatory": true,
-				"index": false,
 				"cardinality": "One"
 			},
 			{
@@ -43,14 +36,13 @@ func TestMetaService(t *testing.T) {
 				"fieldType": "relationship",
 				"refDataType": "K8scontainer",
 				"mandatory": false,
-				"index": false,
 				"cardinality": "Many"
 			}
 		]
 	}`
 	// create index for query
-	dc.CreateSchema(db.Schema{Predicate: "name", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "objtype", PType: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "name", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "objtype", Type: "string", Index: true, Tokenizer: []string{"term"}})
 	// create pod metadata
 	dataMap := make(map[string]interface{})
 	err := json.Unmarshal([]byte(podMeta), &dataMap)

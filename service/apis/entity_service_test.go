@@ -21,9 +21,9 @@ func TestCreateEntity(t *testing.T) {
 		"labels":  "testingnode02",
 	}
 	// create index for query
-	dc.CreateSchema(db.Schema{Predicate: "name", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "resourceid", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "objtype", PType: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "name", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "resourceid", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "objtype", Type: "string", Index: true, Tokenizer: []string{"term"}})
 	nids, _ := s.CreateEntity("K8sNode", node)
 	var nid string
 	for _, v := range nids {
@@ -63,10 +63,10 @@ func TestCreateEntityWithMeta(t *testing.T) {
 	s := NewEntityService(dc)
 	q := NewQueryService(dc)
 	// create index for query
-	dc.CreateSchema(db.Schema{Predicate: "name", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "objtype", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "resourceid", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "namespace", PType: "uid", Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "name", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "objtype", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "resourceid", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "namespace", Type: "uid", Tokenizer: []string{"term"}})
 
 	podMeta := `{
 		"name": "Pod",
@@ -228,11 +228,11 @@ func TestSyncEntities(t *testing.T) {
 	s := NewEntityService(dc)
 	q := NewQueryService(dc)
 	// create index for query
-	dc.CreateSchema(db.Schema{Predicate: "name", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "objtype", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "resourceid", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "namespace", PType: "uid"})
-	dc.CreateSchema(db.Schema{Predicate: "cluster", PType: "uid"})
+	dc.CreateSchema(db.Schema{Predicate: "name", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "objtype", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "resourceid", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "namespace", Type: "uid"})
+	dc.CreateSchema(db.Schema{Predicate: "cluster", Type: "uid"})
 
 	podMeta := `{
 		"name": "Pod",

@@ -41,4 +41,10 @@ const (
 	Selector          = "selector"
 	App               = "app"
 	K8sApp            = "k8s-app"
+	Fields            = "fields"
+	FieldName         = "fieldName"
+	FieldType         = "fieldType"
+	Mandatory         = "mandatory"
+	Cardinality       = "cardinality"
+	One               = "One"
 )

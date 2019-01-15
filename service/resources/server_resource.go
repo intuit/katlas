@@ -9,11 +9,14 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 	"github.com/intuit/katlas/service/apis"
+	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/util"
+	"github.com/mitchellh/mapstructure"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/apps/v1beta2"
 	core_v1 "k8s.io/api/core/v1"
 	ext_v1beta1 "k8s.io/api/extensions/v1beta1"
+	"reflect"
 )
 
 // ServerResource handle http request
@@ -184,31 +187,88 @@ func (s ServerResource) QueryHandler(w http.ResponseWriter, r *http.Request) {
 
 // MetaCreateHandler REST API for create Metadata
 func (s ServerResource) MetaCreateHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
 	}
-	var payload map[string]interface{}
+	var payload interface{}
 	err = json.Unmarshal(body, &payload)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if reflect.TypeOf(payload).Kind() == reflect.Slice {
+		var rets []string
+		for _, p := range payload.([]interface{}) {
+			_, err := s.MetaSvc.CreateMetadata(p.(map[string]interface{}))
+			if err != nil {
+				log.Error(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			rets = append(rets, p.(map[string]interface{})[util.Name].(string))
+		}
+		w.Write([]byte(fmt.Sprintf("Metadata %v create successfully", rets)))
+	} else {
+		_, err := s.MetaSvc.CreateMetadata(payload.(map[string]interface{}))
+		if err != nil {
+			log.Error(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write([]byte(fmt.Sprintf("Metadata %s create successfully", payload.(map[string]interface{})[util.Name])))
+	}
+}
 
-	uids, err := s.MetaSvc.CreateMetadata(payload)
+// SchemaCreateHandler REST API for create Schema
+func (s ServerResource) SchemaCreateHandler(w http.ResponseWriter, r *http.Request) {
+	defer s.MetaSvc.RemoveSchemaCache(db.LruCache)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Error(err)
+	}
+	var payload interface{}
+	err = json.Unmarshal(body, &payload)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	ret, err := json.Marshal(uids)
-	if err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	if reflect.TypeOf(payload).Kind() == reflect.Slice {
+		var predicates []db.Schema
+		err := mapstructure.Decode(payload, &predicates)
+		if err != nil {
+			log.Error(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		for _, p := range predicates {
+			err := s.MetaSvc.CreateSchema(p)
+			if err != nil {
+				log.Error(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+	} else {
+		var predicate db.Schema
+		err := mapstructure.Decode(payload, &predicate)
+		if err != nil {
+			log.Error(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = s.MetaSvc.CreateSchema(predicate)
+		if err != nil {
+			log.Error(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
-	w.Write(ret)
+	w.Write([]byte("Schema create successfully"))
 }
 
 func buildEntityData(clusterName string, meta string, body []byte, isArray bool) (interface{}, error) {
