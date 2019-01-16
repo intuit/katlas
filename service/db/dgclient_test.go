@@ -78,7 +78,7 @@ func TestDGClient(t *testing.T) {
 			log.Fatalf("relationship still exist after call delete edge API")
 		}
 		client.CreateOrDeleteEdge("K8sPod", v, "K8sNode", nid, "runsOn", create)
-		client.SetFieldToNull(map[string]interface{}{"runsOn":nil, "uid": v})
+		client.SetFieldToNull(map[string]interface{}{"runsOn": nil, "uid": v})
 		pod01, _ = client.GetEntity("K8sPod", v)
 		o6 := pod01["objects"].([]interface{})[0].(map[string]interface{})
 		_, ok := o6["runsOn"]
