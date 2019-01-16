@@ -386,7 +386,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 	qslSvc := NewQSLService(dc, metaSvc)
 
 	// Initialize metadata
-	meta, err := ioutil.ReadFile("data/meta.json")
+	meta, err := ioutil.ReadFile("../data/meta.json")
 	if err != nil {
 		log.Fatalf("Metadata file error: %v\n", err)
 	}
