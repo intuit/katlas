@@ -1,8 +1,8 @@
-import * as notifyActions from '../actions/notifyActions';
-import store from '../store.js';
+import * as notifyActions from "../actions/notifyActions";
+import store from "../store.js";
 
-export class HttpService  {
-  static get({url, params, arrayParams}) {
+export class HttpService {
+  static get({ url, params, arrayParams }) {
     if (params) {
       url = url + "?";
       let paramCnt = 1;
@@ -27,23 +27,22 @@ export class HttpService  {
       for (let i = 0; i < arrayParams.length; i++) {
         //TODO:DM - clean up fn creation in loop
         Object.keys(arrayParams[i]).forEach(key => {
-            arrayParams[i][key].forEach(e => url = url + key + "=" + e + "&");
+          arrayParams[i][key].forEach(e => (url = url + key + "=" + e + "&"));
         });
       }
     }
 
-    return fetch(url)
-        .then(res => this.makeResponse(res))
+    return fetch(url).then(res => this.makeResponse(res));
   }
 
   static makeResponse(res) {
     if (res.status === 204) {
-        return null;
+      return null;
     }
     if (res.ok) {
       return res.json();
     } else {
-      store.dispatch(notifyActions.showNotify(res.statusText));
+      res.text().then(txt => store.dispatch(notifyActions.showNotify(txt)));
       return null;
     }
   }

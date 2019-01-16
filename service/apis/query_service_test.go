@@ -113,9 +113,9 @@ func createPod(dc *db.DGClient, ms *MetaService) (uid string) {
 		"ip":              "172.20.32.128",
 	}
 	// create index for query
-	dc.CreateSchema(db.Schema{Predicate: "name", PType: "string", Index: true, Tokenizer: []string{"term", "trigram"}})
-	dc.CreateSchema(db.Schema{Predicate: "objtype", PType: "string", Index: true, Tokenizer: []string{"term", "trigram"}})
-	dc.CreateSchema(db.Schema{Predicate: "ip", PType: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "name", Type: "string", Index: true, Tokenizer: []string{"term", "trigram"}})
+	dc.CreateSchema(db.Schema{Predicate: "objtype", Type: "string", Index: true, Tokenizer: []string{"term", "trigram"}})
+	dc.CreateSchema(db.Schema{Predicate: "ip", Type: "string", Index: true, Tokenizer: []string{"term"}})
 
 	pids, _ := s.CreateEntity("K8sPod", pod)
 	var pid string

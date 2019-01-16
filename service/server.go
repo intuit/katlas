@@ -1,17 +1,19 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"net/http"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
-	lru "github.com/hashicorp/golang-lru"
+	"github.com/hashicorp/golang-lru"
 	"github.com/intuit/katlas/service/apis"
 	"github.com/intuit/katlas/service/cfg"
 	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/resources"
+	"io/ioutil"
 )
 
 const cacheSize = 10
@@ -48,7 +50,8 @@ func serve() {
 	router.HandleFunc("/v1/qsl", res.QSLHandler).Methods("GET")
 	//Metadata
 	router.HandleFunc("/v1/metadata/{name}", res.MetaGetHandler).Methods("GET")
-	router.HandleFunc("/v1/metadata/{metadata}", res.MetaCreateHandler).Methods("POST")
+	router.HandleFunc("/v1/metadata", res.MetaCreateHandler).Methods("POST")
+	router.HandleFunc("/v1/metadata/schema", res.SchemaCreateHandler).Methods("POST")
 
 	router.HandleFunc("/health", Health).Methods("GET")
 	router.HandleFunc("/", Up).Methods("GET", "POST")
@@ -60,9 +63,28 @@ func serve() {
 		log.Errorf("err: %v", err)
 	}
 	log.Infoln("LRU cache created with given size")
-
+	log.Infoln("Starting initialize schema and metadata... ")
+	// Create dgraph schema
+	data, err := ioutil.ReadFile("data/dbschema.json")
+	if err != nil {
+		log.Fatalf("Schema file error: %v\n", err)
+	}
+	var predicates []db.Schema
+	json.Unmarshal(data, &predicates)
+	for _, p := range predicates {
+		metaSvc.CreateSchema(p)
+	}
+	// Initialize metadata
+	meta, err := ioutil.ReadFile("data/meta.json")
+	if err != nil {
+		log.Fatalf("Metadata file error: %v\n", err)
+	}
+	var jsonData []map[string]interface{}
+	json.Unmarshal(meta, &jsonData)
+	for _, data := range jsonData {
+		metaSvc.CreateMetadata(data)
+	}
 	log.Infof("Service started on port:8011, mode:%s", cfg.ServerCfg.ServerType)
-
 	if strings.EqualFold(cfg.ServerCfg.ServerType, "https") {
 		log.Fatal(http.ListenAndServeTLS(":8011", "server.crt", "server.key", router))
 	} else {

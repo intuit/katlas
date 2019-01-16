@@ -24,6 +24,7 @@ func TestDGClient(t *testing.T) {
 		nid = v
 		break
 	}
+
 	defer cleanUP(client, nids)
 
 	// create pod
@@ -76,12 +77,21 @@ func TestDGClient(t *testing.T) {
 		if val != nil {
 			log.Fatalf("relationship still exist after call delete edge API")
 		}
+		client.CreateOrDeleteEdge("K8sPod", v, "K8sNode", nid, "runsOn", create)
+		client.SetFieldToNull(map[string]interface{}{"runsOn":nil, "uid": v})
+		pod01, _ = client.GetEntity("K8sPod", v)
+		o6 := pod01["objects"].([]interface{})[0].(map[string]interface{})
+		_, ok := o6["runsOn"]
+		if ok {
+			log.Fatalf("relationship still exist after call set field to null API")
+		}
+
 	}
 }
 
 func TestCreateIndex(t *testing.T) {
 	client := NewDGClient("127.0.0.1:9080")
-	s := Schema{Predicate: "testindex", PType: "string", Count: true, List: true, Index: true,
+	s := Schema{Predicate: "testindex", Type: "string", Count: true, List: true, Index: true,
 		Upsert: true, Tokenizer: []string{"hash", "fulltext"},
 	}
 	err := client.CreateSchema(s)
