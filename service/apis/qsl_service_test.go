@@ -1,7 +1,10 @@
 package apis
 
 import (
+	"encoding/json"
 	"errors"
+	"io/ioutil"
+	"log"
 	"reflect"
 	"strings"
 	"testing"
@@ -381,6 +384,17 @@ func TestCreateDgraphQuery(t *testing.T) {
 	defer dc.Close()
 	metaSvc := NewMetaService(dc)
 	qslSvc := NewQSLService(dc, metaSvc)
+
+	// Initialize metadata
+	meta, err := ioutil.ReadFile("data/meta.json")
+	if err != nil {
+		log.Fatalf("Metadata file error: %v\n", err)
+	}
+	var jsonData []map[string]interface{}
+	json.Unmarshal(meta, &jsonData)
+	for _, data := range jsonData {
+		metaSvc.CreateMetadata(data)
+	}
 
 	for k, v := range tests {
 		output, err := qslSvc.CreateDgraphQuery(k)
