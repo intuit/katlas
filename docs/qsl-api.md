@@ -13,14 +13,14 @@ Provide an easy to use language for users to query objects from dgraph without h
     * needs to match the case as Kubernetes would
     * e.g. ReplicaSet will work, Replicaset/rEplicaset/REPLICASET/etc. will not
     * will automatically capitalize first letter, so pod and Pod will both work
-  * filtername=value - filter to get objects of objecttype where the filtername = value
+  * `filtername=value` - filter to get objects of objecttype where the filtername = value
     * value must be enclosed in quotes and can contain alphanumeric characters, ., -, and _
-    * , can be used as boolean equivalent to AND
-    * | can be used as the boolean equivalent to OR
+    * && can be used as boolean equivalent to AND
+    * || can be used as the boolean equivalent to OR
     * AND takes precedence over OR
-      * e.g. a,b,c|d,e === (a&b&c) | (d&e)
+      * e.g. `a&&b&&c||d&&e` === (a&&b&&c) || (d&&e)
     * other comparators (<,>,<=,>=) can be used for data types that support comparison
-      * e.g. ReplicaSet[\@numreplicas>="1"]{\*}
+      * e.g. `ReplicaSet[@numreplicas>=1]{*}`
   * field - the fields of the object that we want to return
     * each field must begin with an @ followed by an alphanumeric field name, or be a string of \*
      * the list can either only contain comma separated @-prefixed field names or \* strings, not both
@@ -28,10 +28,17 @@ Provide an easy to use language for users to query objects from dgraph without h
     * n "\*" will get all fields and relations n edges away from the node
       * if multiple \* are present any relations after that block are ignored
       * e.g. cluster[...]{\*\*}.namespace[...]{@name} is the same as cluster[...]{\*\*}
-  * objecttype1[...]{\*}.objecttype2[...]{\*} - the . denotes a relationship objecttype1->objecttype2
+  * `objecttype1[...]{\*}.objecttype2[...]{\*}` - the . denotes a relationship objecttype1->objecttype2
     this will get all fields from objecttype1 and all objecttype2's related to the results of the first block
     with all their fields
-  * objecttype, filtername/value and the fields must be nonempty
+  * objecttype must be specified
+    * filters can be empty and will default to returning all objects of its type
+    * fields can also be empty and will default to showing nothing for that object type
+  * optional pagination
+    * in filters, use `objecttype[@filtername="value"$$first=1,offset=1]{@field1,@field2}`
+    * $$first=n will return the first n objects by uid
+    * $$offset=m will return the objects in uid order starting from m
+    * combine to get $$first=x,offset=y to get the first x objects starting from index y
 
 ## Examples
   ```
@@ -47,7 +54,17 @@ Provide an easy to use language for users to query objects from dgraph without h
 
   ```
   pod[@name="pod1"]{**}
-    return the fields of pod1 and the fields for all direct relationships
+    return all of the fields of pod1 and the fields for all direct relationships
+  ```
+
+  ```
+  deployment[@name="helm"$$first=10]{*}
+    return all of the fields of the first 10 pods named "helm" by uid
+  ```
+
+  ```
+  ReplicaSet[]{}.deployment[]{*}
+    return all of the fields of deployments that have a replica set
   ```
 
 ## QSL Queries and Their DGraph Equivalents
@@ -149,6 +166,31 @@ objects(func: eq(objtype, Cluster)) @filter( eq(name,"preprod-west2.cluster.k8s.
         }
       }
     }
+  ```
+
+  ```
+  qsl: cluster[@objtype="Cluster"$$first=2]{*}.namespace[@name="default"$$first=2,offset=2]{*}
+  dgraph: query objects($objtype: string, $objtype: string){
+  objects(func: eq(objtype, Cluster),first: 2) @filter( eq(objtype,"Cluster") ){
+  	objtype
+  	name
+  	resourceid
+  	resourceversion
+  	creationtime
+  	k8sobj
+  	uid
+  	~cluster @filter(eq(objtype, Namespace) and eq(name,"default") )(first: 2,offset: 2){
+  		labels
+  		objtype
+  		k8sobj
+  		name
+  		resourceid
+  		resourceversion
+  		creationtime
+  		uid
+  	}
+  }
+  }
   ```
 
 ## API Responses

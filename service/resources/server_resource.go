@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
@@ -675,12 +676,15 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) { //
 	}
 	log.Infof("dgraph query for %#v:\n %s", queryMap["qslstring"][0], query)
 
+	start := time.Now()
 	response, err := s.QSLSvc.DBclient.ExecuteDgraphQuery(query)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	log.Infof("response for query %#v: %#v ", queryMap["qslstring"][0], response)
+	end := time.Now()
+	elapsed := end.Sub(start)
+	log.Infof("[elapsedtime: %s]response for query %#v: %#v ", elapsed, queryMap["qslstring"][0], response)
 
 	ret, err := json.Marshal(response)
 	if err != nil {
