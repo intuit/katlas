@@ -12,10 +12,10 @@ import (
 )
 
 // regex to get objtype[filters]{fields}
-var blockRegex = `([a-zA-Z0-9]+)\[(?:(\@[\"\,\@\$\=\>\<a-zA-Z0-9\-\.\|\&\:_]*|\**|\$\$[a-zA-Z0-9\,\=]+))\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
+var blockRegex = `([a-zA-Z0-9]+)\[(?:(\@[\"\,\@\$\=\>\<\!a-zA-Z0-9\-\.\|\&\:_]*|\**|\$\$[a-zA-Z0-9\,\=]+))\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
 
 // regex to get KeyOperatorValue from something like numreplicas>=2
-var filterRegex = `\@([a-zA-Z0-9]*)([\<\>\=]*)(\"?[a-zA-Z0-9\-\.\|\&\:_]*\"?)`
+var filterRegex = `\@([a-zA-Z0-9]*)([\!\<\>\=]*)(\"?[a-zA-Z0-9\-\.\|\&\:_]*\"?)`
 
 // QSLService service for QSL
 type QSLService struct {
@@ -124,6 +124,7 @@ func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 		"<=": "le",
 		"<":  "lt",
 		"=":  "eq",
+		"!=": "eq",
 	}
 
 	for _, item := range splitlist {
@@ -159,7 +160,12 @@ func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 			}
 
 			filterdeclaration = filterdeclaration + ", $" + keyname + dectype
-			interfilterfunc = append(interfilterfunc, " "+operatorMap[operator]+"("+keyname+","+value+") ")
+			if operator == "!=" {
+				interfilterfunc = append(interfilterfunc, " not "+operatorMap[operator]+"("+keyname+","+value+") ")
+			} else {
+				interfilterfunc = append(interfilterfunc, " "+operatorMap[operator]+"("+keyname+","+value+") ")
+			}
+
 		}
 
 		filterfunc = append(filterfunc, strings.Join(interfilterfunc, "and"))
