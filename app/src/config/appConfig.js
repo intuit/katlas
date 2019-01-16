@@ -53,4 +53,4 @@ export const EdgeLabels = ['belongs_to', 'binds', 'claims', 'contains',
   'controlled_by', 'has', 'is_bound_to', 'routes_traffic', 'runs',
   //relationship types used after dgraph metadata changes, not currently using
   //'~cluster', '~namesapce' since they often have hundreds of children
-  'cluster', 'namespace', 'owner', 'nodename', '~owner'];
+  'cluster', 'namespace', 'owner', 'nodename', '~owner', '~cluster'];

@@ -7,6 +7,7 @@ export const ADD_WATCH_UID = 'ADD_WATCH_UID';
 export const FETCH_ENTITY = 'FETCH_ENTITY';
 export const FETCH_ENTITIES = 'FETCH_ENTITIES';
 export const RECEIVE_ENTITY = 'RECEIVE_ENTITY';
+export const ADD_WATCH_QSL_QUERY = 'ADD_WATCH_QSL_QUERY';
 export const RECEIVE_QSL_RESP = 'RECEIVE_QSL_RESP';
 
 export const SHOW_NOTIFY = 'SHOW_NOTIFY';

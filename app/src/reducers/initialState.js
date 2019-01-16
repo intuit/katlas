@@ -9,6 +9,7 @@ export default {
   entity: {
     rootUid: '',
     entitiesByUid: {},
+    qslQuery: '',
     results: {},
     latestTimestamp: 0,
     isWaiting: false,

@@ -37,7 +37,6 @@ class Graph extends Component {
     };
 
     //TODO:DM - can I mitigate need for these hard binds with => fns or something else?
-    this.validateInputs = this.validateInputs.bind(this);
     this.renderGraph = this.renderGraph.bind(this);
     this.renderVisGraph = this.renderVisGraph.bind(this);
     this.clearNetwork = this.clearNetwork.bind(this);
@@ -55,15 +54,6 @@ class Graph extends Component {
 
   componentWillUnmount(){
     this.clearNetwork();
-  }
-
-  validateInputs() {
-    const errorList = [];
-    if (this.state.data.length <= 0) {
-      errorList.push("emptyDataField");
-    }
-    this.setState({errors: errorList});
-    return errorList;
   }
 
   render() {
@@ -116,9 +106,24 @@ class Graph extends Component {
   }
 
   renderGraph(jsonData) {
+    let nodes, edges;
     if (_.isEmpty(jsonData)) return;
 
-    const {nodes, edges} = getVisData(jsonData);
+    //should we allow for both obj and arr style responses here?
+    if (_.isArray(jsonData)) {
+      nodes = [];
+      edges = [];
+      jsonData.forEach(item => {
+        let {nodes: n, edges: e} = getVisData(item);
+        nodes = nodes.concat(n);
+        edges = edges.concat(e);
+      });
+    } else {
+      let obj = getVisData(jsonData);
+      nodes = obj.nodes;
+      edges = obj.edges;
+    }
+
     this._edges = edges;
     this._legends = getLegends();
 

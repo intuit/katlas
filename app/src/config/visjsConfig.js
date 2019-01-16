@@ -33,5 +33,12 @@ export const options = {
   layout: {
     randomSeed: 42,
     improvedLayout: true,
+    hierarchical: {
+      enabled: true,
+      blockShifting: true,
+      edgeMinimization: true,
+      sortMethod: 'hubsize',
+      direction: 'UD'
+    }
   },
 };

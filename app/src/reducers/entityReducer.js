@@ -3,7 +3,7 @@ import _ from 'lodash';
 import initialState from './initialState';
 import {
   SET_ROOT_UID, ADD_WATCH_UID, FETCH_ENTITY,
-  FETCH_ENTITIES, RECEIVE_ENTITY, RECEIVE_QSL_RESP
+  FETCH_ENTITIES, RECEIVE_ENTITY, RECEIVE_QSL_RESP, ADD_WATCH_QSL_QUERY
 } from '../actions/actionTypes';
 import { EdgeLabels } from '../config/appConfig';
 
@@ -43,6 +43,13 @@ export default function entity(state = initialState.entity, action) {
         newState.results = potentialResults;
       }
       return newState;
+    case ADD_WATCH_QSL_QUERY:
+      newState = {
+        ...state,
+        isWaiting: true,
+        qslQuery: action.query
+      };
+      return newState;
     case RECEIVE_QSL_RESP:
       now = +new Date();
       newState = {
@@ -51,6 +58,22 @@ export default function entity(state = initialState.entity, action) {
         isWaiting: false,
         results: action.results
       };
+      //TODO:DM - decice if there is still any value to this OR we'll just write response data directly into store as 'results'
+      // if(action.results){
+      //   let entityObj = action.results
+      //     .reduce((results, obj) => {
+      //       results[obj.uid] = obj;
+      //       return results;
+      //     }, {});
+      //   newState.results = action.results
+      //     .filter(item => item.uid)
+      //     .map(item => entityWalk(item.uid, entityObj))
+      //     .reduce((results, obj) => {
+      //       debugger;
+      //       results[obj.uid] = obj;
+      //       return results;
+      //     }, {});
+      // }
       return newState;
     default:
       return state;

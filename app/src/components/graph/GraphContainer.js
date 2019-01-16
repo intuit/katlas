@@ -11,8 +11,9 @@ import "./Graph.css";
 import Graph from './Graph';
 import EntityDetails from '../entityDetails/EntityDetails';
 import * as entityActions from "../../actions/entityActions";
+import { validateQslQuery, validateHexId } from "../../utils/validate";
 
-const FETCH_PERIOD_PER_ENTITY_MS = 2000;
+const FETCH_PERIOD_PER_ENTITY_MS = 5000;
 
 const styles = theme => ({
   container: {
@@ -62,29 +63,33 @@ class GraphContainer extends Component {
     const pathComponents = this.props.location.pathname.split('/');
     //TODO:DM - simply grabbing last param after '/' feels fragile, how to more safely verify as UID?
     //could be empty string... a better default to use, if so?
-    const potentialUid = pathComponents[pathComponents.length - 1];
+    const pathParam = pathComponents[pathComponents.length - 1];
 
-    //temporarily use 0x telltale to indicate uid vs QSL query
     //TODO:DM - change this since it would be too fragile and inside of "setRootNode" doesn't make sense if just now finding QSL str
-    if (potentialUid.substring(0,2) !== '0x') {
-      //console.log('QSL str: ', uid);
-      this.props.entityActions.fetchQslResp(potentialUid);
-    } else {
-      this.props.entityActions.setRootUid(potentialUid);
-      this.props.entityActions.addWatchUid(potentialUid);
-    }
+    if (validateQslQuery(pathParam)) {
+      this.props.entityActions.fetchQslQuery(pathParam);
+      this.props.entityActions.addWatchQslQuery(pathParam);
+    } else if (validateHexId(pathParam)) {
+      this.props.entityActions.setRootUid(pathParam);
+      this.props.entityActions.addWatchUid(pathParam);
+    } else {} // default for invalid string?
   }
 
   getDataInterval() {
     this.getData();
     //reschedule next automatic data request while computing time value based
     //on number of entities and a min time between fetches
-    const NUM_ENTITIES = Object.keys(this.props.entity.entitiesByUid).length;
+    const NUM_ENTITIES = Object.keys(this.props.entity.entitiesByUid).length || 1;
+    //TODO:DM - better handle QSL scenario so it doesn't get run as often as single entity request would
     this.intervalHandle = setTimeout(() => this.getDataInterval(),
       NUM_ENTITIES * FETCH_PERIOD_PER_ENTITY_MS);
   }
 
   getData() {
+    //fetch QSL query, if one is registered
+    if (this.props.entity.qslQuery) {
+     this.props.entityActions.fetchQslQuery(this.props.entity.qslQuery);
+    }
     //fetch all entities currently represented as keys in the store
     this.props.entityActions.fetchEntities(Object.keys(
       this.props.entity.entitiesByUid));

@@ -48,7 +48,7 @@ const styles = theme => ({
     },
   },
   searchIcon: {
-    width: theme.spacing.unit * 9,
+    width: theme.spacing.unit * 5,
     height: '100%',
     position: 'absolute',
     pointerEvents: 'auto',
@@ -64,7 +64,7 @@ const styles = theme => ({
     paddingTop: theme.spacing.unit,
     paddingRight: theme.spacing.unit,
     paddingBottom: theme.spacing.unit,
-    paddingLeft: theme.spacing.unit * 10,
+    paddingLeft: theme.spacing.unit * 5,
     transition: theme.transitions.create('width'),
     width: '100%',
     [theme.breakpoints.up('sm')]: {
@@ -116,7 +116,7 @@ class MenuBar extends Component {
               <SearchIcon />
             </div>
             <InputBase
-              placeholder="Search…"
+              placeholder="Search string…"
               classes={{
                 root: classes.inputRoot,
                 input: classes.inputInput,

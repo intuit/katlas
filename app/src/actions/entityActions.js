@@ -14,7 +14,7 @@ export const addWatchUid = uid => ({
 export const fetchEntity = uid => {
   return dispatch => {
     return ApiService.getEntity(uid)
-      //TODO:DM - can this hard-coded idx be cleaned up?
+      //idx 0 used because Entity API is known to return 1 object, wrapped in an array
       .then(json => dispatch(receiveEntity(json.objects[0])));
   };
 };
@@ -30,10 +30,15 @@ export const receiveEntity = results => ({
   results
 });
 
-export const fetchQslResp = str => {
+export const addWatchQslQuery = query => ({
+  type: types.ADD_WATCH_QSL_QUERY,
+  query
+});
+
+export const fetchQslQuery = query => {
   return dispatch => {
-    return ApiService.getQSLResult(str)
-      .then(json => dispatch(receiveQslResp(json.objects[56])));
+    return ApiService.getQSLResult(query)
+      .then(json => dispatch(receiveQslResp(json.objects)));
   };
 };
 
