@@ -49,5 +49,5 @@ const (
 	One               = "One"
 	Query             = "query"
 	StartTim          = "starttime"
-	Count             = "totalCount"
+	Count             = "count"
 )

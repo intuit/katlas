@@ -12,7 +12,7 @@ import (
 )
 
 // regex to get objtype[filters]{fields}
-var blockRegex = `([a-zA-Z0-9]+)\[(?:(\@[\"\,\@\$\=\>\<\!a-zA-Z0-9\-\.\|\&\:_]*|\**|\$\$[a-zA-Z0-9\,\=]+))\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
+var blockRegex = `([a-zA-Z0-9]+)\[?(?:(\@[\"\,\@\$\=\>\<\!a-zA-Z0-9\-\.\|\&\:_]*|\**|\$\$[a-zA-Z0-9\,\=]+))\]?\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
 
 // regex to get KeyOperatorValue from something like numreplicas>=2
 var filterRegex = `\@([a-zA-Z0-9]*)([\!\<\>\=]*)(\"?[a-zA-Z0-9\-\.\|\&\:_]*\"?)`
