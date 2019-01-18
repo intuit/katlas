@@ -48,6 +48,6 @@ const (
 	Cardinality       = "cardinality"
 	One               = "One"
 	Query             = "query"
-	StartTim          = "starttime"
+	StartTime         = "starttime"
 	Count             = "count"
 )

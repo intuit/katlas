@@ -97,9 +97,11 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 			_, ok := data[field.FieldName]
 			if !ok {
 				if field.FieldType == util.Relationship {
-					delete(data, field.FieldName)
 					continue
 				} else {
+					// set to default value if value not present in the data
+					// as the qsl will print all fields get from metadata and @cascade query hint
+					// will remove record from resultset if any field missing value
 					data[field.FieldName] = getDefaultValue(field)
 				}
 			}
@@ -252,7 +254,7 @@ func getDefaultValue(metaField MetadataField) interface{} {
 	case "bool":
 		return false
 	case "datatime":
-		return time.Now()
+		return time.Time{}
 	default:
 		return nil
 	}

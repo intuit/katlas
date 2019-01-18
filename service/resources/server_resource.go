@@ -442,7 +442,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 					util.Cluster:         clusterName,
 					util.ResourceVersion: d.ObjectMeta.ResourceVersion,
 					util.K8sObj:          util.K8sObj,
-					util.StartTim:        d.Status.StartTime,
+					util.StartTime:       d.Status.StartTime,
 				}
 				if len(d.ObjectMeta.OwnerReferences) > 0 {
 					pod[util.Owner] = d.ObjectMeta.OwnerReferences[0].Name
@@ -471,7 +471,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			util.Cluster:         clusterName,
 			util.ResourceVersion: data.ObjectMeta.ResourceVersion,
 			util.K8sObj:          util.K8sObj,
-			util.StartTim:        data.Status.StartTime,
+			util.StartTime:       data.Status.StartTime,
 		}
 		if len(data.ObjectMeta.OwnerReferences) > 0 {
 			pod[util.Owner] = data.ObjectMeta.OwnerReferences[0].Name
