@@ -94,10 +94,16 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 	delMap := make(map[string]interface{})
 	if len(fs) > 0 {
 		for _, field := range fs {
-			fieldValue, ok := data[field.FieldName]
-			if !ok || fieldValue == "" || fieldValue == nil {
-				delete(data, field.FieldName)
-				continue
+			_, ok := data[field.FieldName]
+			if !ok {
+				if field.FieldType == util.Relationship {
+					continue
+				} else {
+					// set to default value if value not present in the data
+					// as the qsl will print all fields get from metadata and @cascade query hint
+					// will remove record from resultset if any field missing value
+					data[field.FieldName] = getDefaultValue(field)
+				}
 			}
 			if strings.EqualFold(field.Cardinality, util.Many) || field.FieldType == util.Relationship {
 				delMap[field.FieldName] = nil
@@ -237,6 +243,21 @@ func (s EntityService) CreateOrDeleteEdge(fromType string, fromUID string, toTyp
 // UpdateEntity update entity
 func (s EntityService) UpdateEntity(meta string, uuid string, data map[string]interface{}) error {
 	return s.dbclient.UpdateEntity(meta, uuid, data)
+}
+
+func getDefaultValue(metaField MetadataField) interface{} {
+	switch metaField.FieldType {
+	case "string", "json":
+		return ""
+	case "int", "float":
+		return 0
+	case "bool":
+		return false
+	case "datatime":
+		return time.Time{}
+	default:
+		return nil
+	}
 }
 
 // build resourceid

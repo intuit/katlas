@@ -47,7 +47,7 @@ func serve() {
 	router.HandleFunc("/v1/sync/{metadata}", res.EntitySyncHandler).Methods("POST")
 	router.HandleFunc("/v1/entity/{metadata}/{resourceid}", res.EntityDeleteHandler).Methods("DELETE")
 	router.HandleFunc("/v1/query", res.QueryHandler).Methods("GET")
-	router.HandleFunc("/v1/qsl", res.QSLHandler).Methods("GET")
+	router.HandleFunc("/v1/qsl/{query}", res.QSLHandler).Methods("GET")
 	//Metadata
 	router.HandleFunc("/v1/metadata/{name}", res.MetaGetHandler).Methods("GET")
 	router.HandleFunc("/v1/metadata", res.MetaCreateHandler).Methods("POST")

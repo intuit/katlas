@@ -12,7 +12,7 @@ import (
 )
 
 // regex to get objtype[filters]{fields}
-var blockRegex = `([a-zA-Z0-9]+)\[(?:(\@[\"\,\@\$\=\>\<\!a-zA-Z0-9\-\.\|\&\:_]*|\**|\$\$[a-zA-Z0-9\,\=]+))\]\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
+var blockRegex = `([a-zA-Z0-9]+)\[?(?:(\@[\"\,\@\$\=\>\<\!a-zA-Z0-9\-\.\|\&\:_]*|\**|\$\$[a-zA-Z0-9\,\=]+))\]?\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
 
 // regex to get KeyOperatorValue from something like numreplicas>=2
 var filterRegex = `\@([a-zA-Z0-9]*)([\!\<\>\=]*)(\"?[a-zA-Z0-9\-\.\|\&\:_]*\"?)`
@@ -358,7 +358,7 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 }
 
 // CreateDgraphQuery translates the querystring to a dgraph query
-func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
+func (qa *QSLService) CreateDgraphQuery(query string) (string, string, error) {
 	log.Info("Received Query: ", strings.Split(query, "}."))
 
 	// remove all whitespace
@@ -371,7 +371,7 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 	splitquery := strings.Split(querys, "}.")
 	basequery := []string{
 		"query objects($objtype: string$FILTERSDEC){",
-		"objects(func: eq(objtype, $OBJTYPE)$PAGINATE) $FILTERSFUNC{",
+		"objects(func: eq(objtype, $OBJTYPE)$PAGINATE) $FILTERSFUNC @cascade {",
 	}
 	// extract the objtype, filters and fields to return from the query string
 	r := regexp.MustCompile(blockRegex)
@@ -381,7 +381,7 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 
 	if len(matches) < 2 {
 		log.Error("Malformed Query received: " + query)
-		return "", errors.New("Malformed Query: " + query)
+		return "", "", errors.New("Malformed Query: " + query)
 	}
 
 	// extract the values of the form objtype[filters]fields and assign to individual variables
@@ -390,7 +390,7 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 	fields := matches[3]
 	fd, ff, pag, err := CreateFiltersQuery(filters)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	log.Debugf("helperobjtype %#v\n", objtype)
@@ -399,14 +399,14 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 
 	metafieldslist, err := qa.GetMetadata(objtype)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	// convert the filters and fields to corresponding dgraph lines for the query
 
 	fl, err := CreateFieldsQuery(fields, metafieldslist, 0)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	log.Debugf("Objtype: %#v\n", objtype)
@@ -416,8 +416,13 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 	// replace the filters and object type and add the list of fields
 	basequery[0] = strings.Replace(basequery[0], "$FILTERSDEC", fd, -1)
 	basequery[1] = strings.Replace(basequery[1], "$FILTERSFUNC", ff, -1)
-	basequery[1] = strings.Replace(basequery[1], "$PAGINATE", pag, -1)
 	basequery[1] = strings.Replace(basequery[1], "$OBJTYPE", objtype, -1)
+	// construct query only show count
+	countquery := make([]string, len(basequery))
+	copy(countquery, basequery)
+	countquery[1] = strings.Replace(countquery[1], "$PAGINATE", "", -1)
+	countquery = append(countquery, "count(uid)")
+	basequery[1] = strings.Replace(basequery[1], "$PAGINATE", pag, -1)
 	basequery = append(basequery[0:2], fl...)
 
 	// if there's relations, this length will be greater than 1
@@ -425,18 +430,14 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, error) {
 		// recursively create the intermediate relations
 		middlefilter, err := qa.CreateDgraphQueryHelper(splitquery[1:], 1, objtype)
 		if err != nil {
-			return "", err
+			return "", "", err
 		}
 		// and add them to the end of this list with the closing braces
 		basequery = append(basequery, middlefilter...)
-		basequery = append(basequery, []string{"}", "}"}...)
-	} else {
-		// just add closing braces
-		basequery = append(basequery, []string{"}", "}"}...)
+		countquery = append(countquery, middlefilter...)
 	}
-
-	// create the string joining all the lines with newlines
-	finalquery := strings.Join(basequery, "\n")
-	return finalquery, nil
+	basequery = append(basequery, []string{"}", "}"}...)
+	countquery = append(countquery, []string{"}", "}"}...)
+	return strings.Join(basequery, "\n"), strings.Join(countquery, "\n"), nil
 
 }
