@@ -442,6 +442,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 					util.Cluster:         clusterName,
 					util.ResourceVersion: d.ObjectMeta.ResourceVersion,
 					util.K8sObj:          util.K8sObj,
+					util.StartTim:        d.Status.StartTime,
 				}
 				if len(d.ObjectMeta.OwnerReferences) > 0 {
 					pod[util.Owner] = d.ObjectMeta.OwnerReferences[0].Name
@@ -470,6 +471,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			util.Cluster:         clusterName,
 			util.ResourceVersion: data.ObjectMeta.ResourceVersion,
 			util.K8sObj:          util.K8sObj,
+			util.StartTim:        data.Status.StartTime,
 		}
 		if len(data.ObjectMeta.OwnerReferences) > 0 {
 			pod[util.Owner] = data.ObjectMeta.OwnerReferences[0].Name
@@ -662,10 +664,10 @@ func createAppNameList(obj interface{}) []interface{} {
 
 // QSLHandler handles requests for QSL
 func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) { //
-	queryMap := r.URL.Query()
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	vars := mux.Vars(r)
 
-	query, err := s.QSLSvc.CreateDgraphQuery(queryMap["qslstring"][0])
+	query, countqry, err := s.QSLSvc.CreateDgraphQuery(vars[util.Query])
 	if err != nil {
 		if err.Error() == "Failed to connect to dgraph to get metadata" {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -674,18 +676,29 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) { //
 		http.Error(w, err.Error(), http.StatusBadRequest) // code: 400
 		return
 	}
-	log.Infof("dgraph query for %#v:\n %s", queryMap["qslstring"][0], query)
+	log.Infof("dgraph query for %#v:\n %s", vars[util.Query], query)
 
-	start := time.Now()
-	response, err := s.QSLSvc.DBclient.ExecuteDgraphQuery(query)
+	response, err := s.QSLSvc.DBclient.ExecuteDgraphQuery(countqry)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	end := time.Now()
-	elapsed := end.Sub(start)
-	log.Infof("[elapsedtime: %s]response for query %#v: %#v ", elapsed, queryMap["qslstring"][0], response)
+	var total float64
+	for _, res := range response[util.Objects].([]interface{}) {
+		val, ok := res.(map[string]interface{})[util.Count]
+		if ok {
+			total = val.(float64)
+		}
+	}
 
+	start := time.Now()
+	response, err = s.QSLSvc.DBclient.ExecuteDgraphQuery(query)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	log.Infof("[elapsedtime: %s]response for query %#v: %#v ", time.Since(start), vars[util.Query], response)
+	response[util.Count] = total
 	ret, err := json.Marshal(response)
 	if err != nil {
 		http.Error(w, "Failed to convert to JSON output", http.StatusInternalServerError)

@@ -47,4 +47,7 @@ const (
 	Mandatory         = "mandatory"
 	Cardinality       = "cardinality"
 	One               = "One"
+	Query             = "query"
+	StartTim          = "starttime"
+	Count             = "totalCount"
 )
