@@ -98,12 +98,11 @@ class Results extends Component {
     } = this.props;
     if (prevQuery !== currentQuery) {
       //should only run if query param changes
-      fetchQuery(currentQuery, query.page, query.rowsPerPage);
+      fetchQuery(currentQuery, 0, query.rowsPerPage);
     }
   }
 
   handleRowClick = (event, idx) => {
-    //TODO:DM - take this opportunity to distinguish the row visually?
     this.setState({ selectedIdx: idx });
   };
 
