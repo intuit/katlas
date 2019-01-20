@@ -5,6 +5,9 @@ import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import TextField from '@material-ui/core/TextField';
+import SearchIcon from '@material-ui/icons/Search';
+import IconButton from '@material-ui/core/IconButton';
+import InputAdornment from '@material-ui/core/InputAdornment';
 import SplitterLayout from 'react-splitter-layout';
 
 import { ENTER_KEYCODE } from '../../config/appConfig';
@@ -128,6 +131,18 @@ class Results extends Component {
           value={queryStr}
           onChange={this.handleChange}
           onKeyUp={this.handleEnterPressCheck}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position='end'>
+                <IconButton
+                  aria-label='Search'
+                  onClick={() => this.handleSubmit()}
+                >
+                  <SearchIcon />
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
         />
         {//selectively show progress spinner or table, once HTTP req resolves
         query.isWaiting ? (

@@ -95,7 +95,7 @@ xit('tries to submit too short a query', () => {
   let input = wrapper.find('input').first();
   input.simulate('change', { target: { value: SEARCH_STR}});
   //and try to submit the query
-  input.simulate('keyDown', { key: 'Enter', keyCode: 13, which: 13 });
+  input.simulate('keypress', {key: 'Enter'});
   //check for expected state of the store
   const nowStore = store.getState();
   expect(nowStore.query.current).toEqual(SEARCH_STR);
