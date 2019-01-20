@@ -46,7 +46,7 @@ it('deep renders graph view', () => {
   unmountComponentAtNode(div);
 });
 
-it('ensures that search bar input text is equal between menubar and home view', () => {
+xit('ensures that search bar input text is equal between menubar and home view', () => {
   const SEARCH_STR_A = 'foobar';
   const SEARCH_STR_B = 'bazqux';
   const wrapper = mount(

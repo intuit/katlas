@@ -4,9 +4,10 @@ import { bindActionCreators } from 'redux';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import Typography from '@material-ui/core/Typography';
+import TextField from '@material-ui/core/TextField';
 import SplitterLayout from 'react-splitter-layout';
 
+import { ENTER_KEYCODE } from '../../config/appConfig';
 import ResultList from './ResultList';
 import EntityDetails from '../entityDetails/EntityDetails';
 import * as apiCfg from '../../config/apiConfig';
@@ -14,15 +15,20 @@ import * as queryActions from '../../actions/queryActions';
 
 const styles = theme => ({
   progress: {
-    margin: theme.spacing.unit * 2,
+    margin: theme.spacing.unit * 2
   },
   progressContainer: {
-    textAlign: 'center',
+    textAlign: 'center'
   },
   resultTitle: {
     marginTop: theme.spacing.unit * 2,
-    marginLeft: theme.spacing.unit,
+    marginLeft: theme.spacing.unit
   },
+  searchBox: {
+    marginTop: 30,
+    marginLeft: 5,
+    marginBottom: 20
+  }
 });
 
 function getQueryParam(locationSearchStr, queryParamStr) {
@@ -33,29 +39,63 @@ function getQueryParam(locationSearchStr, queryParamStr) {
 class Results extends Component {
   constructor(props) {
     super(props);
-    //TODO:DM - get rid of local component state entirely, incorporate selectedIdx into central store
+    const queryStr = getQueryParam(
+      this.props.location.search,
+      apiCfg.SERVICES.queryParamName
+    );
     this.state = {
       selectedIdx: 0,
+      queryStr: queryStr
     };
   }
 
+  handleChange = event => {
+    this.setState({ queryStr: event.target.value });
+  };
+
+  handleEnterPressCheck = event => {
+    const { queryStr } = this.state;
+    if (event.keyCode === ENTER_KEYCODE && queryStr !== '') {
+      this.handleSubmit();
+    }
+  };
+
+  handleSubmit = () => {
+    const { queryStr } = this.state;
+    const {
+      queryActions: { submitQuery }
+    } = this.props;
+
+    submitQuery(queryStr);
+  };
+
   componentDidMount() {
-    const query = getQueryParam(this.props.location.search, apiCfg.SERVICES.queryParamName);
-    //incase the user directly linked to this route, make sure to take query
-    //from params to get store 'caught up'
-    this.props.queryActions.changeQuery(query);
-    this.props.queryActions.submitQuery(query);
-    this.props.queryActions.fetchQuery(query);
+    const {
+      query,
+      queryActions: { fetchQuery }
+    } = this.props;
+    const { queryStr } = this.state;
+
+    fetchQuery(queryStr, query.page, query.rowsPerPage);
   }
 
   componentDidUpdate(prevProps) {
     //recognize change in query param here and re-issue API request as necessary
-    const currentQuery = getQueryParam(this.props.location.search, apiCfg.SERVICES.queryParamName);
-    const prevQuery = getQueryParam(prevProps.location.search, apiCfg.SERVICES.queryParamName);
+    const currentQuery = getQueryParam(
+      this.props.location.search,
+      apiCfg.SERVICES.queryParamName
+    );
+    const prevQuery = getQueryParam(
+      prevProps.location.search,
+      apiCfg.SERVICES.queryParamName
+    );
+    const {
+      query,
+      queryActions: { fetchQuery }
+    } = this.props;
     if (prevQuery !== currentQuery) {
       //should only run if query param changes
-      this.props.queryActions.submitQuery(currentQuery);
-      this.props.queryActions.fetchQuery(currentQuery);
+      fetchQuery(currentQuery, query.page, query.rowsPerPage);
     }
   }
 
@@ -65,25 +105,46 @@ class Results extends Component {
   };
 
   render() {
-    const { classes, query } = this.props;
-    const { selectedIdx } = this.state;
+    const {
+      classes,
+      query,
+      queryActions: { updatePagination }
+    } = this.props;
+    const { queryStr, selectedIdx } = this.state;
 
     return (
       <div className='Results'>
-        <Typography variant="h6" gutterBottom className={classes.resultTitle}>
-          Search Result: {query.current}
-        </Typography>
+        <TextField
+          id='outlined-full-width'
+          label='Search'
+          className={classes.searchBox}
+          placeholder='Query String'
+          fullWidth
+          margin='normal'
+          variant='outlined'
+          InputLabelProps={{
+            shrink: true
+          }}
+          value={queryStr}
+          onChange={this.handleChange}
+          onKeyUp={this.handleEnterPressCheck}
+        />
         {//selectively show progress spinner or table, once HTTP req resolves
-          query.isWaiting ? (
-            <div className={classes.progressContainer}>
-              <CircularProgress className={classes.progress} color='secondary' />
-            </div>
-          ) : (
-              <SplitterLayout percentage={true} secondaryInitialSize={30}>
-                <ResultList query={query} selectedIdx={selectedIdx} onRowClick={this.handleRowClick} />
-                <EntityDetails selectedObj={query.results[selectedIdx]} />
-              </SplitterLayout>
-            )}
+        query.isWaiting ? (
+          <div className={classes.progressContainer}>
+            <CircularProgress className={classes.progress} color='secondary' />
+          </div>
+        ) : (
+          <SplitterLayout percentage={true} secondaryInitialSize={30}>
+            <ResultList
+              query={query}
+              selectedIdx={selectedIdx}
+              onRowClick={this.handleRowClick}
+              updatePagination={updatePagination}
+            />
+            <EntityDetails selectedObj={query.results[selectedIdx]} />
+          </SplitterLayout>
+        )}
       </div>
     );
   }
@@ -103,6 +164,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(
-  withStyles(styles)(Results)
-);
+)(withStyles(styles)(Results));
