@@ -18,7 +18,7 @@ describe('ApiService', () => {
     // verify the url requested by the api service matches the expected url mocked.
     fetchMock.get('http://localhost/v1/qsl/Cluster[@name="abc"$$first=50,offset=100]{*}', response);
 
-    ApiService.getQSLResult('Cluster[@name="abc"{*}', 2, 50);
+    ApiService.getQSLResult('Cluster[@name="abc"]{*}', 2, 50);
 
     fetchMock.reset();
   });

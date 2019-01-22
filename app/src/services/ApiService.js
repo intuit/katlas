@@ -1,6 +1,7 @@
 import { HttpService } from './HttpService';
 
 import * as notifyActions from '../actions/notifyActions';
+import { QSLRegEx } from '../utils/validate';
 import store from '../store.js';
 
 const ALL_SERVICE_CONTEXT = '/v1';
@@ -31,7 +32,7 @@ export default class ApiService {
     const rootEntityQuery = querySegments[0];
     // inject the pagination if not provided
     if (!rootEntityQuery.includes('$$')) {
-      const matches = /([a-zA-Z0-9]+)\[?(?:(@[",@$=><!a-zA-Z0-9\-.|&:_]*|\**|\$\$[a-zA-Z0-9,=]+))\]?\{([*|[,@"=a-zA-Z0-9-]*)/.exec(
+      const matches = QSLRegEx.exec(
         rootEntityQuery
       );
       if (matches) {

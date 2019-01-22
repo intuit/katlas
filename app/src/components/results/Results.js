@@ -27,6 +27,10 @@ const styles = theme => ({
     marginTop: theme.spacing.unit * 2,
     marginLeft: theme.spacing.unit
   },
+  resultContainer: {
+    // the splitter-layout has attr: position: absolute, need to calculate the height to reduce the height of app bar and search box
+    height: 'calc(100% - 165px)'
+  },
   searchBox: {
     marginTop: 30,
     marginLeft: 5,
@@ -115,7 +119,7 @@ class Results extends Component {
     const { queryStr, selectedIdx } = this.state;
 
     return (
-      <div className='Results'>
+      <div>
         <TextField
           id='outlined-full-width'
           label='Search'
@@ -133,10 +137,7 @@ class Results extends Component {
           InputProps={{
             endAdornment: (
               <InputAdornment position='end'>
-                <IconButton
-                  aria-label='Search'
-                  onClick={() => this.handleSubmit()}
-                >
+                <IconButton aria-label='Search' onClick={this.handleSubmit}>
                   <SearchIcon />
                 </IconButton>
               </InputAdornment>
@@ -149,7 +150,11 @@ class Results extends Component {
             <CircularProgress className={classes.progress} color='secondary' />
           </div>
         ) : (
-          <SplitterLayout percentage={true} secondaryInitialSize={30}>
+          <SplitterLayout
+            percentage={true}
+            secondaryInitialSize={30}
+            customClassName={classes.resultContainer}
+          >
             <ResultList
               query={query}
               selectedIdx={selectedIdx}
