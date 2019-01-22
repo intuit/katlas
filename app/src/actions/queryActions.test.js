@@ -47,7 +47,8 @@ describe('asynch query actions', () => {
     window.fetch = jest.fn().mockImplementation(() =>
       Promise.resolve(new Response(JSON.stringify(MOCK_RESP_EMPTY), {status:200})));
     return store.dispatch(actions.fetchQuery('doesntMatter')).then(() => {
-      //now we're looking for the 2nd action to have been triggered
+      //each fetchQuery will trigger 2 actions. first is requestQuery and second is receiveQuery which has the results
+      //now we're looking for receiveQuery (the 3nd as there was another fetchQuery earlier) action to have been triggered
       expect(store.getActions()[3].results).toHaveLength(0)
     });
   })
