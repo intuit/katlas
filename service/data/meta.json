@@ -586,7 +586,7 @@
   }, {
     "fieldname": "owner",
     "fieldtype": "relationship",
-    "refdatatype": "replicaset",
+    "refdatatype": "replicaset,daemonset,statefulset",
     "mandatory": false,
     "cardinality": "one"
   }, {

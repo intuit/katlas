@@ -54,7 +54,7 @@ func SendJSONQuery(obj interface{}, url string) (int, []byte) {
 	req.Header.Add("Cache-Control", "no-cache")
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", os.Getenv("AUTH_HEADER"))
-	req.Header.Add("ClusterName", ClusterName)
+	req.Header.Add("clustername", ClusterName)
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {

@@ -43,7 +43,7 @@ var podtests = []PodTest{
 			},
 		},
 		out: map[string]interface{}{
-			"objtype":         "Pod",
+			"objtype":         "pod",
 			"namespace":       "test-namespace",
 			"creationtime":    *timeptr,
 			"phase":           v1.PodPending,
