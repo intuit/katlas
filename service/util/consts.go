@@ -20,7 +20,7 @@ const (
 	ResourceVersion   = "resourceversion"
 	Node              = "node"
 	Application       = "application"
-	ClusterName       = "clustername"
+	ClusterName       = "ClusterName" // used by controller to set the http header, keep the camel case
 	Labels            = "labels"
 	CreationTime      = "creationtime"
 	NumReplicas       = "numreplicas"
