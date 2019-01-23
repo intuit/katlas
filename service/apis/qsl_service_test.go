@@ -1,11 +1,16 @@
 package apis
 
 import (
-		"errors"
-			"reflect"
-		"testing"
+	"encoding/json"
+	"errors"
+	"io/ioutil"
+	"log"
+	"reflect"
+	"strings"
+	"testing"
 
-	)
+	"github.com/intuit/katlas/service/db"
+)
 
 // FResult values is the expected output, err is the expected error
 type FResult struct {
@@ -166,4 +171,321 @@ func TestCreateFieldsQuery(t *testing.T) {
 		}
 
 	}
+}
+
+func TestCreateDgraphQuery(t *testing.T) {
+	tests := map[string]FResult{
+		`namespace[@name="default"]{*}`: FResult{[]string{
+			"{ A as var(func: eq(objtype, namespace)) @filter( eq(name,\"default\") ) @cascade {",
+			"\tcount(uid)",
+			"}",
+			"}",
+			"{ objects(func: uid(A),first:1000,offset:0) {",
+			"\tresourceversion",
+			"\tcreationtime",
+			"\tk8sobj",
+			"\tobjtype",
+			"\tname",
+			"\tresourceid",
+			"\tlabels",
+			"\tuid",
+			"}",
+			"}",
+		}, nil},
+		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{@name}`: FResult{[]string{
+			"{ A as var(func: eq(objtype, cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
+			"\tcount(uid)",
+			"}",
+			"}",
+			"{ objects(func: uid(A),first:1000,offset:0) {",
+			"\tname",
+			"\tuid",
+			"}",
+			"}",
+		}, nil},
+		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"||@name="default"]{*}`: FResult{[]string{
+			"{ A as var(func: eq(objtype, cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
+			"\tcount(uid)",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"opa\") or eq(name,\"default\") ){",
+			"\tcount(uid)",
+			"}",
+			"}",
+			"}",
+			"{ objects(func: uid(A),first:1000,offset:0) {",
+			"\tresourceid",
+			"\tresourceversion",
+			"\tcreationtime",
+			"\tk8sobj",
+			"\tobjtype",
+			"\tname",
+			"\tuid",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"opa\") or eq(name,\"default\") )(first:1000,offset:0){",
+			"\t	objtype",
+			"\t	name",
+			"\t	resourceid",
+			"\t	labels",
+			"\t	resourceversion",
+			"\t	creationtime",
+			"\t	k8sobj",
+			"\t	uid",
+			"}",
+			"}",
+			"}",
+		}, nil},
+		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"&&@k8sobj="K8sObj"]{*}`: FResult{[]string{
+			"{ A as var(func: eq(objtype, cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
+			"\tcount(uid)",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"opa\") and eq(k8sobj,\"K8sObj\") ){",
+			"\tcount(uid)",
+			"}",
+			"}",
+			"}",
+			"{ objects(func: uid(A),first:1000,offset:0) {",
+			"\tresourceversion",
+			"\tcreationtime",
+			"\tk8sobj",
+			"\tobjtype",
+			"\tname",
+			"\tresourceid",
+			"\tuid",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"opa\") and eq(k8sobj,\"K8sObj\") )(first:1000,offset:0){",
+			"\tlabels",
+			"\tresourceversion",
+			"\tcreationtime",
+			"\tk8sobj",
+			"\tresourceid",
+			"\tname",
+			"\tobjtype",
+			"\tuid",
+			"}",
+			"}",
+			"}",
+		}, nil},
+		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="default"]{**}`: FResult{[]string{
+			"{ A as var(func: eq(objtype, cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
+			"\tcount(uid)",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"default\") ){",
+			"\tcount(uid)",
+			"}",
+			"}",
+			"}",
+			"{ objects(func: uid(A),first:1000,offset:0) {",
+			"\tresourceversion",
+			"\tcreationtime",
+			"\tk8sobj",
+			"\tobjtype",
+			"\tname",
+			"\tresourceid",
+			"\tuid",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"default\") )(first:1000,offset:0){",
+			"\texpand(_all_){",
+			"\texpand(_all_){",
+			"}",
+			"}",
+			"}",
+			"}",
+			"}",
+		}, nil},
+		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{**}`: FResult{[]string{
+			"{ A as var(func: eq(objtype, cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
+			"\tcount(uid)",
+			"}",
+			"}",
+			"{ objects(func: uid(A),first:1000,offset:0) {",
+			"\texpand(_all_){",
+			"\texpand(_all_){",
+			"}",
+			"}",
+			"}",
+			"}",
+		}, nil},
+		`cluster[]{*}`: FResult{[]string{
+			"{ A as var(func: eq(objtype, cluster))  @cascade {",
+			"\tcount(uid)",
+			"}",
+			"}",
+			"{ objects(func: uid(A),first:1000,offset:0) {",
+			"\tresourceversion",
+			"\tcreationtime",
+			"\tk8sobj",
+			"\tobjtype",
+			"\tname",
+			"\tresourceid",
+			"\tuid",
+			"}",
+			"}",
+		}, nil},
+		`cluster[ ]{ }`: FResult{[]string{
+			"{ A as var(func: eq(objtype, cluster))  @cascade {",
+			"\tcount(uid)",
+			"}",
+			"}",
+			"{ objects(func: uid(A),first:1000,offset:0) {",
+			"}",
+			"}",
+		}, nil},
+		`cluster[@name =  "paas-preprod-west2.cluster.k8s.local"]{ * }`: FResult{[]string{
+			"{ A as var(func: eq(objtype, cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
+			"\tcount(uid)",
+			"}",
+			"}",
+			"{ objects(func: uid(A),first:1000,offset:0) {",
+			"\tobjtype",
+			"\tname",
+			"\tresourceid",
+			"\tresourceversion",
+			"\tcreationtime",
+			"\tk8sobj",
+			"\tuid",
+			"}",
+			"}",
+		}, nil},
+		`cluster[]{@name}`: FResult{[]string{
+			"{ A as var(func: eq(objtype, cluster))  @cascade {",
+			"\tcount(uid)",
+			"}",
+			"}",
+			"{ objects(func: uid(A),first:1000,offset:0) {",
+			"\tname",
+			"\tuid",
+			"}",
+			"}",
+		}, nil},
+		`cluster[]{}.namespace[@name="default"]{*}`: FResult{[]string{
+			"{ A as var(func: eq(objtype, cluster))  @cascade {",
+			"\tcount(uid)",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"default\") ){",
+			"\tcount(uid)",
+			"}",
+			"}",
+			"}",
+			"{ objects(func: uid(A),first:1000,offset:0) {",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"default\") )(first:1000,offset:0){",
+			"\tk8sobj",
+			"\tobjtype",
+			"\tname",
+			"\tresourceid",
+			"\tlabels",
+			"\tresourceversion",
+			"\tcreationtime",
+			"\tuid",
+			"}",
+			"}",
+			"}",
+		}, nil},
+		`cluster[$$first=2]{}.namespace[@name="default"]{*}`: FResult{[]string{
+			"{ A as var(func: eq(objtype, cluster))  @cascade {",
+			"\tcount(uid)",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"default\") ){",
+			"\tcount(uid)",
+			"}",
+			"}",
+			"}",
+			"{ objects(func: uid(A),first: 2) {",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"default\") )(first:1000,offset:0){",
+			"\tlabels",
+			"\tresourceversion",
+			"\tcreationtime",
+			"\tk8sobj",
+			"\tresourceid",
+			"\tname",
+			"\tobjtype",
+			"\tuid",
+			"}",
+			"}",
+			"}",
+		}, nil},
+		`cluster[$$first=2,offset=2]{}.namespace[@name="default"$$first=2]{*}`: FResult{[]string{
+			"{ A as var(func: eq(objtype, cluster))  @cascade {",
+			"\tcount(uid)",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"default\") ){",
+			"\tcount(uid)",
+			"}",
+			"}",
+			"}",
+			"{ objects(func: uid(A),first: 2,offset: 2) {",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"default\") )(first: 2){",
+			"\tlabels",
+			"\tresourceversion",
+			"\tcreationtime",
+			"\tk8sobj",
+			"\tresourceid",
+			"\tname",
+			"\tobjtype",
+			"\tuid",
+			"}",
+			"}",
+			"}",
+		}, nil},
+		`cluster[@objtype="cluster"$$first=2,offset=2]{}.namespace[@name="default"$$first=2,offset=2]{*}`: FResult{[]string{
+			"{ A as var(func: eq(objtype, cluster)) @filter( eq(objtype,\"cluster\") ) @cascade {",
+			"\tcount(uid)",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"default\") ){",
+			"\tcount(uid)",
+			"}",
+			"}",
+			"}",
+			"{ objects(func: uid(A),first: 2,offset: 2) {",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"default\") )(first: 2,offset: 2){",
+			"\tlabels",
+			"\tresourceversion",
+			"\tcreationtime",
+			"\tk8sobj",
+			"\tresourceid",
+			"\tname",
+			"\tobjtype",
+			"\tuid",
+			"}",
+			"}",
+			"}",
+		}, nil},
+	}
+
+	dgraphHost := "127.0.0.1:9080"
+	dc := db.NewDGClient(dgraphHost)
+	defer dc.Close()
+	metaSvc := NewMetaService(dc)
+	qslSvc := NewQSLService(dc, metaSvc)
+
+	// Initialize metadata
+	meta, err := ioutil.ReadFile("../data/meta.json")
+	if err != nil {
+		log.Fatalf("Metadata file error: %v\n", err)
+	}
+	var jsonData []map[string]interface{}
+	json.Unmarshal(meta, &jsonData)
+	for _, data := range jsonData {
+		metaSvc.CreateMetadata(data)
+	}
+
+	for k, v := range tests {
+		output, err := qslSvc.CreateDgraphQuery(k, false)
+		if err != nil {
+			if v.err != nil {
+				if err.Error() != v.err.Error() {
+					t.Errorf("query error incorrect\n input: %s\n testqueryerr: %s\n realqueryerr: %s", k, v.err.Error(), err.Error())
+				}
+			} else {
+				t.Errorf("query error incorrect\n input: %s\n testqueryerr: %s\n realqueryerr: %s", k, "no error expected", err.Error())
+			}
+		} else {
+			// check to see that the output has the same lines as the test output
+			// because we can't assure that the metadata api will return fields
+			// in the same order every time
+			testmap := make(map[string]bool)
+
+			for _, line := range v.values {
+				testmap[strings.TrimSpace(line)] = true
+			}
+
+			for _, line := range strings.Split(output, "\n") {
+				if !(testmap[strings.TrimSpace(line)]) {
+					t.Errorf("query incorrect\n input: %s\n testquery: \n%s\n realquery: \n%s", k, strings.Join(v.values, "\n"), output)
+					break
+				}
+			}
+
+		}
+	}
+
 }

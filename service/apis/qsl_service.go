@@ -7,8 +7,10 @@ import (
 	"time"
 	"unicode"
 
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/intuit/katlas/service/db"
+	"strconv"
 )
 
 // regex to get objtype[filters]{fields}
@@ -22,6 +24,9 @@ type QSLService struct {
 	DBclient db.IDGClient
 	metaSvc  *MetaService
 }
+
+// MaximumLimit define pagination limit
+const MaximumLimit = 10000
 
 // IsAlphaNum determine if string is made up of only alphanumeric characters
 func IsAlphaNum(s string) bool {
@@ -98,6 +103,10 @@ func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 
 			if splitval[0] == "first" || splitval[0] == "offset" {
 				paginate += "," + splitval[0] + ": " + splitval[1]
+				val, err := strconv.Atoi(splitval[1])
+				if err != nil || val > MaximumLimit {
+					return "", "", "", fmt.Errorf("Pagination exceeding limit of %d", MaximumLimit)
+				}
 			} else {
 				return "", "", "", errors.New("Invalid pagination filters in " + filterlist)
 			}
