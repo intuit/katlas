@@ -20,23 +20,23 @@ func TestMetaService(t *testing.T) {
         "objtype" : "metadata",
 		"fields": [
 			{
-				"fieldName": "name",
-				"fieldType": "json",
+				"fieldname": "name",
+				"fieldtype": "json",
 				"mandatory": true,
-				"cardinality": "One"
+				"cardinality": "one"
 			},
 			{
-				"fieldName": "status",
-				"fieldType": "string",
+				"fieldname": "status",
+				"fieldtype": "string",
 				"mandatory": true,
-				"cardinality": "One"
+				"cardinality": "one"
 			},
 			{
-				"fieldName": "containers",
-				"fieldType": "relationship",
-				"refDataType": "K8scontainer",
+				"fieldname": "containers",
+				"fieldtype": "relationship",
+				"refdatatype": "K8scontainer",
 				"mandatory": false,
-				"cardinality": "Many"
+				"cardinality": "many"
 			}
 		]
 	}`

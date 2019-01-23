@@ -151,7 +151,7 @@ func TestCreateFieldsQuery(t *testing.T) {
 		"@name,@resourceversion,@k8sobj":     FResult{[]string{"name", "resourceversion", "k8sobj", "uid"}, nil},
 	}
 
-	namespacemetafieldslist := []MetadataField{MetadataField{FieldName: "k8sobj", FieldType: "string", Mandatory: true, RefDataType: "", Cardinality: "One"}, MetadataField{FieldName: "objtype", FieldType: "string", Mandatory: true, RefDataType: "", Cardinality: "One"}, MetadataField{FieldName: "name", FieldType: "string", Mandatory: true, RefDataType: "", Cardinality: "One"}, MetadataField{FieldName: "resourceid", FieldType: "string", Mandatory: false, RefDataType: "", Cardinality: "One"}, MetadataField{FieldName: "resourceversion", FieldType: "string", Mandatory: true, RefDataType: "", Cardinality: "One"}}
+	namespacemetafieldslist := []MetadataField{MetadataField{FieldName: "k8sobj", FieldType: "string", Mandatory: true, RefDataType: "", Cardinality: "one"}, MetadataField{FieldName: "objtype", FieldType: "string", Mandatory: true, RefDataType: "", Cardinality: "one"}, MetadataField{FieldName: "name", FieldType: "string", Mandatory: true, RefDataType: "", Cardinality: "one"}, MetadataField{FieldName: "resourceid", FieldType: "string", Mandatory: false, RefDataType: "", Cardinality: "one"}, MetadataField{FieldName: "resourceversion", FieldType: "string", Mandatory: true, RefDataType: "", Cardinality: "one"}}
 
 	for k, v := range tests {
 		output, err := CreateFieldsQuery(k, namespacemetafieldslist, -1)
@@ -177,7 +177,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 	tests := map[string]FResult{
 		`namespace[@name="default"]{*}`: FResult{[]string{
 			"query objects($objtype: string, $name: string){",
-			"objects(func: eq(objtype, Namespace)) @filter( eq(name,\"default\") ) @cascade {",
+			"objects(func: eq(objtype, namespace)) @filter( eq(name,\"default\") ) @cascade {",
 			"\tresourceversion",
 			"\tcreationtime",
 			"\tk8sobj",
@@ -191,7 +191,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 		}, nil},
 		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{@name}`: FResult{[]string{
 			"query objects($objtype: string, $name: string){",
-			"objects(func: eq(objtype, Cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
+			"objects(func: eq(objtype, cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
 			"\tname",
 			"\tuid",
 			"}",
@@ -200,7 +200,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 
 		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"||@name="default"]{*}`: FResult{[]string{
 			"query objects($objtype: string, $name: string){",
-			"objects(func: eq(objtype, Cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
+			"objects(func: eq(objtype, cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
 			"\tcreationtime",
 			"\tk8sobj",
 			"\tobjtype",
@@ -208,7 +208,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 			"\tresourceid",
 			"\tresourceversion",
 			"\tuid",
-			"\t~cluster @filter(eq(objtype, Namespace) and eq(name,\"opa\") or eq(name,\"default\") ){",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"opa\") or eq(name,\"default\") ){",
 			"\t\tresourceversion",
 			"\t\tcreationtime",
 			"\t\tk8sobj",
@@ -223,7 +223,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 		}, nil},
 		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"&&@k8sobj="K8sObj"]{*}`: FResult{[]string{
 			"query objects($objtype: string, $name: string){",
-			"objects(func: eq(objtype, Cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
+			"objects(func: eq(objtype, cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
 			"\tcreationtime",
 			"\tk8sobj",
 			"\tobjtype",
@@ -231,7 +231,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 			"\tresourceid",
 			"\tresourceversion",
 			"\tuid",
-			"\t~cluster @filter(eq(objtype, Namespace) and eq(name,\"opa\") and eq(k8sobj,\"K8sObj\") ){",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"opa\") and eq(k8sobj,\"K8sObj\") ){",
 			"\t\tresourceversion",
 			"\t\tcreationtime",
 			"\t\tk8sobj",
@@ -246,7 +246,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 		}, nil},
 		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="default"]{**}`: FResult{[]string{
 			"query objects($objtype: string, $name: string){",
-			"objects(func: eq(objtype, Cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
+			"objects(func: eq(objtype, cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
 			"\tcreationtime",
 			"\tk8sobj",
 			"\tobjtype",
@@ -254,7 +254,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 			"\tresourceid",
 			"\tresourceversion",
 			"\tuid",
-			"\t~cluster @filter(eq(objtype, Namespace) and eq(name,\"default\") ){",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"default\") ){",
 			"\t\texpand(_all_){",
 			"\t\t\texpand(_all_){",
 			"\t\t\t}",
@@ -265,7 +265,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 		}, nil},
 		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{**}`: FResult{[]string{
 			"query objects($objtype: string, $name: string){",
-			"objects(func: eq(objtype, Cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
+			"objects(func: eq(objtype, cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
 			"\texpand(_all_){",
 			"\t\texpand(_all_){",
 			"\t\t}",
@@ -275,7 +275,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 		}, nil},
 		`cluster[]{*}`: FResult{[]string{
 			"query objects($objtype: string){",
-			"objects(func: eq(objtype, Cluster))  @cascade {",
+			"objects(func: eq(objtype, cluster))  @cascade {",
 			"\tcreationtime",
 			"\tk8sobj",
 			"\tobjtype",
@@ -288,13 +288,13 @@ func TestCreateDgraphQuery(t *testing.T) {
 		}, nil},
 		`cluster[ ]{ }`: FResult{[]string{
 			"query objects($objtype: string){",
-			"objects(func: eq(objtype, Cluster))  @cascade {",
+			"objects(func: eq(objtype, cluster))  @cascade {",
 			"}",
 			"}",
 		}, nil},
 		`cluster[@name =  "paas-preprod-west2.cluster.k8s.local"]{ * }`: FResult{[]string{
 			"query objects($objtype: string, $name: string){",
-			"objects(func: eq(objtype, Cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
+			"objects(func: eq(objtype, cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
 			"\tcreationtime",
 			"\tk8sobj",
 			"\tobjtype",
@@ -307,7 +307,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 		}, nil},
 		`cluster[]{@name}`: FResult{[]string{
 			"query objects($objtype: string){",
-			"objects(func: eq(objtype, Cluster))  @cascade {",
+			"objects(func: eq(objtype, cluster))  @cascade {",
 			"\tname",
 			"\tuid",
 			"}",
@@ -315,8 +315,8 @@ func TestCreateDgraphQuery(t *testing.T) {
 		}, nil},
 		`cluster[]{}.namespace[@name="default"]{*}`: FResult{[]string{
 			"query objects($objtype: string){",
-			"objects(func: eq(objtype, Cluster))  @cascade {",
-			"\t~cluster @filter(eq(objtype, Namespace) and eq(name,\"default\") ){",
+			"objects(func: eq(objtype, cluster))  @cascade {",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"default\") ){",
 			"\t\tresourceid",
 			"\t\tlabels",
 			"\t\tcreationtime",
@@ -331,8 +331,8 @@ func TestCreateDgraphQuery(t *testing.T) {
 		}, nil},
 		`cluster[$$first=2]{}.namespace[@name="default"]{*}`: FResult{[]string{
 			"query objects($objtype: string){",
-			"objects(func: eq(objtype, Cluster),first: 2)  @cascade {",
-			"\t~cluster @filter(eq(objtype, Namespace) and eq(name,\"default\") ){",
+			"objects(func: eq(objtype, cluster),first: 2)  @cascade {",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"default\") ){",
 			"\t\tresourceid",
 			"\t\tlabels",
 			"\t\tcreationtime",
@@ -347,8 +347,8 @@ func TestCreateDgraphQuery(t *testing.T) {
 		}, nil},
 		`cluster[$$first=2,offset=2]{}.namespace[@name="default"$$first=2]{*}`: FResult{[]string{
 			"query objects($objtype: string){",
-			"objects(func: eq(objtype, Cluster),first: 2,offset: 2)  @cascade {",
-			"\t~cluster @filter(eq(objtype, Namespace) and eq(name,\"default\") )(first: 2){",
+			"objects(func: eq(objtype, cluster),first: 2,offset: 2)  @cascade {",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"default\") )(first: 2){",
 			"\t\tresourceid",
 			"\t\tlabels",
 			"\t\tcreationtime",
@@ -361,10 +361,10 @@ func TestCreateDgraphQuery(t *testing.T) {
 			"}",
 			"}",
 		}, nil},
-		`cluster[@objtype="Cluster"$$first=2,offset=2]{}.namespace[@name="default"$$first=2,offset=2]{*}`: FResult{[]string{
+		`cluster[@objtype="cluster"$$first=2,offset=2]{}.namespace[@name="default"$$first=2,offset=2]{*}`: FResult{[]string{
 			"query objects($objtype: string, $objtype: string){",
-			"objects(func: eq(objtype, Cluster),first: 2,offset: 2) @filter( eq(objtype,\"Cluster\") ) @cascade {",
-			"\t~cluster @filter(eq(objtype, Namespace) and eq(name,\"default\") )(first: 2,offset: 2){",
+			"objects(func: eq(objtype, cluster),first: 2,offset: 2) @filter( eq(objtype,\"cluster\") ) @cascade {",
+			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"default\") )(first: 2,offset: 2){",
 			"\t\tresourceid",
 			"\t\tlabels",
 			"\t\tcreationtime",

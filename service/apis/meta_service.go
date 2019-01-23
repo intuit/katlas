@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/hashicorp/golang-lru"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/util"
 	"github.com/mitchellh/mapstructure"
@@ -56,7 +56,7 @@ type MetadataField struct {
 	// The field is required if value is true
 	Mandatory bool `json:"mandatory"`
 	// If FieldType is relationship, need to set reference object type
-	RefDataType string `json:"refDataType,omitempty"`
+	RefDataType string `json:"refdatatype,omitempty"`
 	// One or Many
 	Cardinality string `json:"cardinality,omitempty"`
 }
