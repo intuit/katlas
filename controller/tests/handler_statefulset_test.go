@@ -32,7 +32,7 @@ var statefulsettests = []StatefulsetTest{
 			},
 		},
 		out: map[string]interface{}{
-			"objtype":         "StatefulSet",
+			"objtype":         "statefulset",
 			"name":            "test-statefulset",
 			"namespace":       "test-namespace",
 			"creationtime":    metav1.Time{},
