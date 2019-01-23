@@ -255,7 +255,7 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 	log.Debugf("helpermatches %#v\n", matches)
 
 	// extract the values of the form objtype[filters]fields and assign to individual variables
-	objtype := strings.Title(matches[1])
+	objtype := matches[1]
 	filters := matches[2]
 	fields := matches[3]
 
@@ -277,7 +277,7 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 
 		if item.FieldType == "relationship" {
 			log.Debugf("1 found relationship for %s-%s->%s", objtype, item.FieldName, item.RefDataType)
-			if item.RefDataType == strings.Title(parent) {
+			if item.RefDataType == parent {
 				relation = "~" + strings.ToLower(item.FieldName)
 				found = true
 			}
@@ -298,7 +298,7 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 		for _, item := range metafieldslist2 {
 			if item.FieldType == "relationship" {
 				log.Debugf("2 found relationship for %s-%s->%s", parent, item.FieldName, item.RefDataType)
-				if item.RefDataType == strings.Title(objtype) {
+				if item.RefDataType == objtype {
 					relation = strings.ToLower(item.FieldName)
 					found = true
 				}
@@ -332,7 +332,7 @@ func (qa *QSLService) CreateDgraphQueryHelper(query []string, tabs int, parent s
 		basequery[0] += "(" + pag[1:] + ")"
 	}
 
-	basequery[0] = strings.Replace(basequery[0], "$OBJTYPE", strings.Title(objtype), -1)
+	basequery[0] = strings.Replace(basequery[0], "$OBJTYPE", objtype, -1)
 
 	// add the tilde because we are adding an inverse relationship
 	basequery[0] = strings.Replace(basequery[0], "$RELATION", relation, -1)
@@ -385,7 +385,7 @@ func (qa *QSLService) CreateDgraphQuery(query string) (string, string, error) {
 	}
 
 	// extract the values of the form objtype[filters]fields and assign to individual variables
-	objtype := strings.Title(matches[1])
+	objtype := matches[1]
 	filters := matches[2]
 	fields := matches[3]
 	fd, ff, pag, err := CreateFiltersQuery(filters)

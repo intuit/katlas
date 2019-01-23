@@ -1,649 +1,649 @@
 [{
-  "name": "Application",
+  "name": "application",
   "objtype": "metadata",
   "fields": [{
-    "fieldName": "creationtime",
-    "fieldType": "string",
+    "fieldname": "creationtime",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "k8sobj",
-    "fieldType": "string",
+    "fieldname": "k8sobj",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "objtype",
-    "fieldType": "string",
+    "fieldname": "objtype",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "name",
-    "fieldType": "string",
+    "fieldname": "name",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceid",
-    "fieldType": "string",
+    "fieldname": "resourceid",
+    "fieldtype": "string",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "labels",
-    "fieldType": "json",
+    "fieldname": "labels",
+    "fieldtype": "json",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceversion",
-    "fieldType": "string",
+    "fieldname": "resourceversion",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }]
 }, {
-  "name": "Namespace",
+  "name": "namespace",
   "objtype": "metadata",
   "fields": [{
-    "fieldName": "creationtime",
-    "fieldType": "string",
+    "fieldname": "creationtime",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "cluster",
-    "fieldType": "relationship",
-    "refDataType": "Cluster",
+    "fieldname": "cluster",
+    "fieldtype": "relationship",
+    "refdatatype": "cluster",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "k8sobj",
-    "fieldType": "string",
+    "fieldname": "k8sobj",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "objtype",
-    "fieldType": "string",
+    "fieldname": "objtype",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "name",
-    "fieldType": "string",
+    "fieldname": "name",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceid",
-    "fieldType": "string",
+    "fieldname": "resourceid",
+    "fieldtype": "string",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "labels",
-    "fieldType": "json",
+    "fieldname": "labels",
+    "fieldtype": "json",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceversion",
-    "fieldType": "string",
+    "fieldname": "resourceversion",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }]
 }, {
-  "name": "Cluster",
+  "name": "cluster",
   "objtype": "metadata",
   "fields": [{
-    "fieldName": "creationtime",
-    "fieldType": "string",
+    "fieldname": "creationtime",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "k8sobj",
-    "fieldType": "string",
+    "fieldname": "k8sobj",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "objtype",
-    "fieldType": "string",
+    "fieldname": "objtype",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "name",
-    "fieldType": "string",
+    "fieldname": "name",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceid",
-    "fieldType": "string",
+    "fieldname": "resourceid",
+    "fieldtype": "string",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceversion",
-    "fieldType": "string",
+    "fieldname": "resourceversion",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }]
 }, {
-  "name": "Node",
+  "name": "node",
   "objtype": "metadata",
   "fields": [{
-    "fieldName": "creationtime",
-    "fieldType": "string",
+    "fieldname": "creationtime",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "cluster",
-    "fieldType": "relationship",
-    "refDataType": "Cluster",
+    "fieldname": "cluster",
+    "fieldtype": "relationship",
+    "refdatatype": "cluster",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "k8sobj",
-    "fieldType": "string",
+    "fieldname": "k8sobj",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "objtype",
-    "fieldType": "string",
+    "fieldname": "objtype",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "name",
-    "fieldType": "string",
+    "fieldname": "name",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceid",
-    "fieldType": "string",
+    "fieldname": "resourceid",
+    "fieldtype": "string",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceversion",
-    "fieldType": "string",
+    "fieldname": "resourceversion",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }]
 }, {
-  "name": "Deployment",
+  "name": "deployment",
   "objtype": "metadata",
   "fields": [{
-    "fieldName": "creationtime",
-    "fieldType": "string",
+    "fieldname": "creationtime",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceid",
-    "fieldType": "string",
+    "fieldname": "resourceid",
+    "fieldtype": "string",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "cluster",
-    "fieldType": "relationship",
-    "refDataType": "Cluster",
+    "fieldname": "cluster",
+    "fieldtype": "relationship",
+    "refdatatype": "cluster",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "application",
-    "fieldType": "relationship",
-    "refDataType": "Application",
+    "fieldname": "application",
+    "fieldtype": "relationship",
+    "refdatatype": "application",
     "mandatory": false,
-    "cardinality": "Many"
+    "cardinality": "many"
   }, {
-    "fieldName": "k8sobj",
-    "fieldType": true,
+    "fieldname": "k8sobj",
+    "fieldtype": true,
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "objtype",
-    "fieldType": "string",
+    "fieldname": "objtype",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "availablereplicas",
-    "fieldType": "int",
+    "fieldname": "availablereplicas",
+    "fieldtype": "int",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "labels",
-    "fieldType": "json",
+    "fieldname": "labels",
+    "fieldtype": "json",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "name",
-    "fieldType": "string",
+    "fieldname": "name",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "namespace",
-    "fieldType": "relationship",
-    "refDataType": "Namespace",
+    "fieldname": "namespace",
+    "fieldtype": "relationship",
+    "refdatatype": "namespace",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "numreplicas",
-    "fieldType": "int",
+    "fieldname": "numreplicas",
+    "fieldtype": "int",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceversion",
-    "fieldType": "string",
+    "fieldname": "resourceversion",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "strategy",
-    "fieldType": "string",
+    "fieldname": "strategy",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }]
 }, {
-  "name": "Ingress",
+  "name": "ingress",
   "objtype": "metadata",
   "fields": [{
-    "fieldName": "creationtime",
-    "fieldType": "string",
+    "fieldname": "creationtime",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceid",
-    "fieldType": "string",
+    "fieldname": "resourceid",
+    "fieldtype": "string",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "cluster",
-    "fieldType": "relationship",
-    "refDataType": "Cluster",
+    "fieldname": "cluster",
+    "fieldtype": "relationship",
+    "refdatatype": "cluster",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "application",
-    "fieldType": "relationship",
-    "refDataType": "Application",
+    "fieldname": "application",
+    "fieldtype": "relationship",
+    "refdatatype": "application",
     "mandatory": false,
-    "cardinality": "Many"
+    "cardinality": "many"
   }, {
-    "fieldName": "k8sobj",
-    "fieldType": true,
+    "fieldname": "k8sobj",
+    "fieldtype": true,
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "objtype",
-    "fieldType": "string",
+    "fieldname": "objtype",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "name",
-    "fieldType": "string",
+    "fieldname": "name",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "namespace",
-    "fieldType": "relationship",
-    "refDataType": "Namespace",
+    "fieldname": "namespace",
+    "fieldtype": "relationship",
+    "refdatatype": "namespace",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "labels",
-    "fieldType": "json",
+    "fieldname": "labels",
+    "fieldtype": "json",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "defaultbackend",
-    "fieldType": "json",
+    "fieldname": "defaultbackend",
+    "fieldtype": "json",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "rules",
-    "fieldType": "json",
+    "fieldname": "rules",
+    "fieldtype": "json",
     "mandatory": true,
-    "cardinality": "Many"
+    "cardinality": "many"
   }, {
-    "fieldName": "tls",
-    "fieldType": "json",
+    "fieldname": "tls",
+    "fieldtype": "json",
     "mandatory": false,
-    "cardinality": "Many"
+    "cardinality": "many"
   }, {
-    "fieldName": "resourceversion",
-    "fieldType": "string",
+    "fieldname": "resourceversion",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }]
 }, {
-  "name": "ReplicaSet",
+  "name": "replicaset",
   "objtype": "metadata",
   "fields": [{
-    "fieldName": "creationtime",
-    "fieldType": "string",
+    "fieldname": "creationtime",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceid",
-    "fieldType": "string",
+    "fieldname": "resourceid",
+    "fieldtype": "string",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "cluster",
-    "fieldType": "relationship",
-    "refDataType": "Cluster",
+    "fieldname": "cluster",
+    "fieldtype": "relationship",
+    "refdatatype": "cluster",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "k8sobj",
-    "fieldType": true,
+    "fieldname": "k8sobj",
+    "fieldtype": true,
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "objtype",
-    "fieldType": "string",
+    "fieldname": "objtype",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "name",
-    "fieldType": "string",
+    "fieldname": "name",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "namespace",
-    "fieldType": "relationship",
-    "refDataType": "Namespace",
+    "fieldname": "namespace",
+    "fieldtype": "relationship",
+    "refdatatype": "namespace",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "labels",
-    "fieldType": "json",
+    "fieldname": "labels",
+    "fieldtype": "json",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "owner",
-    "fieldType": "relationship",
-    "refDataType": "Deployment",
+    "fieldname": "owner",
+    "fieldtype": "relationship",
+    "refdatatype": "deployment",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "numreplicas",
-    "fieldType": "int",
+    "fieldname": "numreplicas",
+    "fieldtype": "int",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "podspec",
-    "fieldType": "json",
+    "fieldname": "podspec",
+    "fieldtype": "json",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceversion",
-    "fieldType": "string",
+    "fieldname": "resourceversion",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }]
 }, {
-  "name": "StatefulSet",
+  "name": "statefulset",
   "objtype": "metadata",
   "fields": [{
-    "fieldName": "creationtime",
-    "fieldType": "string",
+    "fieldname": "creationtime",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceid",
-    "fieldType": "string",
+    "fieldname": "resourceid",
+    "fieldtype": "string",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "cluster",
-    "fieldType": "relationship",
-    "refDataType": "Cluster",
+    "fieldname": "cluster",
+    "fieldtype": "relationship",
+    "refdatatype": "cluster",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "k8sobj",
-    "fieldType": true,
+    "fieldname": "k8sobj",
+    "fieldtype": true,
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "objtype",
-    "fieldType": "string",
+    "fieldname": "objtype",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "name",
-    "fieldType": "string",
+    "fieldname": "name",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "namespace",
-    "fieldType": "relationship",
-    "refDataType": "Namespace",
+    "fieldname": "namespace",
+    "fieldtype": "relationship",
+    "refdatatype": "namespace",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "labels",
-    "fieldType": "json",
+    "fieldname": "labels",
+    "fieldtype": "json",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "numreplicas",
-    "fieldType": "int",
+    "fieldname": "numreplicas",
+    "fieldtype": "int",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceversion",
-    "fieldType": "string",
+    "fieldname": "resourceversion",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }]
 }, {
-  "name": "Service",
+  "name": "service",
   "objtype": "metadata",
   "fields": [{
-    "fieldName": "creationtime",
-    "fieldType": "string",
+    "fieldname": "creationtime",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceid",
-    "fieldType": "string",
+    "fieldname": "resourceid",
+    "fieldtype": "string",
     "mandatory": false,
    
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "cluster",
-    "fieldType": "relationship",
-    "refDataType": "Cluster",
+    "fieldname": "cluster",
+    "fieldtype": "relationship",
+    "refdatatype": "cluster",
     "mandatory": true,
     
-    "cardinality": "One"
+    "cardinality": "one"
   },{
-    "fieldName": "application",
-    "fieldType": "relationship",
-    "refDataType": "Application",
+    "fieldname": "application",
+    "fieldtype": "relationship",
+    "refdatatype": "application",
     "mandatory": false,
-    "cardinality": "Many"
+    "cardinality": "many"
   }, {
-    "fieldName": "k8sobj",
-    "fieldType": true,
+    "fieldname": "k8sobj",
+    "fieldtype": true,
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "objtype",
-    "fieldType": "string",
+    "fieldname": "objtype",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "name",
-    "fieldType": "string",
+    "fieldname": "name",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "namespace",
-    "fieldType": "relationship",
-    "refDataType": "Namespace",
+    "fieldname": "namespace",
+    "fieldtype": "relationship",
+    "refdatatype": "namespace",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "labels",
-    "fieldType": "json",
+    "fieldname": "labels",
+    "fieldtype": "json",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceversion",
-    "fieldType": "string",
+    "fieldname": "resourceversion",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "selector",
-    "fieldType": "json",
+    "fieldname": "selector",
+    "fieldtype": "json",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "clusterip",
-    "fieldType": "string",
+    "fieldname": "clusterip",
+    "fieldtype": "string",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "servicetype",
-    "fieldType": "string",
+    "fieldname": "servicetype",
+    "fieldtype": "string",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "ports",
-    "fieldType": "json",
+    "fieldname": "ports",
+    "fieldtype": "json",
     "mandatory": false,
-    "cardinality": "Many"
+    "cardinality": "many"
   }]
 }, {
-  "name": "Pod",
+  "name": "pod",
   "objtype": "metadata",
   "fields": [{
-    "fieldName": "creationtime",
-    "fieldType": "string",
+    "fieldname": "creationtime",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceid",
-    "fieldType": "string",
+    "fieldname": "resourceid",
+    "fieldtype": "string",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "cluster",
-    "fieldType": "relationship",
-    "refDataType": "Cluster",
+    "fieldname": "cluster",
+    "fieldtype": "relationship",
+    "refdatatype": "cluster",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "k8sobj",
-    "fieldType": true,
+    "fieldname": "k8sobj",
+    "fieldtype": true,
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "objtype",
-    "fieldType": "string",
+    "fieldname": "objtype",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "name",
-    "fieldType": "string",
+    "fieldname": "name",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "namespace",
-    "fieldType": "relationship",
-    "refDataType": "Namespace",
+    "fieldname": "namespace",
+    "fieldtype": "relationship",
+    "refdatatype": "namespace",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "labels",
-    "fieldType": "json",
+    "fieldname": "labels",
+    "fieldtype": "json",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceversion",
-    "fieldType": "string",
+    "fieldname": "resourceversion",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "starttime",
-    "fieldType": "string",
+    "fieldname": "starttime",
+    "fieldtype": "string",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "phase",
-    "fieldType": "string",
+    "fieldname": "phase",
+    "fieldtype": "string",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "nodename",
-    "fieldType": "relationship",
-    "refDataType": "Node",
+    "fieldname": "nodename",
+    "fieldtype": "relationship",
+    "refdatatype": "node",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "ip",
-    "fieldType": "string",
+    "fieldname": "ip",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "containers",
-    "fieldType": "json",
+    "fieldname": "containers",
+    "fieldtype": "json",
     "mandatory": false,
-    "cardinality": "Many"
+    "cardinality": "many"
   }, {
-    "fieldName": "volumes",
-    "fieldType": "json",
+    "fieldname": "volumes",
+    "fieldtype": "json",
     "mandatory": false,
-    "cardinality": "Many"
+    "cardinality": "many"
   }, {
-    "fieldName": "owner",
-    "fieldType": "relationship",
-    "refDataType": "ReplicaSet",
+    "fieldname": "owner",
+    "fieldtype": "relationship",
+    "refdatatype": "replicaset",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "ownertype",
-    "fieldType": "string",
+    "fieldname": "ownertype",
+    "fieldtype": "string",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }]
 }, {
-  "name": "DaemonSet",
+  "name": "daemonset",
   "objtype": "metadata",
   "fields": [{
-    "fieldName": "creationtime",
-    "fieldType": "string",
+    "fieldname": "creationtime",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceid",
-    "fieldType": "string",
+    "fieldname": "resourceid",
+    "fieldtype": "string",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "cluster",
-    "fieldType": "relationship",
-    "refDataType": "Cluster",
+    "fieldname": "cluster",
+    "fieldtype": "relationship",
+    "refdatatype": "cluster",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "k8sobj",
-    "fieldType": true,
+    "fieldname": "k8sobj",
+    "fieldtype": true,
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "objtype",
-    "fieldType": "string",
+    "fieldname": "objtype",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "name",
-    "fieldType": "string",
+    "fieldname": "name",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "namespace",
-    "fieldType": "relationship",
-    "refDataType": "Namespace",
+    "fieldname": "namespace",
+    "fieldtype": "relationship",
+    "refdatatype": "namespace",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "labels",
-    "fieldType": "json",
+    "fieldname": "labels",
+    "fieldtype": "json",
     "mandatory": false,
-    "cardinality": "One"
+    "cardinality": "one"
   }, {
-    "fieldName": "resourceversion",
-    "fieldType": "string",
+    "fieldname": "resourceversion",
+    "fieldtype": "string",
     "mandatory": true,
-    "cardinality": "One"
+    "cardinality": "one"
   }]
 }]
