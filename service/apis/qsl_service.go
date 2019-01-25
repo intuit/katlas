@@ -417,7 +417,7 @@ func parseQuery(qry string) (string, string, string, error) {
 	}
 	// extract the values of the form objtype[filters]fields and assign to individual variables
 	objType := strings.ToLower(matches[1])
-	filters := strings.ToLower(matches[2])
+	filters := matches[2]
 	fields := strings.ToLower(matches[3])
 	return objType, filters, fields, nil
 }
@@ -431,7 +431,7 @@ func (qa *QSLService) getCntFilter(query, objType string) (string, error) {
 		rand.Read(buff)
 		seq := fmt.Sprintf("%x%x", unix32bits, buff)
 		tmp := query[strings.Index(query, "count(")+6:]
-		relType := tmp[:strings.Index(tmp, ")")]
+		relType := strings.ToLower(tmp[:strings.Index(tmp, ")")])
 		relation, err := qa.getRelationName(relType, objType)
 		if err != nil {
 			return "", err
