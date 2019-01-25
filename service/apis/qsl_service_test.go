@@ -232,7 +232,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 			"}",
 			"}",
 		}, nil},
-		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"&&@k8sobj="K8sObj"]{*}`: FResult{[]string{
+		`cluster[@name="paas-preprod-west2.cluster.k8s.local"]{*}.namespace[@name="opa"&&@k8sobj="k8sobj"]{*}`: FResult{[]string{
 			"{ A as var(func: eq(objtype, cluster)) @filter( eq(name,\"paas-preprod-west2.cluster.k8s.local\") ) @cascade {",
 			"\tcount(uid)",
 			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"opa\") and eq(k8sobj,\"k8sobj\") ){",
