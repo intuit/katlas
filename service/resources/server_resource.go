@@ -678,7 +678,6 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest) // code: 400
 		return
 	}
-	log.Infof("dgraph query for %#v:\n %s", vars[util.Query], query)
 
 	response, err := s.QSLSvc.DBclient.ExecuteDgraphQuery(query)
 	if err != nil {
@@ -695,6 +694,7 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
 
 	// get query with pagination
 	query, err = s.QSLSvc.CreateDgraphQuery(vars[util.Query], false)
+	log.Infof("dgraph query for %#v:\n %s", vars[util.Query], query)
 	start := time.Now()
 	response, err = s.QSLSvc.DBclient.ExecuteDgraphQuery(query)
 	if err != nil {
