@@ -7,6 +7,7 @@ import (
 	"time"
 	"unicode"
 
+	"crypto/rand"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/intuit/katlas/service/db"
@@ -14,10 +15,10 @@ import (
 )
 
 // regex to get objtype[filters]{fields}
-var blockRegex = `([a-zA-Z0-9]+)\[?(?:(\@[\"\,\@\$\=\>\<\!a-zA-Z0-9\-\.\|\&\:_]*|\**|\$\$[a-zA-Z0-9\,\=]+))\]?\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
+var blockRegex = `([a-zA-Z0-9]+)\[?(?:(\@[\(\)\"\,\@\$\=\>\<\!a-zA-Z0-9\-\.\|\&\:_]*|\**|\$\$[a-zA-Z0-9\,\=]+))\]?\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
 
 // regex to get KeyOperatorValue from something like numreplicas>=2
-var filterRegex = `\@([a-zA-Z0-9]*)([\!\<\>\=]*)(\"?[a-zA-Z0-9\-\.\|\&\:_]*\"?)`
+var filterRegex = `\@([a-zA-Z0-9\(\)]*)([\!\<\>\=]*)(\"?[a-zA-Z0-9\-\.\|\&\:_]*\"?)`
 
 // QSLService service for QSL
 type QSLService struct {
@@ -50,12 +51,8 @@ func IsStar(s string) bool {
 
 // GetMetadata - get a list of the fields supoorted for this object type
 func (qa *QSLService) GetMetadata(objtype string) ([]MetadataField, error) {
-
-	start := time.Now()
-	log.Infof("[starttime: %s] getting metadata for %s", start, objtype)
 	metafieldslist, err := qa.metaSvc.GetMetadataFields(objtype)
 	if err != nil {
-		log.Error("err in getting metadata fields")
 		log.Error(err)
 		return []MetadataField{}, errors.New("Failed to connect to dgraph to get metadata")
 	}
@@ -63,9 +60,6 @@ func (qa *QSLService) GetMetadata(objtype string) ([]MetadataField, error) {
 	if len(metafieldslist) == 0 {
 		log.Error("metadata for " + objtype + " not found in db. Will not be able to use * or find relationships")
 	}
-	end := time.Now()
-	elapsed := end.Sub(start)
-	log.Debugf("[elapsedtime: %s] metafields for %s: %#v\n", elapsed, objtype, metafieldslist)
 	return metafieldslist, err
 }
 
@@ -105,7 +99,7 @@ func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 				paginate += "," + splitval[0] + ": " + splitval[1]
 				val, err := strconv.Atoi(splitval[1])
 				if err != nil || val > MaximumLimit {
-					return "", "", "", fmt.Errorf("Pagination exceeding limit of %d", MaximumLimit)
+					return "", "", "", fmt.Errorf("pagination exceeding limit of %d", MaximumLimit)
 				}
 			} else {
 				return "", "", "", errors.New("Invalid pagination filters in " + filterlist)
@@ -145,8 +139,6 @@ func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 			// use regex to get the key, operator and value
 			r := regexp.MustCompile(filterRegex)
 			matches := r.FindStringSubmatch(item2)
-			log.Debugf("filtermatches %s %#v\n", item2, matches)
-
 			// should be 4 elements in matches
 			// the whole string, key, operator, value
 			if len(matches) < 4 {
@@ -168,6 +160,11 @@ func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 				return "", "", "", errors.New("Invalid filters in " + filterlist)
 			}
 
+			// if keyname is count filter, add prefix cnt_ to the var name
+			if strings.Contains(keyname, "count(") {
+				keyname = "val(cnt_" + keyname[6:]
+			}
+
 			filterdeclaration = filterdeclaration + ", $" + keyname + dectype
 			interfilterfunc = append(interfilterfunc, " "+operatorMap[operator]+"("+keyname+","+value+") ")
 		}
@@ -175,9 +172,6 @@ func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 		filterfunc = append(filterfunc, strings.Join(interfilterfunc, "and"))
 
 	}
-
-	log.Debugf("filter:[ %s ]\n filterdec: %s \n filterfunc: %s", filterlist, filterdeclaration, strings.Join(filterfunc, "or"))
-
 	return filterdeclaration, "@filter(" + strings.Join(filterfunc, "or") + ")", paginate, nil
 
 }
@@ -240,7 +234,6 @@ func CreateFieldsQuery(fieldlist string, metafieldslist []MetadataField, tabs in
 	}
 
 	returnlist = append(returnlist, strings.Repeat("\t", tabs+1)+"uid")
-	log.Debugf("fields %#v\n", returnlist)
 	return returnlist, nil
 
 }
@@ -262,29 +255,33 @@ func (qa *QSLService) CreateDgraphQuery(query string, cntOnly bool) (string, err
 	pageTemplate := "{ objects(func: uid(A)$PAGINATE) {"
 	brakets := []string{"}", "}"}
 
-	root, objType, err := qa.buildRootQuery(splitQuery[0], rootTemplate, true)
+	root, objType, rootCntFilter, err := qa.buildRootQuery(splitQuery[0], rootTemplate, true)
 	if err != nil {
 		return "", err
 	}
 	parentType := objType
+	edgeCntFilters := []string{}
 	for i := 1; i < len(splitQuery); i++ {
-		edges, ptype, err := qa.buildEdgeQuery(splitQuery[i], edgeTemplate, parentType, true)
+		edges, ptype, edgeCntFilter, err := qa.buildEdgeQuery(splitQuery[i], edgeTemplate, parentType, true)
 		if err != nil {
 			return "", err
 		}
 		parentType = ptype
 		root = append(root, edges...)
 		brakets = append(brakets, "}")
+		if edgeCntFilter != "" {
+			edgeCntFilters = append(edgeCntFilters, edgeCntFilter)
+		}
 	}
 	root = append(root, brakets...)
-	pages, _, err := qa.buildRootQuery(splitQuery[0], pageTemplate, cntOnly)
+	pages, _, _, err := qa.buildRootQuery(splitQuery[0], pageTemplate, cntOnly)
 	if err != nil {
 		return "", err
 	}
 	root = append(root, pages...)
 	parentType = objType
 	for i := 1; i < len(splitQuery); i++ {
-		edges, ptype, err := qa.buildEdgeQuery(splitQuery[i], edgeTemplate, parentType, cntOnly)
+		edges, ptype, _, err := qa.buildEdgeQuery(splitQuery[i], edgeTemplate, parentType, cntOnly)
 		if err != nil {
 			return "", err
 		}
@@ -292,31 +289,36 @@ func (qa *QSLService) CreateDgraphQuery(query string, cntOnly bool) (string, err
 		root = append(root, edges...)
 	}
 	root = append(root, brakets...)
+	if rootCntFilter != "" {
+		root = append(root, rootCntFilter)
+	}
+	if len(edgeCntFilters) > 0 {
+		root = append(root, edgeCntFilters...)
+	}
 
 	return strings.Join(root, "\n"), nil
 }
 
-func (qa *QSLService) buildRootQuery(qry string, template string, cntOnly bool) ([]string, string, error) {
+func (qa *QSLService) buildRootQuery(qry string, template string, cntOnly bool) ([]string, string, string, error) {
 	ret := []string{template}
-	r := regexp.MustCompile(blockRegex)
-	matches := r.FindStringSubmatch(qry)
-	if len(matches) < 2 {
-		log.Error("Malformed Query received: " + qry)
-		return nil, "", errors.New("Malformed Query: " + qry)
-	}
 
-	// extract the values of the form objtype[filters]fields and assign to individual variables
-	objtype := matches[1]
-	filters := matches[2]
-	fields := matches[3]
+	objType, filters, fields, err := parseQuery(qry)
+	if err != nil {
+		return nil, "", "", err
+	}
+	// create var for dgraph if filter has count
+	cntFilterQry, err := qa.getCntFilter(filters, objType)
+	if err != nil {
+		return nil, "", "", err
+	}
 
 	_, ff, pag, err := CreateFiltersQuery(filters)
 	if err != nil {
-		return nil, "", err
+		return nil, "", "", err
 	}
 	// replace the filters and object type and add the list of fields
 	ret[0] = strings.Replace(ret[0], "$FILTERSFUNC", ff, -1)
-	ret[0] = strings.Replace(ret[0], "$OBJTYPE", objtype, -1)
+	ret[0] = strings.Replace(ret[0], "$OBJTYPE", objType, -1)
 	if cntOnly {
 		ret = append(ret, "\tcount(uid)")
 		if strings.Contains(template, "$PAGINATE") {
@@ -324,13 +326,13 @@ func (qa *QSLService) buildRootQuery(qry string, template string, cntOnly bool) 
 		}
 	} else {
 		// get metadata fields for projection
-		metafieldslist, err := qa.GetMetadata(objtype)
+		metafieldslist, err := qa.GetMetadata(objType)
 		if err != nil {
-			return nil, "", err
+			return nil, "", "", err
 		}
 		fl, err := CreateFieldsQuery(fields, metafieldslist, 0)
 		if err != nil {
-			return nil, "", err
+			return nil, "", "", err
 		}
 		ret = append(ret, fl...)
 		if strings.Contains(template, "$PAGINATE") {
@@ -341,24 +343,110 @@ func (qa *QSLService) buildRootQuery(qry string, template string, cntOnly bool) 
 			}
 		}
 	}
-	return ret, objtype, nil
+	return ret, objType, cntFilterQry, nil
 }
 
-func (qa *QSLService) buildEdgeQuery(qry string, template string, parent string, cntOnly bool) ([]string, string, error) {
+func (qa *QSLService) buildEdgeQuery(qry string, template string, parent string, cntOnly bool) ([]string, string, string, error) {
 	ret := []string{template}
-	// regex to match the string pattern
-	r := regexp.MustCompile(blockRegex)
-	matches := r.FindStringSubmatch(qry)
-
-	// extract the values of the form objtype[filters]fields and assign to individual variables
-	objType := matches[1]
-	filters := matches[2]
-	fields := matches[3]
-
+	objType, filters, fields, err := parseQuery(qry)
+	if err != nil {
+		return nil, "", "", err
+	}
 	// get a list of the metadata fields for this object type
 	metafieldslist, err := qa.GetMetadata(objType)
 	if err != nil {
-		return nil, "", errors.New("Failed to connect to dgraph to get metadata")
+		return nil, "", "", errors.New("Failed to connect to dgraph to get metadata")
+	}
+
+	// declare relation variable
+	relation, err := qa.getRelationName(objType, parent)
+	if err != nil {
+		return nil, "", "", err
+	}
+
+	// no relation found between the two objects
+	if relation == "" {
+		return nil, "", "", errors.New("no relation found between " + objType + " and " + parent)
+	}
+
+	// create var for dgraph if filter has count
+	cntFilterQry, err := qa.getCntFilter(filters, objType)
+	if err != nil {
+		return nil, "", "", err
+	}
+	_, ff, pag, err := CreateFiltersQuery(filters)
+	if err != nil {
+		return nil, "", "", err
+	}
+	if len(ff) > 0 {
+		ff = "and" + ff[8:len(ff)-1]
+	}
+	// replace filters and object type accordingly
+	ret[0] = strings.Replace(ret[0], "$FILTERSFUNC", ff, -1)
+	ret[0] = strings.Replace(ret[0], "$OBJTYPE", objType, -1)
+	// add the tilde because we are adding an inverse relationship
+	ret[0] = strings.Replace(ret[0], "$RELATION", relation, -1)
+
+	if cntOnly {
+		ret[0] += "{"
+		ret = append(ret, "\tcount(uid)")
+	} else {
+		// if pagination values were supplied, add and get rid of the comma at the beginning
+		if len(pag) > 1 {
+			ret[0] += "(" + pag[1:] + ")"
+		} else {
+			ret[0] += "(first:1000,offset:0)"
+		}
+		ret[0] += "{"
+		fl, err := CreateFieldsQuery(fields, metafieldslist, 1)
+		if err != nil {
+			return nil, "", "", err
+		}
+		// append the fields to be returned
+		ret = append(ret, fl...)
+	}
+	return ret, objType, cntFilterQry, nil
+}
+
+func parseQuery(qry string) (string, string, string, error) {
+	r := regexp.MustCompile(blockRegex)
+	matches := r.FindStringSubmatch(qry)
+	if len(matches) < 2 {
+		log.Error("Malformed Query received: " + qry)
+		return "", "", "", errors.New("Malformed Query: " + qry)
+	}
+	// extract the values of the form objtype[filters]fields and assign to individual variables
+	objType := strings.ToLower(matches[1])
+	filters := strings.ToLower(matches[2])
+	fields := strings.ToLower(matches[3])
+	return objType, filters, fields, nil
+}
+
+func (qa *QSLService) getCntFilter(query, objType string) (string, error) {
+	ret := ""
+	// create var for dgraph if filter has count
+	if strings.Contains(query, "count(") {
+		unix32bits := uint32(time.Now().UTC().Unix())
+		buff := make([]byte, 4)
+		rand.Read(buff)
+		seq := fmt.Sprintf("%x%x", unix32bits, buff)
+		tmp := query[strings.Index(query, "count(")+6:]
+		relType := tmp[:strings.Index(tmp, ")")]
+		relation, err := qa.getRelationName(relType, objType)
+		if err != nil {
+			return "", err
+		}
+		cntTemplate := `{ var (func: eq(objtype, %s)) { %s @filter (eq (objtype, %s)) { cnt%s as count(name) } cnt_%s as sum(val(cnt%s)) }}`
+		ret = fmt.Sprintf(cntTemplate, objType, relation, relType, seq, relType, seq)
+	}
+	return ret, nil
+}
+
+func (qa *QSLService) getRelationName(objType string, parent string) (string, error) {
+	// get a list of the metadata fields for this object type
+	metafieldslist, err := qa.GetMetadata(objType)
+	if err != nil {
+		return "", errors.New("Failed to connect to dgraph to get metadata")
 	}
 
 	// declare relation variable
@@ -386,9 +474,8 @@ func (qa *QSLService) buildEdgeQuery(qry string, template string, parent string,
 		// if not, see if we can find the relation from the parent to this object
 		metafieldslist2, err := qa.metaSvc.GetMetadataFields(parent)
 		if err != nil {
-			log.Error("err in getting metadata fields")
 			log.Error(err)
-			return nil, "", errors.New("Failed to connect to dgraph to get metadata")
+			return "", errors.New("Failed to connect to dgraph to get metadata")
 		}
 		log.Debugf("couldn't find relation for %s->%s,", parent, objType)
 		log.Debugf("metadata fields for %s: %#v", parent, metafieldslist)
@@ -406,42 +493,5 @@ func (qa *QSLService) buildEdgeQuery(qry string, template string, parent string,
 			}
 		}
 	}
-
-	// still no relation found between the two objects
-	if !found {
-		return nil, "", errors.New("no relation found between " + objType + " and " + parent)
-	}
-
-	_, ff, pag, err := CreateFiltersQuery(filters)
-	if err != nil {
-		return nil, "", err
-	}
-	if len(ff) > 0 {
-		ff = "and" + ff[8:len(ff)-1]
-	}
-	// replace filters and object type accordingly
-	ret[0] = strings.Replace(ret[0], "$FILTERSFUNC", ff, -1)
-	ret[0] = strings.Replace(ret[0], "$OBJTYPE", objType, -1)
-	// add the tilde because we are adding an inverse relationship
-	ret[0] = strings.Replace(ret[0], "$RELATION", relation, -1)
-
-	if cntOnly {
-		ret[0] += "{"
-		ret = append(ret, "\tcount(uid)")
-	} else {
-		// if pagination values were supplied, add and get rid of the comma at the beginning
-		if len(pag) > 1 {
-			ret[0] += "(" + pag[1:] + ")"
-		} else {
-			ret[0] += "(first:1000,offset:0)"
-		}
-		ret[0] += "{"
-		fl, err := CreateFieldsQuery(fields, metafieldslist, 1)
-		if err != nil {
-			return nil, "", err
-		}
-		// append the fields to be returned
-		ret = append(ret, fl...)
-	}
-	return ret, objType, nil
+	return relation, nil
 }
