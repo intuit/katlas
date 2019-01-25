@@ -99,7 +99,7 @@ func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 				paginate += "," + splitval[0] + ": " + splitval[1]
 				val, err := strconv.Atoi(splitval[1])
 				if err != nil || val > MaximumLimit {
-					return "", "", "", fmt.Errorf("pagination exceeding limit of %d", MaximumLimit)
+					return "", "", "", fmt.Errorf("pagination format error or exceeding maxiumum limit %d", MaximumLimit)
 				}
 			} else {
 				return "", "", "", errors.New("Invalid pagination filters in " + filterlist)
