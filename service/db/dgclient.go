@@ -327,7 +327,6 @@ func (s DGClient) GetSchemaFromDB() ([]*api.SchemaNode, error) {
 		log.Errorf("Query [%v] Error [%v]\n", q, err)
 		return nil, err
 	}
-	log.Infof("Query result: [%s]", resp.Schema)
 	smn := resp.Schema
 	return smn, nil
 }
