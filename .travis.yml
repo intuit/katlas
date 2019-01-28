@@ -12,34 +12,41 @@ services:
 
 install:
   - cd $TRAVIS_BUILD_DIR/service && make all
-  - cd $TRAVIS_BUILD_DIR/app && yarn install
+  #- cd $TRAVIS_BUILD_DIR/app && yarn install
 
 before_script:
   - docker pull dgraph/dgraph
   - mkdir -p /tmp/data
   - docker run -d -it -p 5080:5080 -p 6080:6080 -p 8080:8080 -p 9080:9080 -p 8000:8000 -v /tmp/data:/dgraph --name diggy dgraph/dgraph dgraph zero
   - docker exec -d -it diggy dgraph alpha --lru_mb 2048 --zero localhost:5080
-
+  - TRAVIS_COMMIT_SHORTID="${TRAVIS_COMMIT:0:7}"
+  - echo "${TRAVIS_COMMIT_SHORTID}"
 script:
   - cd $TRAVIS_BUILD_DIR/service
   - go test -v ./... -coverprofile=coverage.txt -covermode=atomic
-  - docker build --no-cache -f Dockerfile -t katlas-service:${TRAVIS_COMMIT} .
-  - docker images katlas-service:${TRAVIS_COMMIT}
+  - docker build --no-cache -f Dockerfile -t katlas-service:${TRAVIS_COMMIT_SHORTID} .
+  - docker images katlas-service:${TRAVIS_COMMIT_SHORTID}
   - cd $TRAVIS_BUILD_DIR/app
   - yarn test --coverage
   - docker build --no-cache -f Dockerfile -t katlas-browser:${TRAVIS_COMMIT} .
   - docker images katlas-browser:${TRAVIS_COMMIT}
 
 after_success:
+  - sleep 5s
   - cd $TRAVIS_BUILD_DIR/service
   - bash <(curl -s https://codecov.io/bash)
   - cd $TRAVIS_BUILD_DIR/app
   - bash <(curl -s https://codecov.io/bash) -f coverage/coverage-final.json
   - cd $TRAVIS_BUILD_DIR/service
-  - go run server.go 2> output.out &
-  - sleep 10s
-  - docker ps -a
+  #- go run server.go 2> output.out &
+  #- sleep 10s
   #- cat ./output.out
+  #- HOST=172.17.0.1
+  - HOST=$(ifconfig docker0 | grep 'inet addr' |cut -d':' -f2 | awk '{print $1}')
+  - echo $HOST
+  - docker run -d -it -p 8011:8011 -e ENV_NAMESPACE=qal -e SERVER_TYPE=http -e DGRAPH_HOST=$HOST:9080 --name katlas-service katlas-service:${TRAVIS_COMMIT_SHORTID}
+  - sleep 5s
+  - docker ps -a
   - lsof -i :8011
   - statusCode=$(curl -sw '%{http_code}\n' http://127.0.0.1:8011/v1/query?name=pod -o /dev/null)
   - echo $statusCode
