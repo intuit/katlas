@@ -24,12 +24,12 @@ before_script:
 script:
   - cd $TRAVIS_BUILD_DIR/service
   - go test -v ./... -coverprofile=coverage.txt -covermode=atomic
-  - docker build --no-cache -f Dockerfile -t katlas-service:${TRAVIS_COMMIT_SHORTID} .
-  - docker images katlas-service:${TRAVIS_COMMIT_SHORTID}
+  - docker build --no-cache -f Dockerfile -t katlas/katlas-service:${TRAVIS_COMMIT_SHORTID} .
+  - docker images katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
   #- cd $TRAVIS_BUILD_DIR/app
   #- yarn test --coverage
-  #- docker build --no-cache -f Dockerfile -t katlas-browser:${TRAVIS_COMMIT_SHORTID} .
-  #- docker images katlas-browser:${TRAVIS_COMMIT_SHORTID}
+  #- docker build --no-cache -f Dockerfile -t katlas/katlas-browser:${TRAVIS_COMMIT_SHORTID} .
+  #- docker images katlas/katlas-browser:${TRAVIS_COMMIT_SHORTID}
 
 after_success:
   - sleep 5s
@@ -44,7 +44,7 @@ after_success:
   #- HOST=172.17.0.1
   - HOST=$(ifconfig docker0 | grep 'inet addr' |cut -d':' -f2 | awk '{print $1}')
   - echo $HOST
-  - docker run -d -it -p 8011:8011 -e ENV_NAMESPACE=qal -e SERVER_TYPE=http -e DGRAPH_HOST=$HOST:9080 --name katlas-service katlas-service:${TRAVIS_COMMIT_SHORTID}
+  - docker run -d -it -p 8011:8011 -e ENV_NAMESPACE=qal -e SERVER_TYPE=http -e DGRAPH_HOST=$HOST:9080 --name katlas-service katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
   - sleep 5s
   - docker ps -a
   - lsof -i :8011
@@ -61,5 +61,6 @@ after_success:
   - echo "$DOCKER_PASSWORD" |docker login -u $DOCKER_USERNAME --password-stdin
   #- echo "$DOCKER_PASSWORD" |docker login -u $DOCKER_USERNAME --password-stdin >/dev/null 2>&1
   # Push image to docker hub: docker-user/katlas-service:${TRAVIS_COMMIT_SHORTID}
-  - docker push $DOCKER_USERNAME/katlas-service:${TRAVIS_COMMIT_SHORTID}
+  #- docker push $DOCKER_USERNAME/katlas-service:${TRAVIS_COMMIT_SHORTID}
+  - docker push katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
   ##- docker push $DOCKER_USERNAME/katlas-browser:${TRAVIS_COMMIT_SHORTID}
