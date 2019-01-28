@@ -26,10 +26,10 @@ script:
   - go test -v ./... -coverprofile=coverage.txt -covermode=atomic
   - docker build --no-cache -f Dockerfile -t katlas-service:${TRAVIS_COMMIT_SHORTID} .
   - docker images katlas-service:${TRAVIS_COMMIT_SHORTID}
-  - cd $TRAVIS_BUILD_DIR/app
-  - yarn test --coverage
-  - docker build --no-cache -f Dockerfile -t katlas-browser:${TRAVIS_COMMIT} .
-  - docker images katlas-browser:${TRAVIS_COMMIT}
+  #- cd $TRAVIS_BUILD_DIR/app
+  #- yarn test --coverage
+  #- docker build --no-cache -f Dockerfile -t katlas-browser:${TRAVIS_COMMIT} .
+  #- docker images katlas-browser:${TRAVIS_COMMIT}
 
 after_success:
   - sleep 5s
