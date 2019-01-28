@@ -2,7 +2,8 @@ import initialState from './initialState';
 import {
   REQUEST_QUERY,
   SUBMIT_QUERY,
-  RECEIVE_QUERY
+  RECEIVE_QUERY,
+  RECEIVE_METADATA
 } from '../actions/actionTypes';
 
 export default function query(state = initialState.query, action) {
@@ -31,6 +32,15 @@ export default function query(state = initialState.query, action) {
         isWaiting: false
       };
       return newState;
+    case RECEIVE_METADATA:
+      const newMetadata = {
+        ...state.metadata,
+        [action.objType]: action.metadata
+      };
+      return {
+        ...state,
+        metadata: newMetadata
+      };
     default:
       return state;
   }

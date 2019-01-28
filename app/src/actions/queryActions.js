@@ -5,6 +5,7 @@ import * as notifyActions from './notifyActions';
 import history from '../history';
 import ApiService from '../services/ApiService';
 import { QUERY_LEN_ERR } from '../utils/errors';
+import { getQSLObjTypes } from '../utils/validate';
 
 //TODO:DM - is there a better place to define router related consts?
 const APP_RESULTS_ROUTE = '/results?query=';
@@ -36,6 +37,10 @@ export function fetchQuery(query, page, rowsPerPage) {
     let requestPromise;
 
     if (query.includes(QSL_TAG)) {
+      const objTypes = getQSLObjTypes(query);
+      // cache metadata
+      objTypes.forEach(objType => dispatch(fetchMetadata(objType)));
+
       requestPromise = ApiService.getQSLResult(query, page, rowsPerPage);
     } else {
       requestPromise = ApiService.getQueryResult(query);
@@ -76,8 +81,6 @@ function handleResponse(json) {
         if (!existingUids[obj.uid]) {
           results.push(obj);
           existingUids[obj.uid] = true;
-        } else {
-          console.warn('duplicated uid:' + obj.uid);
         }
       });
     }
@@ -89,4 +92,28 @@ function handleResponse(json) {
     count = results.length;
   }
   return [results, count];
+}
+
+export const requestMetadata = objType => ({
+  type: types.REQUEST_METADATA,
+  objType
+});
+
+export const receiveMetadata = (objType, metadata) => ({
+  type: types.RECEIVE_METADATA,
+  objType,
+  metadata
+});
+
+export function fetchMetadata(objType) {
+  return (dispatch, getState) => {
+    // only fetch metadata not cached before
+    if (objType in getState().query.metadata) {
+      return;
+    }
+    dispatch(requestMetadata(objType));
+    ApiService.getMetadata(objType).then(json =>
+      dispatch(receiveMetadata(objType, json))
+    );
+  };
 }

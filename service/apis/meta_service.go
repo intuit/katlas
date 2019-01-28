@@ -50,9 +50,9 @@ type Metadata struct {
 
 // MetadataField describe attributes of Metadata
 type MetadataField struct {
-	FieldName string `json:"fieldName"`
+	FieldName string `json:"fieldname"`
 	// Type of filed, could be one of [int, long, string, json, double, bool, date, enum, relationship]
-	FieldType string `json:"fieldType"`
+	FieldType string `json:"fieldtype"`
 	// The field is required if value is true
 	Mandatory bool `json:"mandatory"`
 	// If FieldType is relationship, need to set reference object type

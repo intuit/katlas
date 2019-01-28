@@ -9,6 +9,7 @@ const ALL_SERVICE_CONTEXT = '/v1';
 const QUERY_KEYWORD_SERVICE_PATH = '/query';
 const QUERY_KEYWORD_PARAM_NAME = 'keyword';
 const QUERY_QSL_SERVICE_PATH = '/qsl/';
+const QUERY_METADATA_SERVICE_PATH = '/metadata/';
 
 const ENTITY_SERVICE_PATH = '/entity/uid/';
 
@@ -57,6 +58,12 @@ export default class ApiService {
     //in testing
     return requestHelper(
       getServiceURL() + ALL_SERVICE_CONTEXT + ENTITY_SERVICE_PATH + uid
+    );
+  }
+
+  static getMetadata(objtype) {
+    return requestHelper(
+      getServiceURL() + ALL_SERVICE_CONTEXT + QUERY_METADATA_SERVICE_PATH + objtype
     );
   }
 }

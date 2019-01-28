@@ -66,4 +66,3 @@ it('Returns 400 for GET request, then response is null', () => {
 
     fetchMock.reset();
 });
-
