@@ -2,11 +2,19 @@ export default {
   query: {
     current: '',
     lastSubmitted: '',
-    submitted: false,
     isWaiting: false,
-    results: []
+    results: [],
+    page: 0,
+    rowsPerPage: 25,
+    count: 0
   },
-  entity: {},
+  entity: {
+    rootUid: '',
+    entitiesByUid: {},
+    results: {},
+    latestTimestamp: 0,
+    isWaiting: false
+  },
   notify: {
     msg: '',
     timestamp: 0

@@ -1,25 +1,26 @@
 import React from 'react';
-import {render, unmountComponentAtNode} from 'react-dom';
-import {MemoryRouter} from 'react-router-dom';
-import {mount, shallow} from 'enzyme';
+import { Provider } from 'react-redux';
+import { render, unmountComponentAtNode } from 'react-dom';
+import { MemoryRouter } from 'react-router-dom';
+import { mount } from 'enzyme';
 
 import GraphContainer from './GraphContainer';
+import configureStore from '../../store/configureStore';
 //next import will load envVars from local override of app/public/conf.js
 import '../../../public/conf';
 
 jest.useFakeTimers();
 
 const div = document.createElement('div');
-
-it('shallow renders graph container', () => {
-  shallow(<GraphContainer/>);
-});
+const store = configureStore();
 
 it('deep renders graph container', () => {
   render(
-    <MemoryRouter>
-      <GraphContainer/>
-    </MemoryRouter>, div);
+    <Provider store={store}>
+      <MemoryRouter>
+        <GraphContainer/>
+      </MemoryRouter>
+    </Provider>, div);
   unmountComponentAtNode(div);
 });
 
@@ -29,9 +30,11 @@ it('deep renders graph container while making async request', (done) => {
     Promise.resolve(new Response(JSON.stringify(MOCK_RESP), {status:200})));
   //render component with path which will cause data fetch
   render(
-    <MemoryRouter initialEntries={['/graph/0x0']}>
-      <GraphContainer/>
-    </MemoryRouter>, div);
+    <Provider store={store}>
+      <MemoryRouter initialEntries={['/graph/0x0']}>
+        <GraphContainer/>
+      </MemoryRouter>
+    </Provider>, div);
   //force timers to complete, so as to trigger request
   jest.runOnlyPendingTimers();
   //ensure that fetch was called at least once
@@ -42,9 +45,11 @@ it('deep renders graph container while making async request', (done) => {
 
 it('shows a spinner during outstanding request', () => {
   const wrapper = mount(
-    <MemoryRouter>
-      <GraphContainer/>
-    </MemoryRouter>);
+    <Provider store={store}>
+      <MemoryRouter>
+        <GraphContainer/>
+      </MemoryRouter>
+    </Provider>);
   wrapper.setState({waitingOnReq: true});
   expect(wrapper.find('CircularProgress').length).toBe(1);
 });

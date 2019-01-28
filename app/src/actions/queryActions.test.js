@@ -10,15 +10,6 @@ const middlewares = [thunk];
 const mockStore = configureMockStore(middlewares);
 
 describe('query actions', () => {
-  it('should create an action to change query text', () => {
-    const query = 'foo';
-    const expectedAction = {
-      type: types.CHANGE_QUERY,
-      query
-    };
-    expect(actions.changeQuery(query)).toEqual(expectedAction);
-  });
-
   xit('should create an action to submit query', () => {
     const expectedAction = {
       type: types.SUBMIT_QUERY
@@ -56,8 +47,9 @@ describe('asynch query actions', () => {
     window.fetch = jest.fn().mockImplementation(() =>
       Promise.resolve(new Response(JSON.stringify(MOCK_RESP_EMPTY), {status:200})));
     return store.dispatch(actions.fetchQuery('doesntMatter')).then(() => {
-      //now we're looking for the 2nd action to have been triggered
-      expect(store.getActions()[1].results).toHaveLength(0)
+      //each fetchQuery will trigger 2 actions. first is requestQuery and second is receiveQuery which has the results
+      //now we're looking for receiveQuery (the 3nd as there was another fetchQuery earlier) action to have been triggered
+      expect(store.getActions()[3].results).toHaveLength(0)
     });
   })
 });

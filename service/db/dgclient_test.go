@@ -1,9 +1,11 @@
 package db
 
 import (
+	"reflect"
 	"testing"
 
 	log "github.com/Sirupsen/logrus"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,6 +24,7 @@ func TestDGClient(t *testing.T) {
 		nid = v
 		break
 	}
+
 	defer cleanUP(client, nids)
 
 	// create pod
@@ -74,12 +77,21 @@ func TestDGClient(t *testing.T) {
 		if val != nil {
 			log.Fatalf("relationship still exist after call delete edge API")
 		}
+		client.CreateOrDeleteEdge("K8sPod", v, "K8sNode", nid, "runsOn", create)
+		client.SetFieldToNull(map[string]interface{}{"runsOn": nil, "uid": v})
+		pod01, _ = client.GetEntity("K8sPod", v)
+		o6 := pod01["objects"].([]interface{})[0].(map[string]interface{})
+		_, ok := o6["runsOn"]
+		if ok {
+			log.Fatalf("relationship still exist after call set field to null API")
+		}
+
 	}
 }
 
 func TestCreateIndex(t *testing.T) {
 	client := NewDGClient("127.0.0.1:9080")
-	s := Schema{Predicate: "testindex", PType: "string", Count: true, List: true, Index: true,
+	s := Schema{Predicate: "testindex", Type: "string", Count: true, List: true, Index: true,
 		Upsert: true, Tokenizer: []string{"hash", "fulltext"},
 	}
 	err := client.CreateSchema(s)
@@ -87,14 +99,58 @@ func TestCreateIndex(t *testing.T) {
 	client.DropSchema("testindex")
 }
 
-func TestGetSchema(t *testing.T) {
+func TestGetSchemaFromDB(t *testing.T) {
 	client := NewDGClient("127.0.0.1:9080")
 	defer client.Close()
-	smds, err := client.GetSchema()
+	smds, err := client.GetSchemaFromDB()
 	if err != nil {
-		log.Fatalf("failed to get schema %v", err)
+		log.Fatalf("failed to get schema db %v", err)
 	}
-	log.Infof("From test schema returned: [%v]\n", smds)
+	log.Infof("From TestGetSchemaFromDB returned: [%v]\n", smds)
+	assert.Nil(t, err)
+}
+
+func TestGetSchemaFromCache(t *testing.T) {
+	client := NewDGClient("127.0.0.1:9080")
+	defer client.Close()
+
+	//Creates an LRU cache of the given size
+	var err error
+	LruCache, err = lru.New(5)
+	if err != nil {
+		log.Errorf("err: %v", err)
+	}
+	log.Infoln("LRU cache created with given size")
+	InitLruCacheDBSchema = false
+	//Get schema with fetching db
+	smds, err := client.GetSchemaFromCache(LruCache)
+	if err != nil {
+		log.Fatalf("failed to get schema from LruCache %v", err)
+	}
+	if reflect.TypeOf(smds).Kind() == reflect.Slice {
+		log.Debugln("The smds is a slice.")
+	}
+	log.Infof("From TestGetSchemaFromCache returned from LruCache with fetching db: [%v]\n", smds)
+	assert.Nil(t, err)
+
+	//Get schema without fetching db
+	smds, err = client.GetSchemaFromCache(LruCache)
+	if err != nil {
+		log.Fatalf("failed to get schema from LruCache %v", err)
+	}
+	log.Infof("From TestGetSchemaFromCache returned from LruCache without fetching db: [%v]\n", smds)
+	assert.Nil(t, err)
+
+	//Remove schema from cache
+	client.RemoveDBSchemaFromCache(LruCache)
+
+	//Get schema again should fetch DB again
+	smds, err = client.GetSchemaFromCache(LruCache)
+	if err != nil {
+		log.Fatalf("failed to get schema from LruCache %v", err)
+	}
+
+	log.Infof("From TestGetSchemaFromCache returned from LruCache second time: [%v]\n", smds)
 	assert.Nil(t, err)
 }
 

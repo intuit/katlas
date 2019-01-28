@@ -31,7 +31,7 @@ var servicetests = []ServiceTest{
 			},
 		},
 		out: map[string]interface{}{
-			"objtype":         "Service",
+			"objtype":         "service",
 			"name":            "test-service",
 			"namespace":       "test-namespace",
 			"selector":        map[string]string{},

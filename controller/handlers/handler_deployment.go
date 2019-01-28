@@ -83,14 +83,14 @@ func (t *DeploymentHandler) ObjectCreated(obj interface{}) error {
 		log.Error(err)
 	}
 	log.Debugf("    Deployment: %s, \n", j)
-	SendJSONQueryWithRetries(deployment, RestSvcEndpoint+"v1/entity/Deployment")
+	SendJSONQueryWithRetries(deployment, RestSvcEndpoint+"v1/entity/deployment")
 	return nil
 }
 
 // ObjectDeleted is called when an object is deleted
 func (t *DeploymentHandler) ObjectDeleted(obj interface{}, key string) error {
 	log.Info("DeploymentHandler.ObjectDeleted")
-	SendDeleteRequest(RestSvcEndpoint + "v1/entity/Deployment/Deployment:" + ClusterName + ":" + strings.Replace(key, "/", ":", -1))
+	SendDeleteRequest(RestSvcEndpoint + "v1/entity/deployment/deployment:" + ClusterName + ":" + strings.Replace(key, "/", ":", -1))
 	return nil
 }
 
@@ -103,5 +103,5 @@ func (t *DeploymentHandler) ObjectUpdated(objOld, objNew interface{}) error {
 // DeploymentSynchronize sync all Deployments periodically in case missing events
 func DeploymentSynchronize(client kubernetes.Interface) {
 	clusterdeploymentslist, _ := client.AppsV1beta2().Deployments(AppNamespace).List(v1.ListOptions{})
-	SendJSONQueryWithRetries(clusterdeploymentslist.Items, RestSvcEndpoint+"v1/sync/Deployment")
+	SendJSONQueryWithRetries(clusterdeploymentslist.Items, RestSvcEndpoint+"v1/sync/deployment")
 }

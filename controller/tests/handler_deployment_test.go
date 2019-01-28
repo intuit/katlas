@@ -42,7 +42,7 @@ var deploymenttests = []DeploymentTest{
 			},
 		},
 		out: map[string]interface{}{
-			"objtype":           "Deployment",
+			"objtype":           "deployment",
 			"cluster":           "test2",
 			"name":              "test-deployment",
 			"creationtime":      *timeptr,

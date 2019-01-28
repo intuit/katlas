@@ -2,9 +2,10 @@ package apis
 
 import (
 	"encoding/json"
+	"testing"
+
 	"github.com/intuit/katlas/service/db"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestMetaService(t *testing.T) {
@@ -12,46 +13,43 @@ func TestMetaService(t *testing.T) {
 
 	q := NewQueryService(dc)
 	m := NewMetaService(dc)
-	e := NewEntityService(dc, m)
+	e := NewEntityService(dc)
 	// create pod metadata
 	podMeta := `{
 		"name": "pod_metadata",
         "objtype" : "metadata",
 		"fields": [
 			{
-				"fieldName": "name",
-				"fieldType": "json",
+				"fieldname": "name",
+				"fieldtype": "json",
 				"mandatory": true,
-				"index": true,
-				"cardinality": "One"
+				"cardinality": "one"
 			},
 			{
-				"fieldName": "status",
-				"fieldType": "string",
+				"fieldname": "status",
+				"fieldtype": "string",
 				"mandatory": true,
-				"index": true,
-				"cardinality": "One"
+				"cardinality": "one"
 			},
 			{
-				"fieldName": "containers",
-				"fieldType": "relationship",
-				"refDataType": "K8scontainer",
+				"fieldname": "containers",
+				"fieldtype": "relationship",
+				"refdatatype": "K8scontainer",
 				"mandatory": false,
-				"index": false,
-				"cardinality": "Many"
+				"cardinality": "many"
 			}
 		]
 	}`
 	// create index for query
-	dc.CreateSchema(db.Schema{Predicate: "name", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "objtype", PType: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "name", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "objtype", Type: "string", Index: true, Tokenizer: []string{"term"}})
 	// create pod metadata
 	dataMap := make(map[string]interface{})
 	err := json.Unmarshal([]byte(podMeta), &dataMap)
 	if err != nil {
 		panic(err)
 	}
-	e.CreateEntity("K8Metadata", dataMap)
+	m.CreateMetadata(dataMap)
 	// query to get created pod metadata
 	qm := map[string][]string{"name": {"pod_metadata"}, "objtype": {"metadata"}}
 	n, _ := q.GetQueryResult(qm)

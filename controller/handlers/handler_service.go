@@ -78,14 +78,14 @@ func (t *ServiceHandler) ObjectCreated(obj interface{}) error {
 	if !ValidateService(service) {
 		return errors.New("Could not validate service object " + service.ObjectMeta.Name)
 	}
-	SendJSONQueryWithRetries(service, RestSvcEndpoint+"v1/entity/Service")
+	SendJSONQueryWithRetries(service, RestSvcEndpoint+"v1/entity/service")
 	return nil
 }
 
 // ObjectDeleted is called when an object is deleted
 func (t *ServiceHandler) ObjectDeleted(obj interface{}, key string) error {
 	log.Info("ServiceHandler.ObjectDeleted")
-	SendDeleteRequest(RestSvcEndpoint + "v1/entity/Service/Service:" + ClusterName + ":" + strings.Replace(key, "/", ":", -1))
+	SendDeleteRequest(RestSvcEndpoint + "v1/entity/service/service:" + ClusterName + ":" + strings.Replace(key, "/", ":", -1))
 	return nil
 }
 
@@ -98,5 +98,5 @@ func (t *ServiceHandler) ObjectUpdated(objOld, objNew interface{}) error {
 // ServiceSynchronize sync all Services periodically in case missing events
 func ServiceSynchronize(client kubernetes.Interface) {
 	clusterserviceslist, _ := client.CoreV1().Services(AppNamespace).List(v1.ListOptions{})
-	SendJSONQueryWithRetries(clusterserviceslist.Items, RestSvcEndpoint+"v1/sync/Service")
+	SendJSONQueryWithRetries(clusterserviceslist.Items, RestSvcEndpoint+"v1/sync/service")
 }

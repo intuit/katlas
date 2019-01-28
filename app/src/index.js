@@ -5,11 +5,11 @@ import { Router } from 'react-router-dom';
 import { MuiThemeProvider, createMuiTheme } from "@material-ui/core";
 import CssBaseline from '@material-ui/core/CssBaseline';
 import WebFont from 'webfontloader';
-import history from './history';
 
-import './index.css';
 import App from './components/app/App';
-import store from './store.js';
+import store from './store';
+import history from './history';
+import './index.css';
 
 WebFont.load({
   custom: {

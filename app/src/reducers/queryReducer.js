@@ -1,36 +1,34 @@
 import initialState from './initialState';
-import {CHANGE_QUERY, SUBMIT_QUERY, FETCH_QUERY, RECEIVE_QUERY} from '../actions/actionTypes';
+import {
+  REQUEST_QUERY,
+  SUBMIT_QUERY,
+  RECEIVE_QUERY
+} from '../actions/actionTypes';
 
 export default function query(state = initialState.query, action) {
   let newState;
   switch (action.type) {
-    case CHANGE_QUERY:
+    case REQUEST_QUERY:
       newState = {
-        current: action.query,
-        lastSubmitted: state.lastSubmitted,
-        submitted: false,
-        isWaiting: state.isWaiting,
-        results: state.results,
+        ...state,
+        current: action.queryStr,
+        page: action.page,
+        rowsPerPage: action.rowsPerPage,
+        isWaiting: true
       };
       return newState;
     case SUBMIT_QUERY:
       newState = {
-        current: state.current,
-        lastSubmitted: state.current,
-        submitted: true,
-        isWaiting: true,
-        results: [], //new array to clear out old results upon new submission
+        ...state,
+        results: []
       };
       return newState;
-    case FETCH_QUERY:
-      return action;
     case RECEIVE_QUERY:
       newState = {
-        current: state.current,
-        lastSubmitted: state.lastSubmitted,
-        submitted: state.submitted,
-        isWaiting: false,
-        results: action.results
+        ...state,
+        results: action.results,
+        count: action.count,
+        isWaiting: false
       };
       return newState;
     default:

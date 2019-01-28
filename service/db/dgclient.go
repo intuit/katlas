@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/dgraph-io/dgo"
 	"github.com/dgraph-io/dgo/protos/api"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/intuit/katlas/service/util"
 	"google.golang.org/grpc"
 )
@@ -21,10 +23,19 @@ const (
 	delete
 )
 
+//CacheKey - Define key name for LruCache
+const CacheKey = "dbSchema"
+
+//LruCache - Define type LRU Cache
+var LruCache *lru.Cache
+
+//InitLruCacheDBSchema - a flag to indicate if LruCache has initial DBSchema when server starts
+var InitLruCacheDBSchema bool
+
 // Schema dgraph database schema
 type Schema struct {
 	Predicate string   `json:"predicate"`
-	PType     string   `json:"type"`
+	Type      string   `json:"type"`
 	List      bool     `json:"list,omitempty"`
 	Index     bool     `json:"index,omitempty"`
 	Upsert    bool     `json:"upsert,omitempty"`
@@ -41,7 +52,10 @@ type DGClient struct {
 
 // IDGClient ... define interface to DGClient
 type IDGClient interface {
-	GetSchema() ([]*api.SchemaNode, error)
+	GetCacheContainsDBSchema() (*lru.Cache, error)
+	GetSchemaFromCache(cache *lru.Cache) ([]*api.SchemaNode, error)
+	RemoveDBSchemaFromCache(cache *lru.Cache)
+	GetSchemaFromDB() ([]*api.SchemaNode, error)
 	CreateSchema(sm Schema) error
 	DropSchema(name string) error
 	GetEntity(meta string, uuid string) (map[string]interface{}, error)
@@ -53,6 +67,7 @@ type IDGClient interface {
 	UpdateEntity(meta string, uuid string, data map[string]interface{}) error
 	GetQueryResult(query string) (map[string]interface{}, error)
 	Close() error
+	ExecuteDgraphQuery(query string) (map[string]interface{}, error)
 }
 
 // NewDGClient create client instance
@@ -259,8 +274,51 @@ func (s DGClient) GetAllByClusterAndType(meta string, cluster string) (map[strin
 	return m, nil
 }
 
-//GetSchema - get all predicates
-func (s DGClient) GetSchema() ([]*api.SchemaNode, error) {
+//GetCacheContainsDBSchema - Get cache which contains db schema
+func (s DGClient) GetCacheContainsDBSchema() (*lru.Cache, error) {
+	//Add db schema to the cache
+	if !InitLruCacheDBSchema {
+		dbSchemaNodes, err := s.GetSchemaFromDB()
+		if err != nil {
+			log.Errorf("err: %v", err)
+			return nil, err
+		}
+		LruCache.Add(CacheKey, dbSchemaNodes)
+		InitLruCacheDBSchema = true
+	} else {
+		//Looks up a key's value from the cache
+		_, ok := LruCache.Get(CacheKey)
+		if !ok {
+			dbSchemaNodes, err := s.GetSchemaFromDB()
+			if err != nil {
+				log.Errorf("err: %v", err)
+				return nil, err
+			}
+			LruCache.Add(CacheKey, dbSchemaNodes)
+		}
+	}
+	return LruCache, nil
+}
+
+//GetSchemaFromCache - Get db schema from cache
+func (s DGClient) GetSchemaFromCache(cache *lru.Cache) ([]*api.SchemaNode, error) {
+	cache, err := s.GetCacheContainsDBSchema()
+	if err != nil {
+		log.Errorf("err: %v", err)
+		return nil, err
+	}
+	dbSchemaNodesInterface, ok := cache.Get(CacheKey)
+	if !ok {
+		log.Errorf("err: %v", err)
+		return nil, err
+	}
+
+	dbSchemaNodes, ok := dbSchemaNodesInterface.([]*api.SchemaNode)
+	return dbSchemaNodes, nil
+}
+
+//GetSchemaFromDB - get all predicates
+func (s DGClient) GetSchemaFromDB() ([]*api.SchemaNode, error) {
 	q := `
 		schema {}
 	`
@@ -274,16 +332,21 @@ func (s DGClient) GetSchema() ([]*api.SchemaNode, error) {
 	return smn, nil
 }
 
+//RemoveDBSchemaFromCache - remove DBSchema key from the Cache
+func (s DGClient) RemoveDBSchemaFromCache(cache *lru.Cache) {
+	cache.Remove(CacheKey)
+}
+
 // CreateSchema - create index
 func (s DGClient) CreateSchema(sm Schema) error {
 	var buffer bytes.Buffer
 	buffer.WriteString(sm.Predicate)
 	buffer.WriteString(": ")
-	if sm.PType == "password" {
-		buffer.WriteString(sm.PType)
+	if sm.Type == "password" {
+		buffer.WriteString(sm.Type)
 
-	} else if sm.PType == util.UID {
-		buffer.WriteString(sm.PType)
+	} else if sm.Type == util.UID {
+		buffer.WriteString(sm.Type)
 		if sm.Count {
 			buffer.WriteString(" @count")
 		}
@@ -292,12 +355,12 @@ func (s DGClient) CreateSchema(sm Schema) error {
 		}
 	} else {
 		if sm.List {
-			buffer.WriteString("[" + sm.PType + "]")
+			buffer.WriteString("[" + sm.Type + "]")
 			if sm.Count {
 				buffer.WriteString(" @count")
 			}
 		} else {
-			buffer.WriteString(sm.PType)
+			buffer.WriteString(sm.Type)
 		}
 		if sm.Index {
 			buffer.WriteString(" @index(")
@@ -337,4 +400,29 @@ func (s DGClient) DropSchema(name string) error {
 // Close - destroy connection
 func (s DGClient) Close() error {
 	return s.conn.Close()
+}
+
+// ExecuteDgraphQuery - Takes a dgraph query as a string and executes on a dgraph instance
+func (s DGClient) ExecuteDgraphQuery(query string) (map[string]interface{}, error) {
+
+	txn := s.dc.NewTxn()
+	defer txn.Discard(context.Background())
+
+	resp, err := txn.Query(context.Background(), query)
+	if err != nil {
+		log.Errorf("query err: %#v\n", err)
+		return nil, errors.New("could not successfully execute query. Please try again later\n" + err.Error())
+	}
+
+	respjson := map[string]interface{}{}
+
+	err = json.Unmarshal(resp.GetJson(), &respjson)
+	if err != nil {
+		log.Errorf("unmarshal err: %#v\n", err)
+		return nil, errors.New("could not successfully handle data from query. Please try again later")
+	}
+
+	// log.Infof("response from executing dgraph query: %#v\n", respjson)
+	return respjson, nil
+
 }
