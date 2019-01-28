@@ -55,11 +55,11 @@ after_success:
     else
     	  echo "Integration Test - Success!";
         # Login to docker hub
-        - echo "$DOCKER_PASSWORD" |docker login -u $DOCKER_USERNAME --password-stdin
+        echo "$DOCKER_PASSWORD" |docker login -u $DOCKER_USERNAME --password-stdin
         #- echo "$DOCKER_PASSWORD" |docker login -u $DOCKER_USERNAME --password-stdin >/dev/null 2>&1
         # Push image to docker hub
-        - docker push katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
-        - docker push katlas/katlas-browser:${TRAVIS_COMMIT_SHORTID}
+        docker push katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
+        docker push katlas/katlas-browser:${TRAVIS_COMMIT_SHORTID}
     fi
   
   
