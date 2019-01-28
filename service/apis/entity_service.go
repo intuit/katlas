@@ -95,7 +95,10 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 	if len(fs) > 0 {
 		for _, field := range fs {
 			fieldValue, ok := data[field.FieldName]
-			if !ok || fieldValue == "" || fieldValue == nil {
+			if !ok || fieldValue == nil || ((reflect.ValueOf(fieldValue).Kind() == reflect.Interface ||
+				reflect.ValueOf(fieldValue).Kind() == reflect.Ptr ||
+				reflect.ValueOf(fieldValue).Kind() == reflect.Slice) &&
+				reflect.ValueOf(fieldValue).IsNil()) {
 				delete(data, field.FieldName)
 				continue
 			}

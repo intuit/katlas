@@ -78,14 +78,14 @@ func (t *StatefulSetHandler) ObjectCreated(obj interface{}) error {
 	if !ValidateStatefulSet(statefulset) {
 		return errors.New("Could not validate statefulset object " + statefulset.ObjectMeta.Name)
 	}
-	SendJSONQueryWithRetries(statefulset, RestSvcEndpoint+"v1/entity/StatefulSet")
+	SendJSONQueryWithRetries(statefulset, RestSvcEndpoint+"v1/entity/statefulset")
 	return nil
 }
 
 // ObjectDeleted is called when an object is deleted
 func (t *StatefulSetHandler) ObjectDeleted(obj interface{}, key string) error {
 	log.Info("StatefulSetHandler.ObjectDeleted")
-	SendDeleteRequest(RestSvcEndpoint + "v1/entity/StatefulSet/StatefulSet:" + ClusterName + ":" + strings.Replace(key, "/", ":", -1))
+	SendDeleteRequest(RestSvcEndpoint + "v1/entity/statefulset/statefulset:" + ClusterName + ":" + strings.Replace(key, "/", ":", -1))
 	return nil
 }
 
@@ -98,5 +98,5 @@ func (t *StatefulSetHandler) ObjectUpdated(objOld, objNew interface{}) error {
 // StatefulSetSynchronize sync all StatefulSets periodically in case missing events
 func StatefulSetSynchronize(client kubernetes.Interface) {
 	clusterstatefulsetslist, _ := client.AppsV1().StatefulSets(AppNamespace).List(v1.ListOptions{})
-	SendJSONQueryWithRetries(clusterstatefulsetslist.Items, RestSvcEndpoint+"v1/sync/StatefulSet")
+	SendJSONQueryWithRetries(clusterstatefulsetslist.Items, RestSvcEndpoint+"v1/sync/statefulset")
 }

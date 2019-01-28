@@ -35,7 +35,7 @@ var InitLruCacheDBSchema bool
 // Schema dgraph database schema
 type Schema struct {
 	Predicate string   `json:"predicate"`
-	PType     string   `json:"type"`
+	Type      string   `json:"type"`
 	List      bool     `json:"list,omitempty"`
 	Index     bool     `json:"index,omitempty"`
 	Upsert    bool     `json:"upsert,omitempty"`
@@ -342,11 +342,11 @@ func (s DGClient) CreateSchema(sm Schema) error {
 	var buffer bytes.Buffer
 	buffer.WriteString(sm.Predicate)
 	buffer.WriteString(": ")
-	if sm.PType == "password" {
-		buffer.WriteString(sm.PType)
+	if sm.Type == "password" {
+		buffer.WriteString(sm.Type)
 
-	} else if sm.PType == util.UID {
-		buffer.WriteString(sm.PType)
+	} else if sm.Type == util.UID {
+		buffer.WriteString(sm.Type)
 		if sm.Count {
 			buffer.WriteString(" @count")
 		}
@@ -355,12 +355,12 @@ func (s DGClient) CreateSchema(sm Schema) error {
 		}
 	} else {
 		if sm.List {
-			buffer.WriteString("[" + sm.PType + "]")
+			buffer.WriteString("[" + sm.Type + "]")
 			if sm.Count {
 				buffer.WriteString(" @count")
 			}
 		} else {
-			buffer.WriteString(sm.PType)
+			buffer.WriteString(sm.Type)
 		}
 		if sm.Index {
 			buffer.WriteString(" @index(")

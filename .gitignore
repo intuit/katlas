@@ -33,3 +33,4 @@ coverage/
 
 vendor
 bin
+.vscode

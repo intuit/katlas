@@ -5,15 +5,20 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 	"github.com/intuit/katlas/service/apis"
+	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/util"
+	"github.com/mitchellh/mapstructure"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/api/apps/v1beta2"
 	core_v1 "k8s.io/api/core/v1"
 	ext_v1beta1 "k8s.io/api/extensions/v1beta1"
+	"reflect"
+	"strings"
 )
 
 // ServerResource handle http request
@@ -184,35 +189,93 @@ func (s ServerResource) QueryHandler(w http.ResponseWriter, r *http.Request) {
 
 // MetaCreateHandler REST API for create Metadata
 func (s ServerResource) MetaCreateHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
 	}
-	var payload map[string]interface{}
+	var payload interface{}
 	err = json.Unmarshal(body, &payload)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	uids, err := s.MetaSvc.CreateMetadata(payload)
-	if err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	if reflect.TypeOf(payload).Kind() == reflect.Slice {
+		var rets []string
+		for _, p := range payload.([]interface{}) {
+			_, err := s.MetaSvc.CreateMetadata(p.(map[string]interface{}))
+			if err != nil {
+				log.Error(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			rets = append(rets, p.(map[string]interface{})[util.Name].(string))
+		}
+		w.Write([]byte(fmt.Sprintf("Metadata %v create successfully", rets)))
+	} else {
+		_, err := s.MetaSvc.CreateMetadata(payload.(map[string]interface{}))
+		if err != nil {
+			log.Error(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write([]byte(fmt.Sprintf("Metadata %s create successfully", payload.(map[string]interface{})[util.Name])))
 	}
-	ret, err := json.Marshal(uids)
-	if err != nil {
-		log.Error(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.Write(ret)
 }
+
+// SchemaCreateHandler REST API for create Schema
+func (s ServerResource) SchemaCreateHandler(w http.ResponseWriter, r *http.Request) {
+	defer s.MetaSvc.RemoveSchemaCache(db.LruCache)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Error(err)
+	}
+	var payload interface{}
+	err = json.Unmarshal(body, &payload)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if reflect.TypeOf(payload).Kind() == reflect.Slice {
+		var predicates []db.Schema
+		err := mapstructure.Decode(payload, &predicates)
+		if err != nil {
+			log.Error(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		for _, p := range predicates {
+			err := s.MetaSvc.CreateSchema(p)
+			if err != nil {
+				log.Error(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+	} else {
+		var predicate db.Schema
+		err := mapstructure.Decode(payload, &predicate)
+		if err != nil {
+			log.Error(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = s.MetaSvc.CreateSchema(predicate)
+		if err != nil {
+			log.Error(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+	w.Write([]byte("Schema create successfully"))
+}
+
 func buildEntityData(clusterName string, meta string, body []byte, isArray bool) (interface{}, error) {
 	switch meta {
-	case "Namespace":
+	case util.Namespace:
 		if isArray {
 			list := make([]map[string]interface{}, 0)
 			data := []core_v1.Namespace{}
@@ -222,7 +285,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			}
 			for _, d := range data {
 				namespace := map[string]interface{}{
-					util.ObjType:         "Namespace",
+					util.ObjType:         util.Namespace,
 					util.Name:            d.ObjectMeta.Name,
 					util.CreationTime:    d.ObjectMeta.CreationTimestamp,
 					util.Cluster:         clusterName,
@@ -240,7 +303,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			return nil, err
 		}
 		return map[string]interface{}{
-			util.ObjType:         "Namespace",
+			util.ObjType:         util.Namespace,
 			util.Name:            data.ObjectMeta.Name,
 			util.CreationTime:    data.ObjectMeta.CreationTimestamp,
 			util.Cluster:         clusterName,
@@ -248,7 +311,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			util.K8sObj:          util.K8sObj,
 			util.Labels:          data.ObjectMeta.GetLabels(),
 		}, nil
-	case "Deployment":
+	case util.Deployment:
 		if isArray {
 			list := make([]map[string]interface{}, 0)
 			data := []ext_v1beta1.Deployment{}
@@ -258,7 +321,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			}
 			for _, d := range data {
 				deployment := map[string]interface{}{
-					util.ObjType:           "Deployment",
+					util.ObjType:           util.Deployment,
 					util.Cluster:           clusterName,
 					util.Name:              d.ObjectMeta.Name,
 					util.CreationTime:      d.ObjectMeta.CreationTimestamp,
@@ -285,7 +348,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			return nil, err
 		}
 		deployment := map[string]interface{}{
-			util.ObjType:           "Deployment",
+			util.ObjType:           util.Deployment,
 			util.Cluster:           clusterName,
 			util.Name:              data.ObjectMeta.Name,
 			util.CreationTime:      data.ObjectMeta.CreationTimestamp,
@@ -303,7 +366,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			deployment[util.Application] = appList
 		}
 		return deployment, nil
-	case "Ingress":
+	case util.Ingress:
 		if isArray {
 			list := make([]map[string]interface{}, 0)
 			data := []ext_v1beta1.Ingress{}
@@ -313,7 +376,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			}
 			for _, d := range data {
 				ingress := map[string]interface{}{
-					util.ObjType:         "Ingress",
+					util.ObjType:         util.Ingress,
 					util.Cluster:         clusterName,
 					util.Name:            d.ObjectMeta.Name,
 					util.Namespace:       d.ObjectMeta.Namespace,
@@ -340,7 +403,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			return nil, err
 		}
 		ingress := map[string]interface{}{
-			util.ObjType:         "Ingress",
+			util.ObjType:         util.Ingress,
 			util.Cluster:         clusterName,
 			util.Name:            data.ObjectMeta.Name,
 			util.Namespace:       data.ObjectMeta.Namespace,
@@ -357,7 +420,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			ingress[util.Application] = appList
 		}
 		return ingress, nil
-	case "Pod":
+	case util.Pod:
 		if isArray {
 			list := make([]map[string]interface{}, 0)
 			data := []core_v1.Pod{}
@@ -367,7 +430,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			}
 			for _, d := range data {
 				pod := map[string]interface{}{
-					util.ObjType:         "Pod",
+					util.ObjType:         util.Pod,
 					util.Name:            d.ObjectMeta.Name,
 					util.Namespace:       d.ObjectMeta.Namespace,
 					util.CreationTime:    d.ObjectMeta.CreationTimestamp,
@@ -380,10 +443,11 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 					util.Cluster:         clusterName,
 					util.ResourceVersion: d.ObjectMeta.ResourceVersion,
 					util.K8sObj:          util.K8sObj,
+					util.StartTime:       d.Status.StartTime,
 				}
 				if len(d.ObjectMeta.OwnerReferences) > 0 {
 					pod[util.Owner] = d.ObjectMeta.OwnerReferences[0].Name
-					pod[util.OwnerType] = d.ObjectMeta.OwnerReferences[0].Kind
+					pod[util.OwnerType] = strings.ToLower(d.ObjectMeta.OwnerReferences[0].Kind)
 				}
 				list = append(list, pod)
 			}
@@ -395,7 +459,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			return nil, err
 		}
 		pod := map[string]interface{}{
-			util.ObjType:         "Pod",
+			util.ObjType:         util.Pod,
 			util.Name:            data.ObjectMeta.Name,
 			util.Namespace:       data.ObjectMeta.Namespace,
 			util.CreationTime:    data.ObjectMeta.CreationTimestamp,
@@ -408,13 +472,14 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			util.Cluster:         clusterName,
 			util.ResourceVersion: data.ObjectMeta.ResourceVersion,
 			util.K8sObj:          util.K8sObj,
+			util.StartTime:       data.Status.StartTime,
 		}
 		if len(data.ObjectMeta.OwnerReferences) > 0 {
 			pod[util.Owner] = data.ObjectMeta.OwnerReferences[0].Name
-			pod[util.OwnerType] = data.ObjectMeta.OwnerReferences[0].Kind
+			pod[util.OwnerType] = strings.ToLower(data.ObjectMeta.OwnerReferences[0].Kind)
 		}
 		return pod, nil
-	case "ReplicaSet":
+	case util.ReplicaSet:
 		if isArray {
 			list := make([]map[string]interface{}, 0)
 			data := []v1beta2.ReplicaSet{}
@@ -424,7 +489,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			}
 			for _, d := range data {
 				replicaset := map[string]interface{}{
-					util.ObjType:         "ReplicaSet",
+					util.ObjType:         util.ReplicaSet,
 					util.Name:            d.ObjectMeta.Name,
 					util.CreationTime:    d.ObjectMeta.CreationTimestamp,
 					util.Namespace:       d.ObjectMeta.Namespace,
@@ -446,7 +511,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			return nil, err
 		}
 		return map[string]interface{}{
-			util.ObjType:         "ReplicaSet",
+			util.ObjType:         util.ReplicaSet,
 			util.Name:            data.ObjectMeta.Name,
 			util.CreationTime:    data.ObjectMeta.CreationTimestamp,
 			util.Namespace:       data.ObjectMeta.Namespace,
@@ -458,7 +523,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			util.Labels:          data.ObjectMeta.GetLabels(),
 			util.K8sObj:          util.K8sObj,
 		}, nil
-	case "Service":
+	case util.Service:
 		if isArray {
 			list := make([]map[string]interface{}, 0)
 			data := []core_v1.Service{}
@@ -468,7 +533,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			}
 			for _, d := range data {
 				service := map[string]interface{}{
-					util.ObjType:         "Service",
+					util.ObjType:         util.Service,
 					util.Name:            d.ObjectMeta.Name,
 					util.Namespace:       d.ObjectMeta.Namespace,
 					util.CreationTime:    d.ObjectMeta.CreationTimestamp,
@@ -496,7 +561,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			return nil, err
 		}
 		service := map[string]interface{}{
-			util.ObjType:         "Service",
+			util.ObjType:         util.Service,
 			util.Name:            data.ObjectMeta.Name,
 			util.Namespace:       data.ObjectMeta.Namespace,
 			util.CreationTime:    data.ObjectMeta.CreationTimestamp,
@@ -515,7 +580,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			service[util.Application] = appList
 		}
 		return service, nil
-	case "StatefulSet":
+	case util.StatefulSet:
 		if isArray {
 			list := make([]map[string]interface{}, 0)
 			data := []appsv1.StatefulSet{}
@@ -525,7 +590,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			}
 			for _, d := range data {
 				statefulset := map[string]interface{}{
-					util.ObjType:         "StatefulSet",
+					util.ObjType:         util.StatefulSet,
 					util.Name:            d.ObjectMeta.Name,
 					util.CreationTime:    d.ObjectMeta.CreationTimestamp,
 					util.Namespace:       d.ObjectMeta.Namespace,
@@ -545,7 +610,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			return nil, err
 		}
 		return map[string]interface{}{
-			util.ObjType:         "StatefulSet",
+			util.ObjType:         util.StatefulSet,
 			util.Name:            data.ObjectMeta.Name,
 			util.CreationTime:    data.ObjectMeta.CreationTimestamp,
 			util.Namespace:       data.ObjectMeta.Namespace,
@@ -599,10 +664,12 @@ func createAppNameList(obj interface{}) []interface{} {
 }
 
 // QSLHandler handles requests for QSL
-func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) { //
-	queryMap := r.URL.Query()
+func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	vars := mux.Vars(r)
 
-	query, err := s.QSLSvc.CreateDgraphQuery(queryMap["qslstring"][0])
+	// get query for count only
+	query, err := s.QSLSvc.CreateDgraphQuery(vars[util.Query], true)
 	if err != nil {
 		if err.Error() == "Failed to connect to dgraph to get metadata" {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -611,15 +678,31 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) { //
 		http.Error(w, err.Error(), http.StatusBadRequest) // code: 400
 		return
 	}
-	log.Infof("dgraph query for %#v:\n %s", queryMap["qslstring"][0], query)
 
 	response, err := s.QSLSvc.DBclient.ExecuteDgraphQuery(query)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	log.Infof("response for query %#v: %#v ", queryMap["qslstring"][0], response)
+	var total float64
+	for _, res := range response[util.Objects].([]interface{}) {
+		val, ok := res.(map[string]interface{})[util.Count]
+		if ok {
+			total = val.(float64)
+		}
+	}
 
+	// get query with pagination
+	query, err = s.QSLSvc.CreateDgraphQuery(vars[util.Query], false)
+	log.Infof("dgraph query for %#v:\n %s", vars[util.Query], query)
+	start := time.Now()
+	response, err = s.QSLSvc.DBclient.ExecuteDgraphQuery(query)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	log.Infof("[elapsedtime: %s]response for query %#v", time.Since(start), vars[util.Query])
+	response[util.Count] = total
 	ret, err := json.Marshal(response)
 	if err != nil {
 		http.Error(w, "Failed to convert to JSON output", http.StatusInternalServerError)

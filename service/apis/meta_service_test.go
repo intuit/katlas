@@ -20,37 +20,29 @@ func TestMetaService(t *testing.T) {
         "objtype" : "metadata",
 		"fields": [
 			{
-				"fieldName": "name",
-				"fieldType": "json",
+				"fieldname": "name",
+				"fieldtype": "json",
 				"mandatory": true,
-				"index": true,
-				"cardinality": "One",
-                                "upsert": true,
-                                "tokenizer": [
-                                        "term",
-                                        "trigram"
-                                ]
+				"cardinality": "one"
 			},
 			{
-				"fieldName": "status",
-				"fieldType": "string",
+				"fieldname": "status",
+				"fieldtype": "string",
 				"mandatory": true,
-				"index": false,
-				"cardinality": "One"
+				"cardinality": "one"
 			},
 			{
-				"fieldName": "containers",
-				"fieldType": "relationship",
-				"refDataType": "K8scontainer",
+				"fieldname": "containers",
+				"fieldtype": "relationship",
+				"refdatatype": "K8scontainer",
 				"mandatory": false,
-				"index": false,
-				"cardinality": "Many"
+				"cardinality": "many"
 			}
 		]
 	}`
 	// create index for query
-	dc.CreateSchema(db.Schema{Predicate: "name", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "objtype", PType: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "name", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "objtype", Type: "string", Index: true, Tokenizer: []string{"term"}})
 	// create pod metadata
 	dataMap := make(map[string]interface{})
 	err := json.Unmarshal([]byte(podMeta), &dataMap)

@@ -37,7 +37,7 @@ var replicasettests = []ReplicaSetTest{
 			},
 		},
 		out: map[string]interface{}{
-			"objtype":         "ReplicaSet",
+			"objtype":         "replicaset",
 			"name":            "test-replicaset",
 			"creationtime":    metav1.Time{},
 			"namespace":       "test-namespace",
