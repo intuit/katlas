@@ -28,8 +28,8 @@ script:
   - docker images katlas-service:${TRAVIS_COMMIT_SHORTID}
   #- cd $TRAVIS_BUILD_DIR/app
   #- yarn test --coverage
-  #- docker build --no-cache -f Dockerfile -t katlas-browser:${TRAVIS_COMMIT} .
-  #- docker images katlas-browser:${TRAVIS_COMMIT}
+  #- docker build --no-cache -f Dockerfile -t katlas-browser:${TRAVIS_COMMIT_SHORTID} .
+  #- docker images katlas-browser:${TRAVIS_COMMIT_SHORTID}
 
 after_success:
   - sleep 5s
@@ -56,3 +56,10 @@ after_success:
     else
     	  echo "Integration Test - Success!";
     fi
+  
+  # Login to docker hub
+  - echo "$DOCKER_PASSWORD" |docker login -u $DOCKER_USERNAME --password-stdin
+  #- echo "$DOCKER_PASSWORD" |docker login -u $DOCKER_USERNAME --password-stdin >/dev/null 2>&1
+  # Push image to docker hub: docker-user/katlas-service:${TRAVIS_COMMIT_SHORTID}
+  - docker push $DOCKER_USERNAME/katlas-service:${TRAVIS_COMMIT_SHORTID}
+  ##- docker push $DOCKER_USERNAME/katlas-browser:${TRAVIS_COMMIT_SHORTID}
