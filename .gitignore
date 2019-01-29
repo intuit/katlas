@@ -33,4 +33,12 @@ coverage/
 
 vendor
 bin
+
+# Jekyll 
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
+
+# VS Code
 .vscode
