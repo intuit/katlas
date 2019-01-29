@@ -442,7 +442,7 @@ func TestSyncEntities(t *testing.T) {
 
 func TestMultiCreateEntity(t *testing.T) {
 	dc := db.NewDGClient("127.0.0.1:9080")
-	//q := NewQueryService(dc)
+	q := NewQueryService(dc)
 	defer dc.Close()
 	dc.CreateSchema(db.Schema{Predicate: "name", Type: "string", Index: true, Tokenizer: []string{"term"}})
 	dc.CreateSchema(db.Schema{Predicate: "resourceid", Type: "string", Index: true, Tokenizer: []string{"term"}})
@@ -486,10 +486,10 @@ func TestMultiCreateEntity(t *testing.T) {
 		}
 	}()
 	wg.Wait()
-	//qm := map[string][]string{"resourceid": {"cluster:ns:multinode"}, "objtype": {"k8snode"}}
-	//n, _ := q.GetQueryResult(qm)
-	//o := n["objects"].([]interface{})
-	//assert.Equal(t, 1, len(o), "only one object expect to be created with same resourceid")
+	qm := map[string][]string{"resourceid": {"cluster:ns:multinode"}, "objtype": {"k8snode"}}
+	n, _ := q.GetQueryResult(qm)
+	o := n["objects"].([]interface{})
+	assert.Equal(t, 1, len(o), "only one object expect to be created with same resourceid")
 	s.DeleteEntityByResourceID("k8snode", "cluster:ns:multinode")
 	s.DeleteEntityByResourceID("k8snode", "cluster:ns:multinode2")
 }
