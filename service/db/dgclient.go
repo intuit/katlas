@@ -76,7 +76,10 @@ type IDGClient interface {
 func NewDGClient(dgraphHost string) *DGClient {
 	// Dial a gRPC connection.
 	log.Infof("Connecting to dgraph [%s]", dgraphHost)
-	conn, err := grpc.Dial(dgraphHost, grpc.WithInsecure())
+	conn, err := grpc.Dial(dgraphHost,
+		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(20*1024*1024)),
+		grpc.WithInsecure())
+
 	if err != nil {
 		log.Fatal(err)
 	}
