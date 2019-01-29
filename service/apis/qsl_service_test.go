@@ -445,7 +445,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 	dc := db.NewDGClient(dgraphHost)
 	defer dc.Close()
 	metaSvc := NewMetaService(dc)
-	qslSvc := NewQSLService(dc, metaSvc)
+	qslSvc := NewQSLService(dc)
 
 	// Initialize metadata
 	meta, err := ioutil.ReadFile("../data/meta.json")

@@ -11,6 +11,7 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/intuit/katlas/service/db"
+	"github.com/intuit/katlas/service/util"
 	"strconv"
 )
 
@@ -23,7 +24,6 @@ var filterRegex = `\@([a-zA-Z0-9\(\)]*)([\!\<\>\=]*)(\"?[a-zA-Z0-9\-\.\|\&\:_]*\
 // QSLService service for QSL
 type QSLService struct {
 	DBclient db.IDGClient
-	metaSvc  *MetaService
 }
 
 // MaximumLimit define pagination limit
@@ -51,7 +51,8 @@ func IsStar(s string) bool {
 
 // GetMetadata - get a list of the fields supoorted for this object type
 func (qa *QSLService) GetMetadata(objtype string) ([]MetadataField, error) {
-	metafieldslist, err := qa.metaSvc.GetMetadataFields(objtype)
+	m := NewMetaService(qa.DBclient)
+	metafieldslist, err := m.GetMetadataFields(objtype)
 	if err != nil {
 		log.Error(err)
 		return []MetadataField{}, errors.New("Failed to connect to dgraph to get metadata")
@@ -64,8 +65,8 @@ func (qa *QSLService) GetMetadata(objtype string) ([]MetadataField, error) {
 }
 
 // NewQSLService creates an instance of a QSLService
-func NewQSLService(host db.IDGClient, m *MetaService) *QSLService {
-	return &QSLService{host, m}
+func NewQSLService(host db.IDGClient) *QSLService {
+	return &QSLService{host}
 }
 
 // CreateFiltersQuery translates the filters part of the qsl string to dgraph
@@ -95,16 +96,19 @@ func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 		for _, item := range splitlist {
 			splitval := strings.Split(item, "=")
 
-			if splitval[0] == "first" || splitval[0] == "offset" {
+			switch splitval[0] {
+			case util.First, util.Offset:
 				paginate += "," + splitval[0] + ": " + splitval[1]
-				val, err := strconv.Atoi(splitval[1])
-				if err != nil || val > MaximumLimit {
-					return "", "", "", fmt.Errorf("pagination format error or exceeding maxiumum limit %d", MaximumLimit)
-				}
-			} else {
+			default:
 				return "", "", "", errors.New("Invalid pagination filters in " + filterlist)
 			}
-
+			val, err := strconv.Atoi(splitval[1])
+			if err != nil {
+				return "", "", "", errors.New("Pagination format error " + filterlist)
+			}
+			if splitval[0] == util.First && val > MaximumLimit {
+				return "", "", "", fmt.Errorf("pagination exceeding maxiumum limit %d", MaximumLimit)
+			}
 		}
 		// get rid of the first comma
 		paginate = paginate[0:]
@@ -472,14 +476,13 @@ func (qa *QSLService) getRelationName(objType string, parent string) (string, er
 
 	if !found {
 		// if not, see if we can find the relation from the parent to this object
-		metafieldslist2, err := qa.metaSvc.GetMetadataFields(parent)
+		m := NewMetaService(qa.DBclient)
+		metafieldslist2, err := m.GetMetadataFields(parent)
 		if err != nil {
 			log.Error(err)
 			return "", errors.New("Failed to connect to dgraph to get metadata")
 		}
 		log.Debugf("couldn't find relation for %s->%s,", parent, objType)
-		log.Debugf("metadata fields for %s: %#v", parent, metafieldslist)
-
 		for _, item := range metafieldslist2 {
 			if item.FieldType == "relationship" {
 				log.Debugf("2 found relationship for %s-%s->%s", parent, item.FieldName, item.RefDataType)

@@ -55,4 +55,7 @@ const (
 	Query             = "query"
 	StartTime         = "starttime"
 	Count             = "count"
+	First             = "first"
+	Offset            = "offset"
+	Print             = "print"
 )

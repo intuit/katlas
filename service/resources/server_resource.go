@@ -175,7 +175,7 @@ func (s ServerResource) QueryHandler(w http.ResponseWriter, r *http.Request) {
 
 	obj, err := s.QuerySvc.GetQueryResult(queryMap)
 	if err != nil {
-		http.Error(w, "Service Error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -684,13 +684,7 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	var total float64
-	for _, res := range response[util.Objects].([]interface{}) {
-		val, ok := res.(map[string]interface{})[util.Count]
-		if ok {
-			total = val.(float64)
-		}
-	}
+	total := apis.GetTotalCnt(response)
 
 	// get query with pagination
 	query, err = s.QSLSvc.CreateDgraphQuery(vars[util.Query], false)
