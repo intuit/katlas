@@ -32,7 +32,6 @@ script:
   - docker images katlas/katlas-browser:${TRAVIS_COMMIT_SHORTID}
 
 after_success:
-  - sleep 5s
   - cd $TRAVIS_BUILD_DIR/service
   - bash <(curl -s https://codecov.io/bash)
   - cd $TRAVIS_BUILD_DIR/app
