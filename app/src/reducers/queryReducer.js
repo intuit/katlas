@@ -15,7 +15,8 @@ export default function query(state = initialState.query, action) {
         current: action.queryStr,
         page: action.page,
         rowsPerPage: action.rowsPerPage,
-        isWaiting: true
+        isWaiting: true,
+        isQSL: action.isQSL
       };
       return newState;
     case SUBMIT_QUERY:
@@ -27,8 +28,8 @@ export default function query(state = initialState.query, action) {
     case RECEIVE_QUERY:
       newState = {
         ...state,
-        results: action.results,
-        count: action.count,
+        results: action.json.objects,
+        count: action.json.count,
         isWaiting: false
       };
       return newState;

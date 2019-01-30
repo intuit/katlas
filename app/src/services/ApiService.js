@@ -14,9 +14,11 @@ const QUERY_METADATA_SERVICE_PATH = '/metadata/';
 const ENTITY_SERVICE_PATH = '/entity/uid/';
 
 export default class ApiService {
-  static getQueryResult(query) {
+  static getQueryResult(query, page, rowsPerPage) {
     const params = {
-      [QUERY_KEYWORD_PARAM_NAME]: query
+      [QUERY_KEYWORD_PARAM_NAME]: query,
+      first: rowsPerPage,
+      offset: page * rowsPerPage
     };
     //load env provided URL at query time to allow conf.js to load it in time
     //in testing
@@ -33,15 +35,14 @@ export default class ApiService {
     const rootEntityQuery = querySegments[0];
     // inject the pagination if not provided
     if (!rootEntityQuery.includes('$$')) {
-      const matches = QSLRegEx.exec(
-        rootEntityQuery
-      );
+      const matches = QSLRegEx.exec(rootEntityQuery);
       if (matches) {
         const objType = matches[1];
         const filter = matches[2];
         const fields = matches[3];
-        const pagination = `$$first=${rowsPerPage},offset=${page*rowsPerPage}`
-        querySegments[0] = `${objType}[${filter}${pagination}]{${fields}}`
+        const pagination = `$$first=${rowsPerPage},offset=${page *
+          rowsPerPage}`;
+        querySegments[0] = `${objType}[${filter}${pagination}]{${fields}}`;
       }
     }
 
@@ -63,7 +64,10 @@ export default class ApiService {
 
   static getMetadata(objtype) {
     return requestHelper(
-      getServiceURL() + ALL_SERVICE_CONTEXT + QUERY_METADATA_SERVICE_PATH + objtype
+      getServiceURL() +
+        ALL_SERVICE_CONTEXT +
+        QUERY_METADATA_SERVICE_PATH +
+        objtype
     );
   }
 }

@@ -11,6 +11,7 @@ import Paper from '@material-ui/core/Paper';
 import TablePagination from '@material-ui/core/TablePagination';
 
 import { ResultPaginationActionsWrapped } from './ResultPaginationActions';
+import { getQSLObjTypes } from '../../utils/validate';
 
 // Customized table cell theme
 const CustomTableCell = withStyles(theme => ({
@@ -124,3 +125,26 @@ class ResultList extends Component {
 }
 
 export default withStyles(styles)(ResultList);
+
+// generate the layout based on the metadata and the query
+// objtype: {
+//   fieldname: {
+//     displayname:"",
+//     representsfunc: func
+//   }
+// }
+const getQueryLayout = (queryStr, metadata) => {
+  let layout = {};
+  const objTypes = getQSLObjTypes(queryStr);
+  objTypes.forEach(objType => {
+    let fieldLayout = {};
+    const objMeta = metadata[objType];
+    objMeta.fields.forEach(field => {
+      fieldLayout[field.fieldname] = {
+        displayName: "",
+        representsFunc: null
+      }
+    });
+    layout[objType] = fieldLayout;
+  });
+};

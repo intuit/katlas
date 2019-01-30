@@ -24,38 +24,37 @@ export function submitQuery(query) {
   };
 }
 
-export const requestQuery = (queryStr, page, rowsPerPage) => ({
+export const requestQuery = (queryStr, isQSL, page, rowsPerPage) => ({
   type: types.REQUEST_QUERY,
   queryStr,
+  isQSL,
   page,
   rowsPerPage
 });
 
 export function fetchQuery(query, page, rowsPerPage) {
   return dispatch => {
-    dispatch(requestQuery(query, page, rowsPerPage));
     let requestPromise;
 
     if (query.includes(QSL_TAG)) {
+      dispatch(requestQuery(query, true, page, rowsPerPage));
       const objTypes = getQSLObjTypes(query);
       // cache metadata
       objTypes.forEach(objType => dispatch(fetchMetadata(objType)));
 
       requestPromise = ApiService.getQSLResult(query, page, rowsPerPage);
     } else {
-      requestPromise = ApiService.getQueryResult(query);
+      dispatch(requestQuery(query, true, page, rowsPerPage));
+      requestPromise = ApiService.getQueryResult(query, page, rowsPerPage);
     }
 
-    return requestPromise
-      .then(handleResponse)
-      .then(([results, count]) => dispatch(receiveQuery(results, count)));
+    return requestPromise.then(json => dispatch(receiveQuery(json)));
   };
 }
 
-export const receiveQuery = (results, count) => ({
+export const receiveQuery = json => ({
   type: types.RECEIVE_QUERY,
-  results,
-  count
+  json
 });
 
 export const updatePagination = (page, rowsPerPage) => {
@@ -63,36 +62,6 @@ export const updatePagination = (page, rowsPerPage) => {
     dispatch(fetchQuery(getState().query.current, page, rowsPerPage));
   };
 };
-
-function handleResponse(json) {
-  let results = [];
-  let existingUids = {};
-  let count = 0;
-  for (let objKey in json) {
-    let objArr = json[objKey];
-    if (objKey === 'count') {
-      count = objArr;
-      continue;
-    }
-
-    if (objArr.length) {
-      objArr.forEach(obj => {
-        //screen out duplicate UID entries
-        if (!existingUids[obj.uid]) {
-          results.push(obj);
-          existingUids[obj.uid] = true;
-        }
-      });
-    }
-  }
-
-  // TODO, as search query does not support pagination, there is no count returned.
-  // will remove this once it supports pagination
-  if (count === 0) {
-    count = results.length;
-  }
-  return [results, count];
-}
 
 export const requestMetadata = objType => ({
   type: types.REQUEST_METADATA,

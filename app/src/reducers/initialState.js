@@ -3,6 +3,7 @@ export default {
     current: '',
     lastSubmitted: '',
     isWaiting: false,
+    isQSL: false,
     results: [],
     page: 0,
     rowsPerPage: 25,
