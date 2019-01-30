@@ -42,7 +42,7 @@ export const rowCellsFromLayout = (item, layout) => {
   let obj = item;
   for (let objType in layout) {
     obj = navEmbeddedObject(obj, objType);
-    if (obj === undefined) {
+    if (obj === undefined || obj === null) {
       // it could be the depth 1 has value but once drill down(depth 2) it could be null
       // since we only show first row from the first array and not reverse back and try another row if the depth 2 has value or not
       continue;
@@ -70,6 +70,9 @@ export const rowCellsFromLayout = (item, layout) => {
 
 // get the object using provided object type among all the attributes (depth = 1)
 const navEmbeddedObject = (obj, objType) => {
+  if (obj === null) {
+    return obj;
+  }
   if (obj.objtype === objType) {
     return obj;
   }
@@ -87,6 +90,7 @@ const navEmbeddedObject = (obj, objType) => {
       }
     }
   }
+  return null;
 };
 
 // The input is the field of the metadata
