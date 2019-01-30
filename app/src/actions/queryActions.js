@@ -44,13 +44,15 @@ export function fetchQuery(query, page, rowsPerPage) {
 
       requestPromise = ApiService.getQSLResult(query, page, rowsPerPage);
     } else {
-      dispatch(requestQuery(query, true, page, rowsPerPage));
+      dispatch(requestQuery(query, false, page, rowsPerPage));
       requestPromise = ApiService.getQueryResult(query, page, rowsPerPage);
     }
 
-    return requestPromise.then(json =>
-      dispatch(receiveQuery(json.objects, json.count))
-    );
+    return requestPromise.then(json => {
+      if (json != null) {
+        dispatch(receiveQuery(json.objects, json.count));
+      }
+    });
   };
 }
 

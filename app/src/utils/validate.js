@@ -20,3 +20,23 @@ export function getQSLObjTypes(query) {
   });
   return objTypes;
 }
+
+// get all the object and the projection requested
+export function getQSLObjTypesAndProjection(query) {
+  const queryProjection = {};
+  const querySegments = query.split('.');
+  querySegments.forEach(segment => {
+    const matches = QSLRegEx.exec(segment);
+    if (matches) {
+      const objType = matches[1];
+      const projection = matches[3];
+      const fields =
+        projection === '*'
+          ? '*'
+          : projection.split(',').map(p => p.substring(1));
+
+      queryProjection[objType] = fields;
+    }
+  });
+  return queryProjection;
+}
