@@ -50,7 +50,7 @@ after_success:
     else
         echo "Integration Test - Success!";
         if [ "$TRAVIS_BRANCH" == "master" ]; then
-            # Login to docker hub
+            #Login to docker hub
             echo "$DOCKER_PASSWORD" |docker login -u $DOCKER_USERNAME --password-stdin
             # Push image to docker hub
             docker push katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
