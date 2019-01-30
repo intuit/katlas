@@ -155,9 +155,9 @@ const MOCK_RESP_DUPE = {
       cluster: [
         {
           k8sobj: 'k8sobj',
-          name: 'paas-prod-east2.cluster.k8s.local',
+          name: 'a.cluster.k8s.local',
           objtype: 'cluster',
-          resourceid: 'cluster:paas-prod-east2.cluster.k8s.local',
+          resourceid: 'cluster:a.cluster.k8s.local',
           resourceversion: '0',
           uid: '0x15fa0c'
         }
@@ -172,11 +172,11 @@ const MOCK_RESP_DUPE = {
           creationtime: '2019-01-17T22:52:00Z',
           k8sobj: 'k8sobj',
           labels:
-            '{"iks.intuit.com/owner":"iksm","iks.intuit.com/prune-label":"dev-devx-cmk-controller-use2-prd-paas","name":"dev-devx-cmk-controller-use2-prd-paas"}',
-          name: 'dev-devx-cmk-controller-use2-prd-paas',
+            '{"foobar.com/owner":"iksm","foobar.com/prune-label":"foo-controller-use2","name":"foo-controller-use2"}',
+          name: 'foo-controller-use2',
           objtype: 'namespace',
           resourceid:
-            'namespace:paas-prod-east2.cluster.k8s.local:dev-devx-cmk-controller-use2-prd-paas',
+            'namespace:a.cluster.k8s.local:foo-controller-use2',
           resourceversion: '38812781',
           uid: '0x1e5e81'
         }
@@ -187,7 +187,7 @@ const MOCK_RESP_DUPE = {
           name: 'ip-10-150-106-103.us-east-2.compute.internal',
           objtype: 'node',
           resourceid:
-            'node:paas-prod-east2.cluster.k8s.local:ip-10-150-106-103.us-east-2.compute.internal',
+            'node:a.cluster.k8s.local:ip-10-150-106-103.us-east-2.compute.internal',
           resourceversion: '0',
           uid: '0x1e1062'
         }
@@ -202,7 +202,7 @@ const MOCK_RESP_DUPE = {
           numreplicas: '1',
           objtype: 'replicaset',
           resourceid:
-            'replicaset:paas-prod-east2.cluster.k8s.local:dev-devx-cmk-controller-use2-prd-paas:cmk-controller-prd-qal-98f47cbc5',
+            'replicaset:a.cluster.k8s.local:foo-controller-use2:cmk-controller-prd-qal-98f47cbc5',
           resourceversion: '41162225',
           uid: '0x19f1b1'
         }
@@ -210,7 +210,7 @@ const MOCK_RESP_DUPE = {
       ownertype: 'replicaset',
       phase: 'Running',
       resourceid:
-        'pod:paas-prod-east2.cluster.k8s.local:dev-devx-cmk-controller-use2-prd-paas:cmk-controller-prd-qal-98f47cbc5-wf78d',
+        'pod:a.cluster.k8s.local:foo-controller-use2:cmk-controller-prd-qal-98f47cbc5-wf78d',
       resourceversion: '41162224',
       starttime: '2019-01-24T01:06:47Z',
       volumes:
@@ -220,9 +220,9 @@ const MOCK_RESP_DUPE = {
       cluster: [
         {
           k8sobj: 'k8sobj',
-          name: 'paas-preprod-west2.cluster.k8s.local',
+          name: 'a-west2.cluster.k8s.local',
           objtype: 'cluster',
-          resourceid: 'cluster:paas-preprod-west2.cluster.k8s.local',
+          resourceid: 'cluster:a-west2.cluster.k8s.local',
           resourceversion: '0',
           uid: '0x175990'
         }
@@ -237,11 +237,11 @@ const MOCK_RESP_DUPE = {
           creationtime: '2018-09-18T22:01:31Z',
           k8sobj: 'k8sobj',
           labels:
-            '{"iks.intuit.com/owner":"iksm","iks.intuit.com/prune-label":"dev-devx-cmdb-api-usw2-ppd-e2e","name":"dev-devx-cmdb-api-usw2-ppd-e2e"}',
-          name: 'dev-devx-cmdb-api-usw2-ppd-e2e',
+            '{"foobar.com/owner":"iksm","foobar.com/prune-label":"foo-api-usw2-ns","name":"foo-api-usw2-ns"}',
+          name: 'foo-api-usw2-ns',
           objtype: 'namespace',
           resourceid:
-            'namespace:paas-preprod-west2.cluster.k8s.local:dev-devx-cmdb-api-usw2-ppd-e2e',
+            'namespace:a-west2.cluster.k8s.local:foo-api-usw2-ns',
           resourceversion: '29971588',
           uid: '0x116621'
         }
@@ -258,14 +258,14 @@ const MOCK_RESP_DUPE = {
           numreplicas: '1',
           objtype: 'deployment',
           resourceid:
-            'deployment:paas-preprod-west2.cluster.k8s.local:dev-devx-cmdb-api-usw2-ppd-e2e:cutlass-ui-deployment',
+            'deployment:a-west2.cluster.k8s.local:foo-api-usw2-ns:cutlass-ui-deployment',
           resourceversion: '93979697',
           strategy: 'RollingUpdate',
           uid: '0x147369'
         }
       ],
       resourceid:
-        'replicaset:paas-preprod-west2.cluster.k8s.local:dev-devx-cmdb-api-usw2-ppd-e2e:cutlass-ui-deployment-b6cc479',
+        'replicaset:a-west2.cluster.k8s.local:foo-api-usw2-ns:cutlass-ui-deployment-b6cc479',
       resourceversion: '84921498'
     }
   ]
