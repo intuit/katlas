@@ -3,11 +3,12 @@ package apis
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/intuit/katlas/service/db"
-	"github.com/stretchr/testify/assert"
 	"strconv"
 	"sync"
 	"testing"
+
+	"github.com/intuit/katlas/service/db"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateEntity(t *testing.T) {
@@ -16,22 +17,22 @@ func TestCreateEntity(t *testing.T) {
 	s := NewEntityService(dc)
 	// create node
 	node := map[string]interface{}{
-		"objtype": "K8sNode",
+		"objtype": "k8snode",
 		"name":    "node02",
 		"labels":  "testingnode02",
 	}
 	// create index for query
-	dc.CreateSchema(db.Schema{Predicate: "name", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "resourceid", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "objtype", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	nids, _ := s.CreateEntity("K8sNode", node)
+	dc.CreateSchema(db.Schema{Predicate: "name", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "resourceid", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "objtype", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	nids, _ := s.CreateEntity("k8snode", node)
 	var nid string
 	for _, v := range nids {
 		nid = v
 		break
 	}
 	defer s.DeleteEntity(nid)
-	n, _ := s.GetEntity("K8sNode", nid)
+	n, _ := s.GetEntity("k8snode", nid)
 	o := n["objects"].([]interface{})[0].(map[string]interface{})
 	if val, ok := o["labels"]; ok {
 		assert.Equal(t, val, "testingnode02", "node label not equals to testnode02")
@@ -45,13 +46,13 @@ func TestDeleteEntityByRid(t *testing.T) {
 	s := NewEntityService(dc)
 	// create node
 	node := map[string]interface{}{
-		"objtype":    "K8sNode",
+		"objtype":    "k8snode",
 		"name":       "node02",
 		"labels":     "testingnode02",
 		"resourceid": "noderid",
 	}
-	s.CreateEntity("K8sNode", node)
-	err := s.DeleteEntityByResourceID("K8sNode", "noderid")
+	s.CreateEntity("k8snode", node)
+	err := s.DeleteEntityByResourceID("k8snode", "noderid")
 	assert.Nil(t, err)
 	dc.Close()
 }
@@ -63,51 +64,51 @@ func TestCreateEntityWithMeta(t *testing.T) {
 	s := NewEntityService(dc)
 	q := NewQueryService(dc)
 	// create index for query
-	dc.CreateSchema(db.Schema{Predicate: "name", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "objtype", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "resourceid", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "namespace", PType: "uid", Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "name", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "objtype", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "resourceid", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "namespace", Type: "uid", Tokenizer: []string{"term"}})
 
 	podMeta := `{
-		"name": "Pod",
+		"name": "pod",
         "objtype" : "metadata",
 		"fields": [
 			{
-				"fieldName": "name",
-				"fieldType": "string",
+				"fieldname": "name",
+				"fieldtype": "string",
 				"mandatory": true,
 				"index": true,
-				"cardinality": "One"
+				"cardinality": "one"
 			},
 			{
-				"fieldName": "labels",
-				"fieldType": "json",
+				"fieldname": "labels",
+				"fieldtype": "json",
 				"mandatory": true,
 				"index": true,
-				"cardinality": "One"
+				"cardinality": "one"
 			},
 			{
-				"fieldName": "objtype",
-				"fieldType": "string",
+				"fieldname": "objtype",
+				"fieldtype": "string",
 				"mandatory": true,
 				"index": true,
-				"cardinality": "One"
+				"cardinality": "one"
 			},
 			{
-				"fieldName": "namespace",
-				"fieldType": "relationship",
-				"refDataType": "Namespace",
+				"fieldname": "namespace",
+				"fieldtype": "relationship",
+				"refdatatype": "namespace",
 				"mandatory": true,
 				"index": false,
-				"cardinality": "One"
+				"cardinality": "one"
 			},
 			{
-				"fieldName": "cluster",
-				"fieldType": "relationship",
-				"refDataType": "Cluster",
+				"fieldname": "cluster",
+				"fieldtype": "relationship",
+				"refdatatype": "cluster",
 				"mandatory": true,
 				"index": false,
-				"cardinality": "One"
+				"cardinality": "one"
 			}
 		]
 	}`
@@ -120,23 +121,23 @@ func TestCreateEntityWithMeta(t *testing.T) {
 	s.CreateEntity("metadata", dataMap)
 	// create namespace meta
 	nsMeta := `{
-		"name": "Namespace",
+		"name": "namespace",
         "objtype" : "metadata",
 		"fields": [
 			{
-				"fieldName": "name",
-				"fieldType": "string",
+				"fieldname": "name",
+				"fieldtype": "string",
 				"mandatory": true,
 				"index": true,
-				"cardinality": "One"
+				"cardinality": "one"
 			},
 			{
-				"fieldName": "cluster",
-				"fieldType": "relationship",
-				"refDataType": "Cluster",
+				"fieldname": "cluster",
+				"fieldtype": "relationship",
+				"refdatatype": "cluster",
 				"mandatory": true,
 				"index": false,
-				"cardinality": "One"
+				"cardinality": "one"
 			}
 		]
 	}`
@@ -144,15 +145,15 @@ func TestCreateEntityWithMeta(t *testing.T) {
 	json.Unmarshal([]byte(nsMeta), &nsMap)
 	s.CreateEntity("metadata", nsMap)
 	clusterMeta := `{
-		"name": "Cluster",
+		"name": "cluster",
         "objtype" : "metadata",
 		"fields": [
 			{
-				"fieldName": "name",
-				"fieldType": "string",
+				"fieldname": "name",
+				"fieldtype": "string",
 				"mandatory": true,
 				"index": true,
-				"cardinality": "One"
+				"cardinality": "one"
 			}
 			
 		]
@@ -161,7 +162,7 @@ func TestCreateEntityWithMeta(t *testing.T) {
 	json.Unmarshal([]byte(clusterMeta), &clMap)
 	s.CreateEntity("metadata", clMap)
 
-	list := []string{"Pod", "Cluster", "Namespace"}
+	list := []string{"pod", "cluster", "namespace"}
 	for _, n := range list {
 		// query to get created pod metadata
 		qm := map[string][]string{"name": {n}, "objtype": {"metadata"}}
@@ -175,7 +176,7 @@ func TestCreateEntityWithMeta(t *testing.T) {
 		}
 	}
 
-	// create Pod data
+	// create pod data
 	pod := `{
 		"name": "pod01",
         "labels": {
@@ -183,7 +184,7 @@ func TestCreateEntityWithMeta(t *testing.T) {
             "label": "test"
 		},
 		"k8sobj": "K8sObj",
-        "objtype": "Pod",
+        "objtype": "pod",
         "namespace": "default",
         "cluster": "cluster01",
 		"resourceversion": "131"
@@ -193,21 +194,21 @@ func TestCreateEntityWithMeta(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	uids, err := s.CreateEntity("Pod", podMap)
+	uids, err := s.CreateEntity("pod", podMap)
 	if err != nil {
 		panic(err)
 	}
 	podMap["resourceversion"] = "132"
 	podMap["namespace"] = "default"
 	podMap["cluster"] = "cluster01"
-	s.CreateEntity("Pod", podMap)
+	s.CreateEntity("pod", podMap)
 
 	for _, uid := range uids {
-		pod, err := s.GetEntity("Pod", uid)
+		pod, err := s.GetEntity("pod", uid)
 		if err != nil {
-			assert.Fail(t, "Failed to get created Pod")
+			assert.Fail(t, "Failed to get created pod")
 		}
-		fs, _ := ms.GetMetadataFields("Pod")
+		fs, _ := ms.GetMetadataFields("pod")
 		for _, f := range fs {
 			if f.FieldType == "relationship" {
 				for _, o := range pod["objects"].([]interface{}) {
@@ -228,52 +229,52 @@ func TestSyncEntities(t *testing.T) {
 	s := NewEntityService(dc)
 	q := NewQueryService(dc)
 	// create index for query
-	dc.CreateSchema(db.Schema{Predicate: "name", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "objtype", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "resourceid", PType: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "namespace", PType: "uid"})
-	dc.CreateSchema(db.Schema{Predicate: "cluster", PType: "uid"})
+	dc.CreateSchema(db.Schema{Predicate: "name", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "objtype", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "resourceid", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "namespace", Type: "uid"})
+	dc.CreateSchema(db.Schema{Predicate: "cluster", Type: "uid"})
 
 	podMeta := `{
-		"name": "Pod",
+		"name": "pod",
         "objtype" : "metadata",
 		"fields": [
 			{
-				"fieldName": "name",
-				"fieldType": "string",
+				"fieldname": "name",
+				"fieldtype": "string",
 				"mandatory": true,
 				"index": true,
-				"cardinality": "One"
+				"cardinality": "one"
 			},
 			{
-				"fieldName": "labels",
-				"fieldType": "json",
+				"fieldname": "labels",
+				"fieldtype": "json",
 				"mandatory": true,
 				"index": true,
-				"cardinality": "One"
+				"cardinality": "one"
 			},
 			{
-				"fieldName": "objtype",
-				"fieldType": "string",
+				"fieldname": "objtype",
+				"fieldtype": "string",
 				"mandatory": true,
 				"index": true,
-				"cardinality": "One"
+				"cardinality": "one"
 			},
 			{
-				"fieldName": "namespace",
-				"fieldType": "relationship",
-				"refDataType": "Namespace",
+				"fieldname": "namespace",
+				"fieldtype": "relationship",
+				"refdatatype": "namespace",
 				"mandatory": true,
 				"index": false,
-				"cardinality": "One"
+				"cardinality": "one"
 			},
 			{
-				"fieldName": "cluster",
-				"fieldType": "relationship",
-				"refDataType": "Cluster",
+				"fieldname": "cluster",
+				"fieldtype": "relationship",
+				"refdatatype": "cluster",
 				"mandatory": true,
 				"index": false,
-				"cardinality": "One"
+				"cardinality": "one"
 			}
 		]
 	}`
@@ -286,23 +287,23 @@ func TestSyncEntities(t *testing.T) {
 	s.CreateEntity("metadata", dataMap)
 	// create namespace meta
 	nsMeta := `{
-		"name": "Namespace",
+		"name": "namespace",
         "objtype" : "metadata",
 		"fields": [
 			{
-				"fieldName": "name",
-				"fieldType": "string",
+				"fieldname": "name",
+				"fieldtype": "string",
 				"mandatory": true,
 				"index": true,
-				"cardinality": "One"
+				"cardinality": "one"
 			},
 			{
-				"fieldName": "cluster",
-				"fieldType": "relationship",
-				"refDataType": "Cluster",
+				"fieldname": "cluster",
+				"fieldtype": "relationship",
+				"refdatatype": "cluster",
 				"mandatory": true,
 				"index": false,
-				"cardinality": "One"
+				"cardinality": "one"
 			}
 		]
 	}`
@@ -310,15 +311,15 @@ func TestSyncEntities(t *testing.T) {
 	json.Unmarshal([]byte(nsMeta), &nsMap)
 	s.CreateEntity("metadata", nsMap)
 	clusterMeta := `{
-		"name": "Cluster",
+		"name": "cluster",
         "objtype" : "metadata",
 		"fields": [
 			{
-				"fieldName": "name",
-				"fieldType": "string",
+				"fieldname": "name",
+				"fieldtype": "string",
 				"mandatory": true,
 				"index": true,
-				"cardinality": "One"
+				"cardinality": "one"
 			}
 			
 		]
@@ -327,7 +328,7 @@ func TestSyncEntities(t *testing.T) {
 	json.Unmarshal([]byte(clusterMeta), &clMap)
 	s.CreateEntity("metadata", clMap)
 
-	list := []string{"Pod", "Cluster", "Namespace"}
+	list := []string{"pod", "cluster", "namespace"}
 	for _, n := range list {
 		// query to get created pod metadata
 		qm := map[string][]string{"name": {n}, "objtype": {"metadata"}}
@@ -341,7 +342,7 @@ func TestSyncEntities(t *testing.T) {
 		}
 	}
 
-	// create Pod data
+	// create pod data
 	pod := `{
 		"name": "pod01",
         "labels": {
@@ -349,7 +350,7 @@ func TestSyncEntities(t *testing.T) {
             "label": "test"
 		},
 		"k8sobj": "K8sObj",
-        "objtype": "Pod",
+        "objtype": "pod",
         "namespace": "default01",
         "cluster": "cluster01",
 		"resourceversion": "131"
@@ -359,73 +360,73 @@ func TestSyncEntities(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	uids, err := s.CreateEntity("Pod", podMap)
+	uids, err := s.CreateEntity("pod", podMap)
 	if err != nil {
 		panic(err)
 	}
 	podMap["cluster"] = "cluster01"
 	podMap["namespace"] = "default01"
-	s.SyncEntities("Pod", []map[string]interface{}{podMap})
+	s.SyncEntities("pod", []map[string]interface{}{podMap})
 	for _, uid := range uids {
-		pod, _ := s.GetEntity("Pod", uid)
+		pod, _ := s.GetEntity("pod", uid)
 		o := pod["objects"].([]interface{})[0].(map[string]interface{})
-		assert.Equal(t, "131", o["resourceversion"].(string), "Pod got unexpected update")
+		assert.Equal(t, "131", o["resourceversion"].(string), "pod got unexpected update")
 	}
 	// simulate sync pod with new version
 	podMap["resourceversion"] = "132"
 	podMap["cluster"] = "cluster01"
 	podMap["namespace"] = "default01"
-	s.SyncEntities("Pod", []map[string]interface{}{podMap})
+	s.SyncEntities("pod", []map[string]interface{}{podMap})
 	for _, uid := range uids {
-		pod, _ := s.GetEntity("Pod", uid)
+		pod, _ := s.GetEntity("pod", uid)
 		o := pod["objects"].([]interface{})[0].(map[string]interface{})
-		assert.Equal(t, "132", o["resourceversion"].(string), "Pod got unexpected update")
+		assert.Equal(t, "132", o["resourceversion"].(string), "pod got unexpected update")
 	}
 	// simulate pod is not exist in k8s cluster and need to remove from database
 	podMap["cluster"] = "cluster01"
 	podMap["namespace"] = "default01"
 	podMap["name"] = "pod02"
-	s.SyncEntities("Pod", []map[string]interface{}{podMap})
-	qm := map[string][]string{"name": {"pod01"}, "objtype": {"Pod"}}
+	s.SyncEntities("pod", []map[string]interface{}{podMap})
+	qm := map[string][]string{"name": {"pod01"}, "objtype": {"pod"}}
 	n, _ := q.GetQueryResult(qm)
-	assert.Equal(t, 0, len(n["objects"].([]interface{})), "Pod01 still exist")
-	qm2 := map[string][]string{"name": {"pod02"}, "objtype": {"Pod"}}
+	assert.Equal(t, 0, len(n["objects"].([]interface{})), "pod01 still exist")
+	qm2 := map[string][]string{"name": {"pod02"}, "objtype": {"pod"}}
 	n2, _ := q.GetQueryResult(qm2)
 	o := n2["objects"].([]interface{})[0].(map[string]interface{})
-	assert.Equal(t, "pod02", o["name"].(string), "Pod got unexpected creation")
+	assert.Equal(t, "pod02", o["name"].(string), "pod got unexpected creation")
 
 	// sync namespace
 	nsData := map[string]interface{}{
 		"name":            "default01",
 		"cluster":         "cluster01",
 		"k8sobj":          "K8sObj",
-		"objtype":         "Namespace",
+		"objtype":         "namespace",
 		"resourceversion": "0",
 	}
-	s.SyncEntities("Namespace", []map[string]interface{}{nsData})
-	qm3 := map[string][]string{"name": {"default01"}, "objtype": {"Namespace"}}
+	s.SyncEntities("namespace", []map[string]interface{}{nsData})
+	qm3 := map[string][]string{"name": {"default01"}, "objtype": {"namespace"}}
 	n3, _ := q.GetQueryResult(qm3)
 	o3 := n3["objects"].([]interface{})[0].(map[string]interface{})
-	assert.Equal(t, "default01", o3["name"].(string), "Namespace default01 updated")
+	assert.Equal(t, "default01", o3["name"].(string), "namespace default01 updated")
 
 	nsData["cluster"] = "cluster01"
 	nsData["name"] = "default02"
-	s.SyncEntities("Namespace", []map[string]interface{}{nsData})
-	qm4 := map[string][]string{"name": {"default01"}, "objtype": {"Namespace"}}
+	s.SyncEntities("namespace", []map[string]interface{}{nsData})
+	qm4 := map[string][]string{"name": {"default01"}, "objtype": {"namespace"}}
 	n4, _ := q.GetQueryResult(qm4)
 	assert.Equal(t, 0, len(n4["objects"].([]interface{})), "default namespace still exist")
-	qm5 := map[string][]string{"name": {"default02"}, "objtype": {"Namespace"}}
+	qm5 := map[string][]string{"name": {"default02"}, "objtype": {"namespace"}}
 	n5, _ := q.GetQueryResult(qm5)
 	o5 := n5["objects"].([]interface{})[0].(map[string]interface{})
-	assert.Equal(t, "default02", o5["name"].(string), "Namespace got unexpected creation")
+	assert.Equal(t, "default02", o5["name"].(string), "namespace got unexpected creation")
 	s.dbclient.DeleteEntity(o5["uid"].(string))
 
 	for _, uid := range uids {
-		pod, err := s.GetEntity("Pod", uid)
+		pod, err := s.GetEntity("pod", uid)
 		if err != nil {
-			assert.Fail(t, "Failed to get created Pod")
+			assert.Fail(t, "Failed to get created pod")
 		}
-		fs, _ := ms.GetMetadataFields("Pod")
+		fs, _ := ms.GetMetadataFields("pod")
 		for _, f := range fs {
 			if f.FieldType == "relationship" {
 				for _, o := range pod["objects"].([]interface{}) {
@@ -443,8 +444,10 @@ func TestMultiCreateEntity(t *testing.T) {
 	dc := db.NewDGClient("127.0.0.1:9080")
 	q := NewQueryService(dc)
 	defer dc.Close()
+	dc.CreateSchema(db.Schema{Predicate: "name", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "resourceid", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "objtype", Type: "string", Index: true, Tokenizer: []string{"term"}})
 	s := NewEntityService(dc)
-
 	var wg sync.WaitGroup
 	rest := make(chan map[string]string)
 	wg.Add(100)
@@ -452,12 +455,12 @@ func TestMultiCreateEntity(t *testing.T) {
 		go func(version string) {
 			defer wg.Done()
 			node := map[string]interface{}{
-				"objtype":    "K8sNode",
+				"objtype":    "k8snode",
 				"name":       "multinode",
 				"label":      version,
 				"resourceid": "cluster:ns:multinode",
 			}
-			nids, _ := s.CreateEntity("K8sNode", node)
+			nids, _ := s.CreateEntity("k8snode", node)
 			rest <- nids
 		}(strconv.Itoa(i))
 	}
@@ -466,13 +469,13 @@ func TestMultiCreateEntity(t *testing.T) {
 		go func(version string) {
 			defer wg.Done()
 			node := map[string]interface{}{
-				"objtype":         "K8sNode",
+				"objtype":         "k8snode",
 				"name":            "multinode2",
 				"label":           version,
 				"resourceid":      "cluster:ns:multinode2",
 				"resourceversion": version,
 			}
-			nids, _ := s.CreateEntity("K8sNode", node)
+			nids, _ := s.CreateEntity("k8snode", node)
 			rest <- nids
 		}(strconv.Itoa(i))
 	}
@@ -483,10 +486,10 @@ func TestMultiCreateEntity(t *testing.T) {
 		}
 	}()
 	wg.Wait()
-	qm := map[string][]string{"resourceid": {"cluster:ns:multinode"}, "objtype": {"K8sNode"}}
+	qm := map[string][]string{"resourceid": {"cluster:ns:multinode"}, "objtype": {"k8snode"}}
 	n, _ := q.GetQueryResult(qm)
 	o := n["objects"].([]interface{})
 	assert.Equal(t, 1, len(o), "only one object expect to be created with same resourceid")
-	s.DeleteEntityByResourceID("K8sNode", "cluster:ns:multinode")
-	s.DeleteEntityByResourceID("K8sNode", "cluster:ns:multinode2")
+	s.DeleteEntityByResourceID("k8snode", "cluster:ns:multinode")
+	s.DeleteEntityByResourceID("k8snode", "cluster:ns:multinode2")
 }

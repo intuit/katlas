@@ -1,0 +1,69 @@
+---
+title: Home
+---
+<!DOCTYPE html>
+<html lang="en">
+  {% include head.html %}
+  <body>
+    {% include nav.html %}
+
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+      <div class="container">
+        <!--<img src="{{ site.baseurl }}/guides/KAtlas-HighLevel.svg" class="img-fluid" alt="KAtlas High Level Overview">-->
+        <!-- <div class="embed-responsive embed-responsive-16by9">
+          <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0" allowfullscreen></iframe>
+        </div> -->
+        <p><i>K-Atlas</i> (pronounced as "cutlass") is an open-source, distributed graph based platform to automatically collect, discover, explore and relate multi-cluster Kubernetes resources and metadata.
+        </p>
+        <p><a class="btn btn-outline-inverse btn-lg" href="{{ site.baseurl }}/getting-started" role="button">Get Started</a></p>
+      </div>
+    </div>
+    <div class="container">
+      <div class="md-guide-feature">
+        <h1 class="no-anchor">Learn more about K-Atlas</h1>
+        
+          <p class="lead" style="margin-bottom: 60px"><em>K-Atlas</em> provides discovery for enterprise grade Kubernetes</p>
+        
+        <div class="row">
+
+          <div class="col-sm-4">
+            <div class="icon">
+              <i class="fas fa-cubes"></i>
+            </div>
+            <h3 class="no-anchor">Multi-Cluster</h3>
+            <p>Discover and manage multiple Kubernetes clusters across the enterprise</p>
+          </div>
+          <div class="col-sm-4">
+            <div class="icon">
+              <i class="fas fa-code"></i>
+            </div>
+            <h3 class="no-anchor">Rich Queryability</h3>
+            <p>Rich, extensible query language that allows for advanced queries, joins and views</p>
+          </div>
+          <div class="col-sm-4">
+            <div class="icon">
+              <i class="fas fa-globe"></i>
+            </div>
+            <h3 class="no-anchor">Advanced Exploration</h3>
+            <p>Find hidden relationships, explore cross-cluster dependencies and more</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--
+    <hr>
+
+    <div class="container">
+      <div class="md-guide-feature">
+        <h1 class="no-anchor">Stay in the loop.</h1>
+        <p class="lead">Sign up now to get priority notifications about the <em>Markdown Guide</em>.</p>
+        <br/>
+        <a class="btn btn-default btn-lg" href="https://tinyletter.com/markdownguide" style="margin-top: -10px">Subscribe via Email</a>
+      </div>
+    </div>
+    -->
+    {% include footer.html %}
+  </body>
+</html>

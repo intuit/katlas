@@ -27,7 +27,7 @@ var namespacetests = []NamespaceTest{
 			},
 		},
 		out: map[string]interface{}{
-			"objtype":         "Namespace",
+			"objtype":         "namespace",
 			"name":            "test-namespace",
 			"resourceversion": "1",
 			"cluster":         "test2",

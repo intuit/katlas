@@ -78,14 +78,14 @@ func (t *PodHandler) ObjectCreated(obj interface{}) error {
 		return errors.New("Could not validate pod object " + pod.ObjectMeta.Name)
 	}
 	// send the object to the rest service
-	SendJSONQueryWithRetries(pod, RestSvcEndpoint+"v1/entity/Pod")
+	SendJSONQueryWithRetries(pod, RestSvcEndpoint+"v1/entity/pod")
 	return nil
 }
 
 // ObjectDeleted is called when an object is deleted
 func (t *PodHandler) ObjectDeleted(obj interface{}, key string) error {
 	log.Info("PodHandler.ObjectDeleted")
-	SendDeleteRequest(RestSvcEndpoint + "v1/entity/Pod/Pod:" + ClusterName + ":" + strings.Replace(key, "/", ":", -1))
+	SendDeleteRequest(RestSvcEndpoint + "v1/entity/pod/pod:" + ClusterName + ":" + strings.Replace(key, "/", ":", -1))
 	return nil
 }
 
@@ -100,5 +100,5 @@ func (t *PodHandler) ObjectUpdated(objOld, objNew interface{}) error {
 // or if the api crashes while processing some events
 func PodSynchronize(client kubernetes.Interface) {
 	clusterpodslist, _ := client.CoreV1().Pods(AppNamespace).List(v1.ListOptions{})
-	SendJSONQueryWithRetries(clusterpodslist.Items, RestSvcEndpoint+"v1/sync/Pod")
+	SendJSONQueryWithRetries(clusterpodslist.Items, RestSvcEndpoint+"v1/sync/pod")
 }

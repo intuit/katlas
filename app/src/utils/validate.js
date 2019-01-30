@@ -4,11 +4,10 @@ export function validateIpAddress(input) {
   return !!input.match(ipFormat);
 }
 
+export const QSLRegEx = /([a-zA-Z0-9]+)\[?(?:(@[",@$=><!a-zA-Z0-9\-.|&:_]*|\**|\$\$[a-zA-Z0-9,=]+))\]?\{([*|[,@"=a-zA-Z0-9-]*)/;
 export function validateQslQuery(input) {
-  //TODO:DM - confirm with @kianjones that this is a reasonable first attempt at a QSL query validation matcher
-  const qslFormat = /.*\[@.*\].*/g;
   //type coerce match array or null value to bool
-  return !!input.match(qslFormat);
+  return !!input.match(QSLRegEx);
 }
 
 export function validateHexId(input) {

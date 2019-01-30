@@ -1,0 +1,23 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mdg-nav">
+  <div class="container">
+    <a class="navbar-brand" href="{{ site.baseurl }}/" style="margin-top: 2px; margin-bottom: 3px">
+      <img src="{{ site.baseurl }}/assets/images/katlas-logo-white.png" height="32" class="d-inline-block align-bottom" alt="" style="margin-top: 4px; padding-right: 10px">
+      K-Atlas
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup" style="margin-top: 2px">
+      <div class="navbar-nav">
+        <a class="nav-item nav-link {% if page.title == 'Getting Started' %}active{% endif %}" href="{{ site.baseurl }}/getting-started">Get Started</a>
+        <a class="nav-item nav-link {% if page.title == 'About' %}active{% endif %}" href="{{ site.baseurl }}/about">About</a>
+        <a class="nav-item nav-link {% if page.title == 'Contact' %}active{% endif %}" href="{{ site.baseurl }}/contact">Contact</a>
+      </div>
+    </div>
+    <!--
+    <form class="form-inline d-none d-lg-inline-block mt-2 mt-md-0">
+      <input type="text" class="form-control" id="search-input" placeholder="Search" style="margin-top:0">
+    </form>
+    -->
+  </div>
+</nav>

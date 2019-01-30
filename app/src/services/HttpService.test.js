@@ -10,9 +10,9 @@ it('Returns 200 for GET request, then response is as expected', () => {
       status: 200
     };
 
-    fetchMock.get('*', response, { overwriteRoutes: true });
+    fetchMock.get('http://katlas.com/v1/qsl?qslstring=Cluster', response, { overwriteRoutes: true });
 
-    return HttpService.get({
+    HttpService.get({
       url: dummyUrl,
       params: dummyParams
     }).then((response) => {
@@ -20,6 +20,7 @@ it('Returns 200 for GET request, then response is as expected', () => {
       expect(response).toEqual(response);
     });
 
+    fetchMock.reset();
 });
 
 it('Returns 204 for GET request, then response is null', () => {
@@ -31,16 +32,17 @@ it('Returns 204 for GET request, then response is null', () => {
       status: 204
     };
 
-    fetchMock.get('*', response, { overwriteRoutes: true });
+    fetchMock.get('http://katlas.com/v1/qsl?qslstring=Cluster', response, { overwriteRoutes: true });
 
-    return HttpService.get({
+    HttpService.get({
       url: dummyUrl,
       params: dummyParams
-    }).then((response) => {
+    }).then((resp) => {
       expect(fetchMock.called).toBeTruthy();
-      expect(response).toEqual(null);
+      expect(resp.status).toEqual(response.status);
     });
 
+    fetchMock.reset();
 });
 
 it('Returns 400 for GET request, then response is null', () => {
@@ -52,15 +54,16 @@ it('Returns 400 for GET request, then response is null', () => {
       status: 400
     };
 
-    fetchMock.get('*', response, { overwriteRoutes: true });
+    fetchMock.get('http://katlas.com/v1/qsl?qslstring=Cluster', response, { overwriteRoutes: true });
 
-    return HttpService.get({
+    HttpService.get({
       url: dummyUrl,
       params: dummyParams
-    }).then((response) => {
+    }).then((resp) => {
       expect(fetchMock.called).toBeTruthy();
-      expect(response).toEqual(null);
+      expect(resp.status).toEqual(response.status);
     });
 
+    fetchMock.reset();
 });
 

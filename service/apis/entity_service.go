@@ -57,14 +57,14 @@ func (s EntityService) DeleteEntity(uuid string) error {
 
 // DeleteEntityByResourceID remove object by given resourceid
 func (s EntityService) DeleteEntityByResourceID(meta string, rid string) error {
-	qm := map[string][]string{util.ResourceID: {rid}, util.ObjType: {meta}}
+	qm := map[string][]string{util.ResourceID: {rid}, util.ObjType: {meta}, util.Print: {util.ResourceID}}
 	queryService := NewQueryService(s.dbclient)
 	node, err := queryService.GetQueryResult(qm)
 	if err != nil {
 		log.Error(err)
 		return err
 	}
-	if len(node[util.Objects].([]interface{})) > 0 {
+	if node[util.Count].(float64) > 0 {
 		// got existing object id
 		for _, obj := range node[util.Objects].([]interface{}) {
 			err = s.dbclient.DeleteEntity(obj.(map[string]interface{})[util.UID].(string))
@@ -95,7 +95,10 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 	if len(fs) > 0 {
 		for _, field := range fs {
 			fieldValue, ok := data[field.FieldName]
-			if !ok || fieldValue == "" || fieldValue == nil {
+			if !ok || fieldValue == nil || ((reflect.ValueOf(fieldValue).Kind() == reflect.Interface ||
+				reflect.ValueOf(fieldValue).Kind() == reflect.Ptr ||
+				reflect.ValueOf(fieldValue).Kind() == reflect.Slice) &&
+				reflect.ValueOf(fieldValue).IsNil()) {
 				delete(data, field.FieldName)
 				continue
 			}
@@ -144,14 +147,16 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 	if mutex.TryLock(data[util.ResourceID]) {
 		defer mutex.Unlock(data[util.ResourceID])
 		// check if entity already exist
-		qm := map[string][]string{util.ResourceID: {data[util.ResourceID].(string)}, util.ObjType: {meta}}
+		qm := map[string][]string{util.ResourceID: {data[util.ResourceID].(string)},
+			util.ObjType: {meta},
+			util.Print:   {util.ResourceVersion}}
 		queryService := NewQueryService(s.dbclient)
 		node, err := queryService.GetQueryResult(qm)
 		if err != nil {
 			log.Error(err)
 			return nil, err
 		}
-		if len(node[util.Objects].([]interface{})) > 0 {
+		if node[util.Count].(float64) > 0 {
 			// got existing object id
 			uid := node[util.Objects].([]interface{})[0].(map[string]interface{})[util.UID].(string)
 			data[util.UID] = uid
@@ -289,7 +294,7 @@ func buildDataMap(k8sObj interface{}, relData interface{}, relType string, clust
 // get uid from relationship object, if object not present, create it
 func (s EntityService) getUIDFromRelData(data map[string]interface{}, objType string) (*string, error) {
 	// query by ResourceID to get uid
-	qm := map[string][]string{util.ResourceID: {data[util.ResourceID].(string)}, util.ObjType: {objType}}
+	qm := map[string][]string{util.ResourceID: {data[util.ResourceID].(string)}, util.ObjType: {objType}, util.Print: {util.ResourceID}}
 	queryService := NewQueryService(s.dbclient)
 	node, err := queryService.GetQueryResult(qm)
 	if err != nil {
@@ -297,7 +302,7 @@ func (s EntityService) getUIDFromRelData(data map[string]interface{}, objType st
 		return nil, err
 	}
 	var uid string
-	if len(node[util.Objects].([]interface{})) > 0 {
+	if node[util.Count].(float64) > 0 {
 		// got existing object id
 		uid = node[util.Objects].([]interface{})[0].(map[string]interface{})[util.UID].(string)
 	} else {

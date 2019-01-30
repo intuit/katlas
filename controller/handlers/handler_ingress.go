@@ -60,14 +60,14 @@ func (t *IngressHandler) ObjectCreated(obj interface{}) error {
 	// assert the type to a Ingress object to pull out relevant data
 	ingress := obj.(*ext_v1beta1.Ingress)
 	log.Infof("    ingressmeta: %+v", ingress)
-	SendJSONQueryWithRetries(ingress, RestSvcEndpoint+"v1/entity/Ingress")
+	SendJSONQueryWithRetries(ingress, RestSvcEndpoint+"v1/entity/ingress")
 	return nil
 }
 
 // ObjectDeleted is called when an object is deleted
 func (t *IngressHandler) ObjectDeleted(obj interface{}, key string) error {
 	log.Info("IngressHandler.ObjectDeleted")
-	SendDeleteRequest(RestSvcEndpoint + "v1/entity/Ingress/Ingress:" + ClusterName + ":" + strings.Replace(key, "/", ":", -1))
+	SendDeleteRequest(RestSvcEndpoint + "v1/entity/ingress/ingress:" + ClusterName + ":" + strings.Replace(key, "/", ":", -1))
 	return nil
 }
 
@@ -80,5 +80,5 @@ func (t *IngressHandler) ObjectUpdated(objOld, objNew interface{}) error {
 // IngressSynchronize sync all Ingresses periodically in case missing events
 func IngressSynchronize(client kubernetes.Interface) {
 	clusteringresseslist, _ := client.ExtensionsV1beta1().Ingresses(AppNamespace).List(v1.ListOptions{})
-	SendJSONQueryWithRetries(clusteringresseslist.Items, RestSvcEndpoint+"v1/sync/Ingress")
+	SendJSONQueryWithRetries(clusteringresseslist.Items, RestSvcEndpoint+"v1/sync/ingress")
 }
