@@ -35,7 +35,7 @@ describe('query actions', () => {
     expect(actions.requestMetadata(objType)).toEqual(expectedAction);
   });
 
-  it('should create an action to receive metadaa', () => {
+  it('should create an action to receive metadata', () => {
     const objType = 'application';
     const expectedAction = {
       type: types.RECEIVE_METADATA,
@@ -49,7 +49,7 @@ describe('query actions', () => {
 });
 
 describe('asynch query actions', () => {
-  it('should get fetch query with 1 result', done => {
+  it('should get fetch query with results', done => {
     //mock fetch so that API call will return immediately with mock data
     window.fetch = jest
       .fn()
