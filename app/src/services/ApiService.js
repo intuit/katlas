@@ -17,7 +17,7 @@ export default class ApiService {
   static getQueryResult(query, page, rowsPerPage) {
     const params = {
       [QUERY_KEYWORD_PARAM_NAME]: query,
-      first: rowsPerPage,
+      limit: rowsPerPage,
       offset: page * rowsPerPage
     };
     //load env provided URL at query time to allow conf.js to load it in time
@@ -40,7 +40,7 @@ export default class ApiService {
         const objType = matches[1];
         const filter = matches[2];
         const fields = matches[3];
-        const pagination = `$$first=${rowsPerPage},offset=${page *
+        const pagination = `$$limit=${rowsPerPage},offset=${page *
           rowsPerPage}`;
         querySegments[0] = `${objType}[${filter}${pagination}]{${fields}}`;
       }

@@ -154,14 +154,14 @@ const jsonPresenter = (uid, name, val) => {
   for (let k in json) {
     const v = json[k];
     output.push(
-      <li key={`${uid}-${k}`}>
+      <div key={`${uid}-${k}`}>
         {k}: {JSON.stringify(v)}
-      </li>
+      </div>
     );
     if (count === 1) {
       break;
     }
     count++;
   }
-  return <ul>{output}</ul>;
+  return output;
 };

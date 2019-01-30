@@ -53,8 +53,9 @@ class ResultList extends Component {
     updatePagination(page, event.target.value);
   };
 
-  render() {
-    const { classes, query, onRowClick, selectedIdx } = this.props;
+  renderTableHeader = () => {
+    const { query } = this.props;
+
     let tableHeader = (
       <TableRow>
         <CustomTableCell>Type</CustomTableCell>
@@ -84,7 +85,12 @@ class ResultList extends Component {
       tableHeader = <TableRow>{columns}</TableRow>;
     }
 
-    let tableRow = (
+    return tableHeader;
+  };
+
+  renderTableRows = () => {
+    const { classes, query, onRowClick, selectedIdx } = this.props;
+    let tableRows = (
       <TableRow>
         <TableCell />
         <TableCell>No data</TableCell>
@@ -96,7 +102,7 @@ class ResultList extends Component {
       if (query.isQSL) {
         const layout = getQueryLayout(query.current, query.metadata);
 
-        tableRow = query.results.map((item, idx) => {
+        tableRows = query.results.map((item, idx) => {
           const cells = rowCellsFromLayout(item, layout);
 
           return (
@@ -112,7 +118,7 @@ class ResultList extends Component {
           );
         });
       } else {
-        tableRow = query.results.map((item, idx) => {
+        tableRows = query.results.map((item, idx) => {
           return (
             <TableRow
               hover
@@ -144,11 +150,17 @@ class ResultList extends Component {
       }
     }
 
+    return tableRows;
+  };
+
+  render() {
+    const { classes, query } = this.props;
+
     return (
       <Paper className={classes.root} square={true}>
         <Table padding='dense' className={classes.table}>
-          <TableHead>{tableHeader}</TableHead>
-          <TableBody>{tableRow}</TableBody>
+          <TableHead>{this.renderTableHeader()}</TableHead>
+          <TableBody>{this.renderTableRows()}</TableBody>
           <TableFooter>
             <TableRow>
               <TablePagination
