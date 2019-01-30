@@ -4,8 +4,6 @@ import { Link } from 'react-router-dom';
 import { getQSLObjTypesAndProjection } from '../../utils/validate';
 import { CustomTableCell } from './ResultList';
 
-const lengthLimit = 60;
-
 // generate the layout based on the metadata and the query
 // sample layout structure:
 // objtype: {
@@ -54,7 +52,14 @@ export const rowCellsFromLayout = (item, layout) => {
       const value = obj[field];
 
       cells.push(
-        <CustomTableCell key={`${obj.uid}-${field}`}>
+        <CustomTableCell
+          key={`${obj.uid}-${field}`}
+          style={{
+            maxWidth: '350px',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
+          }}
+        >
           {projectionFn(obj.uid, field, value)}
         </CustomTableCell>
       );
@@ -155,11 +160,6 @@ const jsonPresenter = (uid, name, val) => {
   const json = JSON.parse(val);
   for (let k in json) {
     let v = JSON.stringify(json[k]);
-    // truncate value if it is too long
-    if (v.length > lengthLimit) {
-      v = v.substring(0,lengthLimit);
-      v+= ' ...';
-    }
     output.push(
       <div key={`${uid}-${k}`}>
         {k}: {v}

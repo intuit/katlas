@@ -32,7 +32,9 @@ const styles = theme => ({
     minWidth: 700
   },
   row: {
-    height: 36
+    height: 36,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden'
   }
 });
 
