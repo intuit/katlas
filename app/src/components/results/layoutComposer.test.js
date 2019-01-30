@@ -1,5 +1,4 @@
 import { getQueryLayout, rowCellsFromLayout } from './layoutComposer';
-import { ExpansionPanelActions } from '@material-ui/core';
 
 const queryStr =
   'deployment{*}.replicaset[@count(pod)<3]{*}.pod{@name,@resourceid}';
@@ -290,12 +289,12 @@ const dataItem = {
   creationtime: '2019-01-18T01:18:36Z',
   k8sobj: 'k8sobj',
   labels:
-    '{"app":"foremast-service","applications.argoproj.io/app-name":"foremast-brain-usw2-ppd"}',
+    '{"app":"foremast-service","applications.io/app-name":"foremast-brain-usw2-ppd"}',
   name: 'foremast-service',
   numreplicas: '1',
   objtype: 'deployment',
   resourceid:
-    'deployment:paas-preprod-west2.cluster.k8s.local:dev-containers-foremast-brain-usw2-ppd-ppd:foremast-service',
+    'deployment:a.cluster.k8s.local:foremast-brain-ns:foremast-service',
   resourceversion: '90347576',
   strategy: 'RollingUpdate',
   uid: '0x10f0f9',
@@ -304,23 +303,23 @@ const dataItem = {
       creationtime: '2019-01-18T17:41:01Z',
       k8sobj: 'k8sobj',
       labels:
-        '{"app":"foremast-service","applications.argoproj.io/app-name":"foremast-brain-usw2-ppd","pod-template-hash":"3387190116"}',
+        '{"app":"foremast-service","applications.io/app-name":"foremast-brain-usw2-ppd","pod-template-hash":"3387190116"}',
       name: 'foremast-service-77dc5f455b',
       numreplicas: '1',
       objtype: 'replicaset',
       resourceid:
-        'replicaset:paas-preprod-west2.cluster.k8s.local:dev-containers-foremast-brain-usw2-ppd-ppd:foremast-service-77dc5f455b',
+        'replicaset:a.cluster.k8s.local:foremast-brain-ns:foremast-service-77dc5f455b',
       resourceversion: '90347574',
       uid: '0x120272',
       '~owner': [
         {
           containers:
-            '[{"name":"service","image":"docker.artifactory.a.intuit.com/foremast/foremast-service:0.0.5","ports":[{"name":"http","containerPort":8099,"protocol":"TCP"}],"env":[{"name":"ELASTIC_URL","value":"http://elasticsearch-discovery.dev-containers-foremast-brain-usw2-ppd-ppd.svc.cluster.local:9200/"}],"resources":{"limits":{"cpu":"100m","memory":"30Mi"},"requests":{"cpu":"100m","memory":"20Mi"}},"volumeMounts":[{"name":"default-token-zxbmj","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"}]',
+            '[{"name":"service","image":"dockerhub.com/foremast/foremast-service:0.0.5","ports":[{"name":"http","containerPort":8099,"protocol":"TCP"}],"env":[{"name":"ELASTIC_URL","value":"http://es.svc.cluster.local:9200/"}],"resources":{"limits":{"cpu":"100m","memory":"30Mi"},"requests":{"cpu":"100m","memory":"20Mi"}},"volumeMounts":[{"name":"default-token-zxbmj","readOnly":true,"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"}],"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","imagePullPolicy":"Always"}]',
           creationtime: '2019-01-20T08:35:09Z',
           ip: '100.100.135.8',
           k8sobj: 'k8sobj',
           labels:
-            '{"app":"foremast-service","applications.argoproj.io/app-name":"foremast-brain-usw2-ppd","pod-template-hash":"3387190116"}',
+            '{"app":"foremast-service","applications.io/app-name":"foremast-brain-usw2-ppd","pod-template-hash":"3387190116"}',
           name: 'foremast-service-77dc5f455b-5lpsg',
           nodename: [
             {
@@ -328,7 +327,7 @@ const dataItem = {
               name: 'ip-10-83-122-52.us-west-2.compute.internal',
               objtype: 'node',
               resourceid:
-                'node:paas-preprod-west2.cluster.k8s.local:ip-10-83-122-52.us-west-2.compute.internal',
+                'node:a.cluster.k8s.local:ip-10-83-122-52.us-west-2.compute.internal',
               resourceversion: '0',
               uid: '0x10c9ed'
             }
@@ -337,7 +336,7 @@ const dataItem = {
           ownertype: 'replicaset',
           phase: 'Running',
           resourceid:
-            'pod:paas-preprod-west2.cluster.k8s.local:dev-containers-foremast-brain-usw2-ppd-ppd:foremast-service-77dc5f455b-5lpsg',
+            'pod:a.cluster.k8s.local:foremast-brain-ns:foremast-service-77dc5f455b-5lpsg',
           resourceversion: '90347573',
           starttime: '2019-01-20T08:35:09Z',
           uid: '0x18b916',
@@ -354,7 +353,7 @@ const dataItem = {
       numreplicas: '0',
       objtype: 'replicaset',
       resourceid:
-        'replicaset:paas-preprod-west2.cluster.k8s.local:dev-containers-foremast-brain-usw2-ppd-ppd:foremast-service-5fb8bbc7d4',
+        'replicaset:a.cluster.k8s.local:foremast-brain-ns:foremast-service-5fb8bbc7d4',
       resourceversion: '88371578',
       uid: '0x17f5ec'
     }
