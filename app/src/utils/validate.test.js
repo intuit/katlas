@@ -28,10 +28,9 @@ describe('validation util', () => {
     const query =
       'deployment{@name,@availablereplicas}.replicaset{*}.pod{*}.node[@name="ip-10-83-122-52.us-west-2.compute.internal"]{*}';
     const queryProjection = getQSLObjTypesAndProjection(query);
-    console.log(queryProjection);
-    // expect(queryProjection.deployment).toBe('*');
+    expect(queryProjection.replicaset).toBe('*');
     expect(queryProjection.deployment).toHaveLength(2);
     expect(queryProjection.deployment).toContain('name');
-    // expect(queryProjection.pod).toContain('resourceid');
+    expect(queryProjection.deployment).toContain('availablereplicas');
   });
 });
