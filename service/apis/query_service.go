@@ -153,7 +153,7 @@ func (s QueryService) getQueryResultByKeyword(keyword string, first, offset int)
 	cntOnlyStatements = append(cntOnlyStatements, cntQuery)
 	cntOnlyStatements = append(cntOnlyStatements, "}")
 	template := `objects(func: uid(%s), first:%d,offset:%d) { %s }`
-	query := fmt.Sprintf(template, buf.String(), first, offset, "expand(_all_) { uid expand(_all_) }")
+	query := fmt.Sprintf(template, buf.String(), first, offset, "uid expand(_all_) { uid expand(_all_) }")
 	statements = append(statements, query)
 	statements = append(statements, "}")
 	return strings.Join(statements, "\n"), strings.Join(cntOnlyStatements, "\n"), nil
