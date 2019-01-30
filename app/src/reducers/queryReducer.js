@@ -28,8 +28,8 @@ export default function query(state = initialState.query, action) {
     case RECEIVE_QUERY:
       newState = {
         ...state,
-        results: action.json.objects,
-        count: action.json.count,
+        results: action.results,
+        count: action.count,
         isWaiting: false
       };
       return newState;

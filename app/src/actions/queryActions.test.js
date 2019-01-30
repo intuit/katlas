@@ -122,7 +122,9 @@ describe('asynch query actions', () => {
   });
 
   it('should not fetch metadata already cached', done => {
-    const store = mockStore({ query: { metadata: { application: APP_METADATA} } });
+    const store = mockStore({
+      query: { metadata: { application: APP_METADATA } }
+    });
 
     window.fetch = jest
       .fn()
@@ -140,87 +142,131 @@ describe('asynch query actions', () => {
       expect(store.getActions()).toHaveLength(0);
       done();
     }, 3);
-  })
+  });
 });
 
 //MOCK_RESP contains 2 duplicate objects, this will exercise code to filter out dupes and should leave us with resulting length of 1
 const MOCK_RESP_EMPTY = { objects: [] };
-const MOCK_RESP_DUPE_LEN = 1;
+const MOCK_RESP_DUPE_LEN = 2;
 const MOCK_RESP_DUPE = {
+  count: 2,
   objects: [
     {
       cluster: [
         {
-          k8sobj: 'K8sObj',
-          name: 'preprod-west2.cluster.k8s.local',
-          objtype: 'Cluster',
-          resourceid: 'preprod-west2.cluster.k8s.local',
+          k8sobj: 'k8sobj',
+          name: 'paas-prod-east2.cluster.k8s.local',
+          objtype: 'cluster',
+          resourceid: 'cluster:paas-prod-east2.cluster.k8s.local',
           resourceversion: '0',
-          uid: '0x13d7'
+          uid: '0x15fa0c'
         }
       ],
-      clusterip: '100.68.144.37',
-      k8sobj: 'K8sObj',
-      labels:
-        '{"app":"helm-chart","chart":"helm-chart-0.1.0","heritage":"Tiller","release":"profile-testing"}',
-      name: 'profile-testing-helm-chart',
+      creationtime: '2019-01-24T01:06:47Z',
+      ip: '100.113.249.235',
+      k8sobj: 'k8sobj',
+      labels: '{"app":"cmk-controller","pod-template-hash":"549037671"}',
+      name: 'cmk-controller-prd-qal-98f47cbc5-wf78d',
       namespace: [
         {
-          k8sobj: 'K8sObj',
-          labels: 'null',
-          name: 'profile-testing',
-          objtype: 'Namespace',
-          resourceid: 'preprod-west2.cluster.k8s.local:profile-testing',
-          resourceversion: '0',
-          uid: '0x1e84'
+          creationtime: '2019-01-17T22:52:00Z',
+          k8sobj: 'k8sobj',
+          labels:
+            '{"iks.intuit.com/owner":"iksm","iks.intuit.com/prune-label":"dev-devx-cmk-controller-use2-prd-paas","name":"dev-devx-cmk-controller-use2-prd-paas"}',
+          name: 'dev-devx-cmk-controller-use2-prd-paas',
+          objtype: 'namespace',
+          resourceid:
+            'namespace:paas-prod-east2.cluster.k8s.local:dev-devx-cmk-controller-use2-prd-paas',
+          resourceversion: '38812781',
+          uid: '0x1e5e81'
         }
       ],
-      objtype: 'Service',
-      ports:
-        '[{"nodePort":32313,"port":80,"protocol":"TCP","targetPort":8080}]',
+      nodename: [
+        {
+          k8sobj: 'k8sobj',
+          name: 'ip-10-150-106-103.us-east-2.compute.internal',
+          objtype: 'node',
+          resourceid:
+            'node:paas-prod-east2.cluster.k8s.local:ip-10-150-106-103.us-east-2.compute.internal',
+          resourceversion: '0',
+          uid: '0x1e1062'
+        }
+      ],
+      objtype: 'pod',
+      owner: [
+        {
+          creationtime: '2019-01-24T01:06:47Z',
+          k8sobj: 'k8sobj',
+          labels: '{"app":"cmk-controller","pod-template-hash":"549037671"}',
+          name: 'cmk-controller-prd-qal-98f47cbc5',
+          numreplicas: '1',
+          objtype: 'replicaset',
+          resourceid:
+            'replicaset:paas-prod-east2.cluster.k8s.local:dev-devx-cmk-controller-use2-prd-paas:cmk-controller-prd-qal-98f47cbc5',
+          resourceversion: '41162225',
+          uid: '0x19f1b1'
+        }
+      ],
+      ownertype: 'replicaset',
+      phase: 'Running',
       resourceid:
-        'preprod-west2.cluster.k8s.local:profile-testing:profile-testing-helm-chart',
-      resourceversion: '3574724',
-      selector: '{"app":"mysqlserver","release":"profile-testing"}',
-      servicetype: 'NodePort',
-      uid: '0x4c05'
+        'pod:paas-prod-east2.cluster.k8s.local:dev-devx-cmk-controller-use2-prd-paas:cmk-controller-prd-qal-98f47cbc5-wf78d',
+      resourceversion: '41162224',
+      starttime: '2019-01-24T01:06:47Z',
+      volumes:
+        '[{"name":"cmk-controller-token-pjsdf","secret":{"secretName":"cmk-controller-token-pjsdf","defaultMode":420}}]'
     },
     {
       cluster: [
         {
-          k8sobj: 'K8sObj',
-          name: 'preprod-west2.cluster.k8s.local',
-          objtype: 'Cluster',
-          resourceid: 'preprod-west2.cluster.k8s.local',
+          k8sobj: 'k8sobj',
+          name: 'paas-preprod-west2.cluster.k8s.local',
+          objtype: 'cluster',
+          resourceid: 'cluster:paas-preprod-west2.cluster.k8s.local',
           resourceversion: '0',
-          uid: '0x13d7'
+          uid: '0x175990'
         }
       ],
-      clusterip: '100.68.144.37',
-      k8sobj: 'K8sObj',
+      creationtime: '2019-01-15T23:44:13Z',
+      k8sobj: 'k8sobj',
       labels:
-        '{"app":"helm-chart","chart":"helm-chart-0.1.0","heritage":"Tiller","release":"profile-testing"}',
-      name: 'profile-testing-helm-chart',
+        '{"app":"cutlass-ui","pod-template-hash":"6277035","splunk-index":"k8s_paas"}',
+      name: 'cutlass-ui-deployment-b6cc479',
       namespace: [
         {
-          k8sobj: 'K8sObj',
-          labels: 'null',
-          name: 'profile-testing',
-          objtype: 'Namespace',
-          resourceid: 'preprod-west2.cluster.k8s.local:profile-testing',
-          resourceversion: '0',
-          uid: '0x1e84'
+          creationtime: '2018-09-18T22:01:31Z',
+          k8sobj: 'k8sobj',
+          labels:
+            '{"iks.intuit.com/owner":"iksm","iks.intuit.com/prune-label":"dev-devx-cmdb-api-usw2-ppd-e2e","name":"dev-devx-cmdb-api-usw2-ppd-e2e"}',
+          name: 'dev-devx-cmdb-api-usw2-ppd-e2e',
+          objtype: 'namespace',
+          resourceid:
+            'namespace:paas-preprod-west2.cluster.k8s.local:dev-devx-cmdb-api-usw2-ppd-e2e',
+          resourceversion: '29971588',
+          uid: '0x116621'
         }
       ],
-      objtype: 'Service',
-      ports:
-        '[{"nodePort":32313,"port":80,"protocol":"TCP","targetPort":8080}]',
+      numreplicas: '0',
+      objtype: 'replicaset',
+      owner: [
+        {
+          availablereplicas: '1',
+          creationtime: '2018-12-20T20:21:48Z',
+          k8sobj: 'k8sobj',
+          labels: 'null',
+          name: 'cutlass-ui-deployment',
+          numreplicas: '1',
+          objtype: 'deployment',
+          resourceid:
+            'deployment:paas-preprod-west2.cluster.k8s.local:dev-devx-cmdb-api-usw2-ppd-e2e:cutlass-ui-deployment',
+          resourceversion: '93979697',
+          strategy: 'RollingUpdate',
+          uid: '0x147369'
+        }
+      ],
       resourceid:
-        'preprod-west2.cluster.k8s.local:profile-testing:profile-testing-helm-chart',
-      resourceversion: '3574724',
-      selector: '{"app":"mysqlserver","release":"profile-testing"}',
-      servicetype: 'NodePort',
-      uid: '0x4c05'
+        'replicaset:paas-preprod-west2.cluster.k8s.local:dev-devx-cmdb-api-usw2-ppd-e2e:cutlass-ui-deployment-b6cc479',
+      resourceversion: '84921498'
     }
   ]
 };

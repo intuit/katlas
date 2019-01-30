@@ -48,13 +48,16 @@ export function fetchQuery(query, page, rowsPerPage) {
       requestPromise = ApiService.getQueryResult(query, page, rowsPerPage);
     }
 
-    return requestPromise.then(json => dispatch(receiveQuery(json)));
+    return requestPromise.then(json =>
+      dispatch(receiveQuery(json.objects, json.count))
+    );
   };
 }
 
-export const receiveQuery = json => ({
+export const receiveQuery = (results, count) => ({
   type: types.RECEIVE_QUERY,
-  json
+  results,
+  count
 });
 
 export const updatePagination = (page, rowsPerPage) => {
