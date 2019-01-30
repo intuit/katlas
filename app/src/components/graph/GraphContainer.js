@@ -60,10 +60,7 @@ class GraphContainer extends Component {
   }
 
   setRootNode() {
-    const pathComponents = this.props.location.pathname.split('/');
-    //TODO:DM - simply grabbing last param after '/' feels fragile, how to more safely verify as UID?
-    //could be empty string... a better default to use, if so?
-    const pathParam = pathComponents[pathComponents.length - 1];
+    const pathParam = this.props.match.params.uidOrQsl;
 
     //TODO:DM - change this since it would be too fragile and inside of "setRootNode" doesn't make sense if just now finding QSL str
     if (validateQslQuery(pathParam)) {

@@ -56,8 +56,12 @@ class Home extends Component {
   };
 
   handleSubmit = () => {
-      //Validate query in submitQuery and decide to switch to /results based on query validation.
-      this.props.queryActions.submitQuery(this.props.query.current);
+    //Validate query in submitQuery and decide to switch to /results based on query validation.
+    this.props.queryActions.submitQuery(this.props.query.current);
+  };
+
+  handleQslSubmit = () => {
+    this.props.queryActions.submitQslQuery(this.props.query.current);
   };
 
   render() {
@@ -82,7 +86,7 @@ class Home extends Component {
         </div>
         <div className={classes.container}>
           <Button variant="contained" color="secondary" className={classes.leftButton}
-            disabled={!validateQslQuery(query.current)}>
+            disabled={!validateQslQuery(query.current)} onClick={this.handleQslSubmit}>
             I'm feeling graphy!
           </Button>
           <Button variant="contained" color="primary" className={classes.rightButton}
