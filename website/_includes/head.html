@@ -1,0 +1,69 @@
+<head>
+  <meta charset="utf-8">
+  <link rel="shortcut icon" type="image/x-icon" href="{{ site.baseurl }}/assets/favicons/favicon.ico"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ site.baseurl }}/assets/favicons/apple-touch-icon.png">
+  <link rel="mask-icon" href="{{ site.baseurl }}/assets/favicons/safari-pinned-tab.svg" color="#5bbad5">
+
+  <link rel="apple-touch-icon" sizes="57x57" href="/{{ site.baseurl }}/assets/favicons/apple-icon-57x57.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="/{{ site.baseurl }}/assets/favicons/apple-icon-60x60.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="/{{ site.baseurl }}/assets/favicons/apple-icon-72x72.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="/{{ site.baseurl }}/assets/favicons/apple-icon-76x76.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="/{{ site.baseurl }}/assets/favicons/apple-icon-114x114.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="/{{ site.baseurl }}/assets/favicons/apple-icon-120x120.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="/{{ site.baseurl }}/assets/favicons/apple-icon-144x144.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/{{ site.baseurl }}/assets/favicons/apple-icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/{{ site.baseurl }}/assets/favicons/apple-icon-180x180.png">
+  <link rel="icon" type="image/png" sizes="192x192"  href="/{{ site.baseurl }}/assets/favicons/android-icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/{{ site.baseurl }}/assets/favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/{{ site.baseurl }}/assets/favicons/favicon-96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/{{ site.baseurl }}/assets/favicons/favicon-16x16.png">
+  <link rel="manifest" href="/{{ site.baseurl }}/assets/favicons/manifest.json">
+  <meta name="msapplication-TileColor" content="#ffffff">
+  <meta name="msapplication-TileImage" content="/{{ site.baseurl }}/assets/favicons/ms-icon-144x144.png">
+  <meta name="theme-color" content="#ffffff">
+
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>{% if page.title == 'Home' %}K-Atlas Home{% elsif page.title == 'About' %}About | K-Atlas{% else %}{{ page.title }} | K-Atlas{% endif %}</title>
+
+  <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}open-source platform for observability in order to maintain application health during deployments and in steady state operations running on Kubernetes{% endif %}">
+  <meta content="K-Atlas Contributors" name=author>
+  <meta name="keywords" content="K-Atlas, KAtlas, Kubernetes, Enterprise Kubernetes">
+
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+
+  <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/bootstrap-toc.min.css">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+  <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/docsearch.min.css">
+  
+  {% if page.title == 'Home' or page.title == '404 Not Found' %}
+  <link href="{{ site.baseurl }}/assets/css/homepage.css" rel="stylesheet">
+  {% else %}
+  <link href="{{ site.baseurl }}/assets/css/page.css" rel="stylesheet">
+  {% endif %}
+
+  <link rel="canonical" href="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
+
+  <script src="{{ site.baseurl }}/assets/javascript/jquery-3.3.1.slim.min.js"></script>
+  <script src="{{ site.baseurl }}/assets/javascript/bootstrap.bundle.min.js"></script>
+  <script src="{{ site.baseurl }}/assets/javascript/bootstrap-toc.min.js"></script>
+
+  {% if jekyll.environment == "production" %}
+  <!-- for Google Analytics -->
+  <!--
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-102240749-1', 'auto');
+      ga('send', 'pageview');
+    </script>
+  -->
+  {% endif %}
+</head>

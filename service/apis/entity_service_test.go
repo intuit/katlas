@@ -17,7 +17,7 @@ func TestCreateEntity(t *testing.T) {
 	s := NewEntityService(dc)
 	// create node
 	node := map[string]interface{}{
-		"objtype": "K8sNode",
+		"objtype": "k8snode",
 		"name":    "node02",
 		"labels":  "testingnode02",
 	}
@@ -25,14 +25,14 @@ func TestCreateEntity(t *testing.T) {
 	dc.CreateSchema(db.Schema{Predicate: "name", Type: "string", Index: true, Tokenizer: []string{"term"}})
 	dc.CreateSchema(db.Schema{Predicate: "resourceid", Type: "string", Index: true, Tokenizer: []string{"term"}})
 	dc.CreateSchema(db.Schema{Predicate: "objtype", Type: "string", Index: true, Tokenizer: []string{"term"}})
-	nids, _ := s.CreateEntity("K8sNode", node)
+	nids, _ := s.CreateEntity("k8snode", node)
 	var nid string
 	for _, v := range nids {
 		nid = v
 		break
 	}
 	defer s.DeleteEntity(nid)
-	n, _ := s.GetEntity("K8sNode", nid)
+	n, _ := s.GetEntity("k8snode", nid)
 	o := n["objects"].([]interface{})[0].(map[string]interface{})
 	if val, ok := o["labels"]; ok {
 		assert.Equal(t, val, "testingnode02", "node label not equals to testnode02")
@@ -46,13 +46,13 @@ func TestDeleteEntityByRid(t *testing.T) {
 	s := NewEntityService(dc)
 	// create node
 	node := map[string]interface{}{
-		"objtype":    "K8sNode",
+		"objtype":    "k8snode",
 		"name":       "node02",
 		"labels":     "testingnode02",
 		"resourceid": "noderid",
 	}
-	s.CreateEntity("K8sNode", node)
-	err := s.DeleteEntityByResourceID("K8sNode", "noderid")
+	s.CreateEntity("k8snode", node)
+	err := s.DeleteEntityByResourceID("k8snode", "noderid")
 	assert.Nil(t, err)
 	dc.Close()
 }
@@ -444,8 +444,10 @@ func TestMultiCreateEntity(t *testing.T) {
 	dc := db.NewDGClient("127.0.0.1:9080")
 	q := NewQueryService(dc)
 	defer dc.Close()
+	dc.CreateSchema(db.Schema{Predicate: "name", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "resourceid", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "objtype", Type: "string", Index: true, Tokenizer: []string{"term"}})
 	s := NewEntityService(dc)
-
 	var wg sync.WaitGroup
 	rest := make(chan map[string]string)
 	wg.Add(100)
@@ -453,12 +455,12 @@ func TestMultiCreateEntity(t *testing.T) {
 		go func(version string) {
 			defer wg.Done()
 			node := map[string]interface{}{
-				"objtype":    "K8sNode",
+				"objtype":    "k8snode",
 				"name":       "multinode",
 				"label":      version,
 				"resourceid": "cluster:ns:multinode",
 			}
-			nids, _ := s.CreateEntity("K8sNode", node)
+			nids, _ := s.CreateEntity("k8snode", node)
 			rest <- nids
 		}(strconv.Itoa(i))
 	}
@@ -467,13 +469,13 @@ func TestMultiCreateEntity(t *testing.T) {
 		go func(version string) {
 			defer wg.Done()
 			node := map[string]interface{}{
-				"objtype":         "K8sNode",
+				"objtype":         "k8snode",
 				"name":            "multinode2",
 				"label":           version,
 				"resourceid":      "cluster:ns:multinode2",
 				"resourceversion": version,
 			}
-			nids, _ := s.CreateEntity("K8sNode", node)
+			nids, _ := s.CreateEntity("k8snode", node)
 			rest <- nids
 		}(strconv.Itoa(i))
 	}
@@ -484,10 +486,10 @@ func TestMultiCreateEntity(t *testing.T) {
 		}
 	}()
 	wg.Wait()
-	qm := map[string][]string{"resourceid": {"cluster:ns:multinode"}, "objtype": {"K8sNode"}}
+	qm := map[string][]string{"resourceid": {"cluster:ns:multinode"}, "objtype": {"k8snode"}}
 	n, _ := q.GetQueryResult(qm)
 	o := n["objects"].([]interface{})
 	assert.Equal(t, 1, len(o), "only one object expect to be created with same resourceid")
-	s.DeleteEntityByResourceID("K8sNode", "cluster:ns:multinode")
-	s.DeleteEntityByResourceID("K8sNode", "cluster:ns:multinode2")
+	s.DeleteEntityByResourceID("k8snode", "cluster:ns:multinode")
+	s.DeleteEntityByResourceID("k8snode", "cluster:ns:multinode2")
 }
