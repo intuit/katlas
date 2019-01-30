@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { getQSLObjTypesAndProjection } from '../../utils/validate';
 import { CustomTableCell } from './ResultList';
 
+const lengthLimit = 60;
+
 // generate the layout based on the metadata and the query
 // sample layout structure:
 // objtype: {
@@ -152,10 +154,15 @@ const jsonPresenter = (uid, name, val) => {
   }
   const json = JSON.parse(val);
   for (let k in json) {
-    const v = json[k];
+    let v = JSON.stringify(json[k]);
+    // truncate value if it is too long
+    if (v.length > lengthLimit) {
+      v = v.substring(0,lengthLimit);
+      v+= ' ...';
+    }
     output.push(
       <div key={`${uid}-${k}`}>
-        {k}: {JSON.stringify(v)}
+        {k}: {v}
       </div>
     );
     if (count === 1) {
