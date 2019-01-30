@@ -32,7 +32,6 @@ script:
   - docker images katlas/katlas-browser:${TRAVIS_COMMIT_SHORTID}
 
 after_success:
-  - sleep 5s
   - cd $TRAVIS_BUILD_DIR/service
   - bash <(curl -s https://codecov.io/bash)
   - cd $TRAVIS_BUILD_DIR/app
@@ -52,11 +51,13 @@ after_success:
     if [ $statusCode -ne "200" ]; then
         echo "Integration Test - Fail!";
     else
-    	  echo "Integration Test - Success!";
-        # Login to docker hub
-        echo "$DOCKER_PASSWORD" |docker login -u $DOCKER_USERNAME --password-stdin
-        #- echo "$DOCKER_PASSWORD" |docker login -u $DOCKER_USERNAME --password-stdin >/dev/null 2>&1
-        # Push image to docker hub
-        docker push katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
-        docker push katlas/katlas-browser:${TRAVIS_COMMIT_SHORTID}
+        echo "Integration Test - Success!";
+        if [["$TRAVIS_BRANCH" == "master" ]]; then
+            # Login to docker hub
+            echo "$DOCKER_PASSWORD" |docker login -u $DOCKER_USERNAME --password-stdin
+            #- echo "$DOCKER_PASSWORD" |docker login -u $DOCKER_USERNAME --password-stdin >/dev/null 2>&1
+            # Push image to docker hub
+            docker push katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
+            docker push katlas/katlas-browser:${TRAVIS_COMMIT_SHORTID}
+        fi 
     fi
