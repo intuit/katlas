@@ -73,7 +73,7 @@ class ResultList extends Component {
         for (let fieldname in fields) {
           const representer = fields[fieldname];
           columns.push(
-            <CustomTableCell>
+            <CustomTableCell key={`${objType}-${fieldname}`}>
               <strong>{objType}</strong>
               <br />
               {representer.displayName}

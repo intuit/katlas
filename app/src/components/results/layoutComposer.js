@@ -1,8 +1,11 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+
 import { getQSLObjTypesAndProjection } from '../../utils/validate';
-import { CustomTableCell} from './ResultList';
+import { CustomTableCell } from './ResultList';
 
 // generate the layout based on the metadata and the query
+// sample layout structure:
 // objtype: {
 //   fieldname: {
 //     displayname:"",
@@ -12,7 +15,7 @@ import { CustomTableCell} from './ResultList';
 export const getQueryLayout = (queryStr, metadata) => {
   let layout = {};
   const queryProjection = getQSLObjTypesAndProjection(queryStr);
-  const excludeFields = ['objtype', 'k8sobj'];
+  const excludeFields = ['objtype', 'k8sobj', 'resourceid'];
   for (let objType in queryProjection) {
     const objProjection = queryProjection[objType];
     let fieldLayout = {};
@@ -38,9 +41,7 @@ export const rowCellsFromLayout = (item, layout) => {
   const cells = [];
   let obj = item;
   for (let objType in layout) {
-    console.log('before:', obj);
     obj = navEmbeddedObject(obj, objType);
-    console.log('after:', obj);
     if (obj === undefined) {
       // it could be the depth 1 has value but once drill down(depth 2) it could be null
       // since we only show first row from the first array and not reverse back and try another row if the depth 2 has value or not
@@ -50,7 +51,11 @@ export const rowCellsFromLayout = (item, layout) => {
       const projectionFn = layout[objType][field].representsFunc;
       const value = obj[field];
 
-      cells.push(<CustomTableCell>{projectionFn(obj.uid, value)}</CustomTableCell>);
+      cells.push(
+        <CustomTableCell key={`${obj.uid}-${field}`}>
+          {projectionFn(obj.uid, field, value)}
+        </CustomTableCell>
+      );
     }
   }
   return cells;
@@ -118,31 +123,45 @@ const getFieldProjector = (objType, field) => {
   }
 };
 
-const stringPresenter = (uid, val) => {
+const stringPresenter = (uid, name, val) => {
+  // we add link if the field name is 'name'
+  if (name === 'name') {
+    return (
+      <Link
+        to={{
+          pathname: '/graph/' + uid
+        }}
+      >
+        {val}
+      </Link>
+    );
+  }
   return val;
 };
 
-const intPresenter = (uid, val) => {
+const intPresenter = (uid, name, val) => {
   return val;
 };
 
-const jsonPresenter = (uid, val) => {
-  // we only shows first keys
+const jsonPresenter = (uid, name, val) => {
+  // we only shows 2 key pairs
   let count = 0;
   let output = [];
   if (val === undefined) {
     return val;
   }
-  console.log(val);
   const json = JSON.parse(val);
-  for (let k in json ){
+  for (let k in json) {
     const v = json[k];
-    output.push(<li key={k}>{k}:{v}</li>)
-    if(count === 2){
+    output.push(
+      <li key={`${uid}-${k}`}>
+        {k}: {JSON.stringify(v)}
+      </li>
+    );
+    if (count === 1) {
       break;
     }
     count++;
   }
-  output.push(<li>...</li>)
   return <ul>{output}</ul>;
 };

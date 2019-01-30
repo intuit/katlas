@@ -1,4 +1,5 @@
 import { getQueryLayout, rowCellsFromLayout } from './layoutComposer';
+import { ExpansionPanelActions } from '@material-ui/core';
 
 const queryStr =
   'deployment{*}.replicaset[@count(pod)<3]{*}.pod{@name,@resourceid}';
@@ -363,10 +364,10 @@ const dataItem = {
 describe('layout composer', () => {
   it('can compose the result table layout', () => {
     const layout = getQueryLayout(queryStr, metadata);
-    // console.log(layout);
+    expect(layout.deployment.name.representsFunc).toBeInstanceOf(Function)
   });
 
-  it('can render data row based on layout', () => {
+  xit('can render data row based on layout', () => {
     const layout = getQueryLayout(queryStr, metadata);
     const row = rowCellsFromLayout(dataItem, layout);
     console.log(row);
