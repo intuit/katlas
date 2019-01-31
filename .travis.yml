@@ -30,6 +30,7 @@ script:
   - yarn test --coverage
   - docker build --no-cache -f Dockerfile -t katlas/katlas-browser:${TRAVIS_COMMIT_SHORTID} .
   - docker images katlas/katlas-browser:${TRAVIS_COMMIT_SHORTID}
+  - cd $TRAVIS_BUILD_DIR/controller
   - docker build --no-cache -f Dockerfile -t katlas/katlas-collector:${TRAVIS_COMMIT_SHORTID} .
   - docker images katlas/katlas-collector:${TRAVIS_COMMIT_SHORTID}
 
