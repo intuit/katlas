@@ -1,5 +1,7 @@
 import {
   validateIpAddress,
+  validateQslQuery,
+  validateHexId,
   getQSLObjTypes,
   getQSLObjTypesAndProjection
 } from './validate';
@@ -33,6 +35,7 @@ describe('validation util', () => {
 
   it('should correctly recognize an invalid hex ID', () => {
     expect(validateHexId('0xfoo')).toBe(false);
+  });
 
   it('should get all obj types from query', () => {
     const query = 'deployment{*}.replicaset[@count(pod)<3]{*}.pod{*}';
