@@ -70,7 +70,7 @@ func NewQSLService(host db.IDGClient) *QSLService {
 }
 
 // CreateFiltersQuery translates the filters part of the qsl string to dgraph
-// input @name="name",@objtype="objtype"$$first=2,offset=2
+// input @name="name",@objtype="objtype"$$limit=2,offset=2
 // filterfunc
 // @name="cluster1" -> eq(name,cluster1)
 // @name="paas-preprod-west2.cluster.k8s.local",@k8sobj="K8sObj",@resourceid="paas-preprod-west2.cluster.k8s.local"
@@ -79,8 +79,8 @@ func NewQSLService(host db.IDGClient) *QSLService {
 // @name="paas-preprod-west2.cluster.k8s.local",@k8sobj="K8sObj",@resourceid="paas-preprod-west2.cluster.k8s.local"
 // -> , $name: string, $k8sobj: string, $resourceid: string
 // pagination
-// $$first=2,offset=2
-// -> first: 2,offset: 2
+// $$limit=2,offset=2
+// -> limit: 2,offset: 2
 func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 	// default for empty filters is assume no filters
 	if len(filterlist) == 0 {
@@ -97,7 +97,9 @@ func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 			splitval := strings.Split(item, "=")
 
 			switch splitval[0] {
-			case util.First, util.Offset:
+			case util.Limit:
+				paginate += "," + util.First + ": " + splitval[1]
+			case util.Offset:
 				paginate += "," + splitval[0] + ": " + splitval[1]
 			default:
 				return "", "", "", errors.New("Invalid pagination filters in " + filterlist)
@@ -106,7 +108,7 @@ func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 			if err != nil {
 				return "", "", "", errors.New("Pagination format error " + filterlist)
 			}
-			if splitval[0] == util.First && val > MaximumLimit {
+			if splitval[0] == util.Limit && val > MaximumLimit {
 				return "", "", "", fmt.Errorf("pagination exceeding maxiumum limit %d", MaximumLimit)
 			}
 		}
@@ -218,9 +220,11 @@ func CreateFieldsQuery(fieldlist string, metafieldslist []MetadataField, tabs in
 		return nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... not both [" + fieldlist + "]")
 
 	}
-
 	splitlist := strings.Split(fieldlist, ",")
 	returnlist := []string{}
+	if !strings.Contains(fieldlist, util.ObjType) {
+		splitlist = append(splitlist, "@"+util.ObjType)
+	}
 	// if we have a list of fields e.g. @name,@resourceversion,@creationtime
 	for _, item := range splitlist {
 		// each item must begin with @ followed by an alphanumeric string

@@ -64,7 +64,7 @@ func (s EntityService) DeleteEntityByResourceID(meta string, rid string) error {
 		log.Error(err)
 		return err
 	}
-	if node[util.Count].(float64) > 0 {
+	if len(node[util.Objects].([]interface{})) > 0 {
 		// got existing object id
 		for _, obj := range node[util.Objects].([]interface{}) {
 			err = s.dbclient.DeleteEntity(obj.(map[string]interface{})[util.UID].(string))
@@ -95,7 +95,7 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 	if len(fs) > 0 {
 		for _, field := range fs {
 			fieldValue, ok := data[field.FieldName]
-			if !ok || fieldValue == nil || ((reflect.ValueOf(fieldValue).Kind() == reflect.Interface ||
+			if !ok || fieldValue == "" || fieldValue == nil || ((reflect.ValueOf(fieldValue).Kind() == reflect.Interface ||
 				reflect.ValueOf(fieldValue).Kind() == reflect.Ptr ||
 				reflect.ValueOf(fieldValue).Kind() == reflect.Slice) &&
 				reflect.ValueOf(fieldValue).IsNil()) {
@@ -156,7 +156,7 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 			log.Error(err)
 			return nil, err
 		}
-		if node[util.Count].(float64) > 0 {
+		if len(node[util.Objects].([]interface{})) > 0 {
 			// got existing object id
 			uid := node[util.Objects].([]interface{})[0].(map[string]interface{})[util.UID].(string)
 			data[util.UID] = uid
@@ -276,7 +276,7 @@ func buildDataMap(k8sObj interface{}, relData interface{}, relType string, clust
 	} else if strings.EqualFold(relType, util.Namespace) || strings.EqualFold(relType, util.Node) {
 		dataMap[util.Cluster] = cluster
 		dataMap[util.ResourceID] = relType + ":" + cluster.(string) + ":" + dataMap[util.Name].(string)
-	} else if strings.EqualFold(relType, util.Application) {
+	} else if strings.EqualFold(relType, util.Application) || strings.EqualFold(relType, util.Asset) {
 		dataMap[util.ResourceID] = relType + ":" + dataMap[util.Name].(string)
 	} else {
 		if cluster != nil {
@@ -302,7 +302,7 @@ func (s EntityService) getUIDFromRelData(data map[string]interface{}, objType st
 		return nil, err
 	}
 	var uid string
-	if node[util.Count].(float64) > 0 {
+	if len(node[util.Objects].([]interface{})) > 0 {
 		// got existing object id
 		uid = node[util.Objects].([]interface{})[0].(map[string]interface{})[util.UID].(string)
 	} else {
