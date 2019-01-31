@@ -25,7 +25,7 @@ export default class ApiService {
     );
   }
 
-  static getQSLResult(query, page, rowsPerPage) {
+  static getQSLResult(query, page = 0, rowsPerPage = 50) {
     //load env provided URL at query time to allow conf.js to load it in time
     //in testing
     const querySegments = query.split('.');
@@ -39,8 +39,8 @@ export default class ApiService {
         const objType = matches[1];
         const filter = matches[2];
         const fields = matches[3];
-        const pagination = `$$first=${rowsPerPage},offset=${page*rowsPerPage}`
-        querySegments[0] = `${objType}[${filter}${pagination}]{${fields}}`
+        const pagination = `$$limit=${rowsPerPage},offset=${page*rowsPerPage}`;
+        querySegments[0] = `${objType}[${filter}${pagination}]{${fields}}`;
       }
     }
 

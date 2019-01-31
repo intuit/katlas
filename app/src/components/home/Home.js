@@ -95,7 +95,7 @@ class Home extends React.Component {
         </div>
         <div className={classes.container}>
           <Button variant='contained' color='secondary' className={classes.leftButton}
-            disabled={!validateQslQuery(query.current)} onClick={this.handleQslSubmit}>
+            disabled={!validateQslQuery(queryStr)} onClick={this.handleQslSubmit}>
             I'm feeling graphy!
           </Button>
           <Button variant='contained' color='primary' className={classes.rightButton}

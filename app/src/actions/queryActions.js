@@ -87,8 +87,6 @@ function handleResponse(json) {
         if (!existingUids[obj.uid]) {
           results.push(obj);
           existingUids[obj.uid] = true;
-        } else {
-          console.warn('duplicated uid:' + obj.uid);
         }
       });
     }

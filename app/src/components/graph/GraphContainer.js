@@ -63,10 +63,10 @@ class GraphContainer extends Component {
     const pathParam = this.props.match.params.uidOrQsl;
 
     //TODO:DM - change this since it would be too fragile and inside of "setRootNode" doesn't make sense if just now finding QSL str
-    if (validateQslQuery(pathParam)) {
+    if (pathParam && validateQslQuery(pathParam)) {
       this.props.entityActions.fetchQslQuery(pathParam);
       this.props.entityActions.addWatchQslQuery(pathParam);
-    } else if (validateHexId(pathParam)) {
+    } else if (pathParam && validateHexId(pathParam)) {
       this.props.entityActions.setRootUid(pathParam);
       this.props.entityActions.addWatchUid(pathParam);
     } else {} // default for invalid string?
@@ -76,7 +76,7 @@ class GraphContainer extends Component {
     this.getData();
     //reschedule next automatic data request while computing time value based
     //on number of entities and a min time between fetches
-    const NUM_ENTITIES = Object.keys(this.props.entity.entitiesByUid).length || 1;
+    const NUM_ENTITIES = Object.keys(this.props.entity.entitiesByUid).length || 5;
     //TODO:DM - better handle QSL scenario so it doesn't get run as often as single entity request would
     this.intervalHandle = setTimeout(() => this.getDataInterval(),
       NUM_ENTITIES * FETCH_PERIOD_PER_ENTITY_MS);

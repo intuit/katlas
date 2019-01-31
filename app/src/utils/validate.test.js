@@ -18,8 +18,8 @@ it('should correctly recognize an invalid QSL query', () => {
     '@Cluster[objtype="Cluster"]{*}.@Node[objtype="Node"]{*}')).toBe(false);
 });
 
-it('should correctly recognize a simple hex ID', () => {
-  expect(validateHexId('0x12')).toBe(true);
+it('should correctly recognize a short hex ID', () => {
+  expect(validateHexId('0x1')).toBe(true);
 });
 
 it('should correctly recognize a long hex ID', () => {

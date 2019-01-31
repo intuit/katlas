@@ -200,7 +200,7 @@ class Graph extends Component {
         const targetNodeUid = element.nodes[0];
         const pathComponents = this.props.location.pathname.split('/');
         const currentNodeUid = pathComponents[pathComponents.length - 1];
-        //only add node data if target node is not current node
+        //only add node data if not already target node
         //TODO:DM - rather than just current node, could skip any already watched UIDs
         if (targetNodeUid !== currentNodeUid) {
           this.props.entityActions.addWatchUid(targetNodeUid);

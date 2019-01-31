@@ -41,4 +41,7 @@ export const options = {
       direction: 'UD'
     }
   },
+  physics: {
+    enabled: true
+  }
 };
