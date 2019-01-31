@@ -7,6 +7,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/intuit/katlas/service/db"
+        metrics "github.com/intuit/katlas/service/metrics"
 )
 
 //QueryParamKeyword ...param for keyword query
@@ -43,12 +44,14 @@ func (s QueryService) GetQueryResult(queryMap map[string][]string) (map[string]i
 			log.Debug(err)
 			return nil, err
 		}
+                metrics.DgraphNumKeywordQueries.Inc()
 	} else {
 		if len(queryMap) == 0 {
 			err := fmt.Errorf("Query Params not specified")
 			return nil, err
 		}
 		q = getQueryResultByKeyValue(queryMap)
+                metrics.DgraphNumKeyValueQueries.Inc()
 	}
 
 	return s.dbclient.GetQueryResult(q)

@@ -12,6 +12,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/intuit/katlas/service/db"
 	"strconv"
+        metrics "github.com/intuit/katlas/service/metrics"
 )
 
 // regex to get objtype[filters]{fields}
@@ -241,6 +242,7 @@ func CreateFieldsQuery(fieldlist string, metafieldslist []MetadataField, tabs in
 // CreateDgraphQuery translates the querystring to a dgraph query
 func (qa *QSLService) CreateDgraphQuery(query string, cntOnly bool) (string, error) {
 	log.Info("Received Query: ", strings.Split(query, "}."))
+        metrics.DgraphNumQSL.Inc()
 
 	// remove all whitespace
 	whitespace := regexp.MustCompile("\\s*")
