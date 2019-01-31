@@ -5,14 +5,11 @@ import * as notifyActions from './notifyActions';
 import history from '../history';
 import ApiService from '../services/ApiService';
 import { QUERY_LEN_ERR } from '../utils/errors';
-import { getQSLObjTypes } from '../utils/validate';
+import { validateQslQuery, getQSLObjTypes } from '../utils/validate';
 
 //TODO:DM - is there a better place to define router related consts?
 const APP_RESULTS_ROUTE = '/results?query=';
-
-//QSL requests will always include this telltale character
-//TODO:SS - check with @kianjones4 to see if this is the best strategy and char to use. possibly square brackets are an even better choice? what's least likely to occur in kube elements which might otherwise end up in a naive keyword search?
-const QSL_TAG = '{';
+const GRAPH_ROUTE = '/graph/';
 
 export function submitQuery(query) {
   return dispatch => {
@@ -22,6 +19,15 @@ export function submitQuery(query) {
       dispatch(notifyActions.showNotify(QUERY_LEN_ERR));
     }
   };
+}
+
+export function submitQslQuery(query) {
+  return dispatch => {
+    //currently, we'll navigate to the graph without any addl validation steps
+    if (validateQslQuery(query)) {
+      history.push(GRAPH_ROUTE + query);
+    }
+  }
 }
 
 export const requestQuery = (queryStr, isQSL, page, rowsPerPage) => ({
@@ -36,7 +42,7 @@ export function fetchQuery(query, page, rowsPerPage) {
   return dispatch => {
     let requestPromise;
 
-    if (query.includes(QSL_TAG)) {
+    if (validateQslQuery(query)) {
       dispatch(requestQuery(query, true, page, rowsPerPage));
       const objTypes = getQSLObjTypes(query);
       // cache metadata

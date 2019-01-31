@@ -1,17 +1,40 @@
-//TODO:DM - looks like the validate module isn't currently being used in the app, therefore these tests shouldn't really count UNLESS we plan to use it again
 import {
-  validateIPaddress,
+  validateIpAddress,
+  validateQslQuery,
+  validateHexId,
   getQSLObjTypes,
   getQSLObjTypesAndProjection
 } from './validate';
 
 describe('validation util', () => {
   it('should correctly recognize an IP addr', () => {
-    expect(validateIPaddress('127.0.0.1')).toBe(true);
+    expect(validateIpAddress('127.0.0.1')).toBe(true);
   });
 
-  it('should correctly recognize a non-IP addr', () => {
-    expect(validateIPaddress('localhost')).toBe(false);
+  it('should correctly recognize an invalid IP addr', () => {
+    expect(validateIpAddress('localhost')).toBe(false);
+  });
+
+  it('should correctly recognize a QSL query', () => {
+    expect(validateQslQuery(
+      'Cluster[@objtype="Cluster"]{*}.Node[@objtype="Node"]{*}')).toBe(true);
+  });
+
+  it('should correctly recognize an invalid QSL query', () => {
+    expect(validateQslQuery(
+      '@Cluster[objtype="Cluster"]{*}.@Node[objtype="Node"]{*}')).toBe(false);
+  });
+
+  it('should correctly recognize a short hex ID', () => {
+    expect(validateHexId('0x1')).toBe(true);
+  });
+
+  it('should correctly recognize a long hex ID', () => {
+    expect(validateHexId('0x12345deadbeefCABFABDAB09876')).toBe(true);
+  });
+
+  it('should correctly recognize an invalid hex ID', () => {
+    expect(validateHexId('0xfoo')).toBe(false);
   });
 
   it('should get all obj types from query', () => {

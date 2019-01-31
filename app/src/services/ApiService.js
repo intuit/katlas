@@ -28,7 +28,7 @@ export default class ApiService {
     );
   }
 
-  static getQSLResult(query, page, rowsPerPage) {
+  static getQSLResult(query, page = 0, rowsPerPage = 50) {
     //load env provided URL at query time to allow conf.js to load it in time
     //in testing
     const querySegments = query.split('.');

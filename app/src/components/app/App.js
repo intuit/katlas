@@ -16,7 +16,7 @@ export default class App extends Component {
         <Switch>
           <Route exact path="/" component={Home} />
           <Route path="/results" component={Results} />
-          <Route path="/graph" component={GraphContainer} />
+          <Route path="/graph/:uidOrQsl" component={GraphContainer} />
         </Switch>
       </div>
     );

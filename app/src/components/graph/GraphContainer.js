@@ -11,8 +11,9 @@ import "./Graph.css";
 import Graph from './Graph';
 import EntityDetails from '../entityDetails/EntityDetails';
 import * as entityActions from "../../actions/entityActions";
+import { validateQslQuery, validateHexId } from "../../utils/validate";
 
-const FETCH_PERIOD_PER_ENTITY_MS = 2000;
+const FETCH_PERIOD_PER_ENTITY_MS = 5000;
 
 const styles = theme => ({
   container: {
@@ -23,7 +24,7 @@ const styles = theme => ({
     width: '100%',
     overflowX: 'auto',
   },
-    progress: {
+  progress: {
     margin: theme.spacing.unit * 2,
   },
   progressContainer: {
@@ -40,7 +41,7 @@ const styles = theme => ({
 
 class GraphContainer extends Component {
   componentDidMount() {
-    this.setRootNode();
+    this.determineInitialWatch();
     //run first data acquisition event immediately, maintain handle for
     //cancellation purpose
     this.intervalHandle = setTimeout(() => this.getDataInterval(), 0);
@@ -49,7 +50,7 @@ class GraphContainer extends Component {
   componentDidUpdate(prevProps) {
     //recognize change in URL and re-issue API request in that case
     if (this.props.location !== prevProps.location){
-      this.setRootNode();
+      this.determineInitialWatch();
       this.getData();
     }
   }
@@ -58,26 +59,36 @@ class GraphContainer extends Component {
     clearInterval(this.intervalHandle);
   }
 
-  setRootNode() {
-    const pathComponents = this.props.location.pathname.split('/');
-    //TODO:DM - simply grabbing last param after '/' feels fragile, how to more safely verify as UID?
-    //could be empty string... a better default to use, if so?
-    const uid = pathComponents[pathComponents.length - 1];
-
-    this.props.entityActions.setRootEntity(uid);
-    this.props.entityActions.addEntityWatch(uid);
+  determineInitialWatch() {
+    const pathParam = this.props.match.params.uidOrQsl;
+    if (pathParam && validateQslQuery(pathParam)) {
+      this.props.entityActions.fetchQslQuery(pathParam);
+      this.props.entityActions.addWatchQslQuery(pathParam);
+    } else if (pathParam && validateHexId(pathParam)) {
+      this.props.entityActions.setRootUid(pathParam);
+      this.props.entityActions.addWatchUid(pathParam);
+    }
   }
 
   getDataInterval() {
+    let numEntities;
     this.getData();
     //reschedule next automatic data request while computing time value based
     //on number of entities and a min time between fetches
-    const NUM_ENTITIES = Object.keys(this.props.entity.entitiesByUid).length;
+    if (this.props.entity.qslQuery) {
+      numEntities = 10;
+    } else {
+      numEntities = Object.keys(this.props.entity.entitiesByUid).length;
+    }
     this.intervalHandle = setTimeout(() => this.getDataInterval(),
-      NUM_ENTITIES * FETCH_PERIOD_PER_ENTITY_MS);
+      numEntities * FETCH_PERIOD_PER_ENTITY_MS);
   }
 
   getData() {
+    //fetch QSL query, if one is registered
+    if (this.props.entity.qslQuery) {
+     this.props.entityActions.fetchQslQuery(this.props.entity.qslQuery);
+    }
     //fetch all entities currently represented as keys in the store
     this.props.entityActions.fetchEntities(Object.keys(
       this.props.entity.entitiesByUid));
