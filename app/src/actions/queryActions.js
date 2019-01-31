@@ -5,6 +5,7 @@ import * as notifyActions from './notifyActions';
 import history from '../history';
 import ApiService from '../services/ApiService';
 import { QUERY_LEN_ERR } from '../utils/errors';
+import { getQSLObjTypes } from '../utils/validate';
 
 //TODO:DM - is there a better place to define router related consts?
 const APP_RESULTS_ROUTE = '/results?query=';
@@ -23,27 +24,35 @@ export function submitQuery(query) {
   };
 }
 
-export const requestQuery = (queryStr, page, rowsPerPage) => ({
+export const requestQuery = (queryStr, isQSL, page, rowsPerPage) => ({
   type: types.REQUEST_QUERY,
   queryStr,
+  isQSL,
   page,
   rowsPerPage
 });
 
 export function fetchQuery(query, page, rowsPerPage) {
   return dispatch => {
-    dispatch(requestQuery(query, page, rowsPerPage));
     let requestPromise;
 
     if (query.includes(QSL_TAG)) {
+      dispatch(requestQuery(query, true, page, rowsPerPage));
+      const objTypes = getQSLObjTypes(query);
+      // cache metadata
+      objTypes.forEach(objType => dispatch(fetchMetadata(objType)));
+
       requestPromise = ApiService.getQSLResult(query, page, rowsPerPage);
     } else {
-      requestPromise = ApiService.getQueryResult(query);
+      dispatch(requestQuery(query, false, page, rowsPerPage));
+      requestPromise = ApiService.getQueryResult(query, page, rowsPerPage);
     }
 
-    return requestPromise
-      .then(handleResponse)
-      .then(([results, count]) => dispatch(receiveQuery(results, count)));
+    return requestPromise.then(json => {
+      if (json != null) {
+        dispatch(receiveQuery(json.objects, json.count));
+      }
+    });
   };
 }
 
@@ -59,34 +68,26 @@ export const updatePagination = (page, rowsPerPage) => {
   };
 };
 
-function handleResponse(json) {
-  let results = [];
-  let existingUids = {};
-  let count = 0;
-  for (let objKey in json) {
-    let objArr = json[objKey];
-    if (objKey === 'count') {
-      count = objArr;
-      continue;
-    }
+export const requestMetadata = objType => ({
+  type: types.REQUEST_METADATA,
+  objType
+});
 
-    if (objArr.length) {
-      objArr.forEach(obj => {
-        //screen out duplicate UID entries
-        if (!existingUids[obj.uid]) {
-          results.push(obj);
-          existingUids[obj.uid] = true;
-        } else {
-          console.warn('duplicated uid:' + obj.uid);
-        }
-      });
-    }
-  }
+export const receiveMetadata = (objType, metadata) => ({
+  type: types.RECEIVE_METADATA,
+  objType,
+  metadata
+});
 
-  // TODO, as search query does not support pagination, there is no count returned.
-  // will remove this once it supports pagination
-  if (count === 0) {
-    count = results.length;
-  }
-  return [results, count];
+export function fetchMetadata(objType) {
+  return (dispatch, getState) => {
+    // only fetch metadata not cached before
+    if (objType in getState().query.metadata) {
+      return;
+    }
+    dispatch(requestMetadata(objType));
+    ApiService.getMetadata(objType).then(json =>
+      dispatch(receiveMetadata(objType, json))
+    );
+  };
 }

@@ -3,10 +3,12 @@ export default {
     current: '',
     lastSubmitted: '',
     isWaiting: false,
+    isQSL: false,
     results: [],
     page: 0,
     rowsPerPage: 25,
-    count: 0
+    count: 0,
+    metadata: {}
   },
   entity: {
     rootUid: '',

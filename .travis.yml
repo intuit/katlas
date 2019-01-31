@@ -49,7 +49,11 @@ after_success:
         echo "Integration Test - Fail!";
     else
         echo "Integration Test - Success!";
+<<<<<<< HEAD
         if [ "$TRAVIS_BRANCH" == "master" ]; then
+=======
+        if [["$TRAVIS_BRANCH" == "master" ]]; then
+>>>>>>> upstream/master
             # Login to docker hub
             echo "$DOCKER_PASSWORD" |docker login -u $DOCKER_USERNAME --password-stdin
             # Push image to docker hub
