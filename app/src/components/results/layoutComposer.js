@@ -169,7 +169,7 @@ const jsonPresenter = (uid, name, val) => {
         {k}: {v}
       </div>
     );
-    if (count === 1) {
+    if (count === 2) {
       break;
     }
     count++;
