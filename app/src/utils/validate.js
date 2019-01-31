@@ -20,7 +20,7 @@ export function validateHexId(input) {
 // get all the objects from a query string
 export function getQSLObjTypes(query) {
   const objTypes = [];
-  const querySegments = query.split('.');
+  const querySegments = query.split('}.');
   querySegments.forEach(segment => {
     const matches = QSLRegEx.exec(segment);
     if (matches) {
@@ -33,7 +33,7 @@ export function getQSLObjTypes(query) {
 // get all the object and the projection requested
 export function getQSLObjTypesAndProjection(query) {
   const queryProjection = {};
-  const querySegments = query.split('.');
+  const querySegments = query.split('}.');
   querySegments.forEach(segment => {
     const matches = QSLRegEx.exec(segment);
     if (matches) {

@@ -49,11 +49,12 @@ describe('validation util', () => {
 
   it('should get all the obj types and projection', () => {
     const query =
-      'deployment{@name,@availablereplicas}.replicaset{*}.pod{*}.node[@name="ip-10-83-122-52.us-west-2.compute.internal"]{*}';
+      'deployment{@name,@availablereplicas}.replicaset{*}.pod{*}.node[@name="ip-10-83-122-52.us-west-2.compute.internal"]{@name}';
     const queryProjection = getQSLObjTypesAndProjection(query);
     expect(queryProjection.replicaset).toBe('*');
     expect(queryProjection.deployment).toHaveLength(2);
     expect(queryProjection.deployment).toContain('name');
     expect(queryProjection.deployment).toContain('availablereplicas');
+    expect(queryProjection.node).toContain('name');
   });
 });
