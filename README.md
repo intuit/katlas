@@ -20,9 +20,10 @@ It addresses following problems in a large scale enterprise environment of Kuber
   * Streaming APIs and UI for both programmatic and human interactions
 * **Advanced Exploration**
   * Identify similarities and differences between objects from pods to clusters
-  * In depth analysis of individual characteristics like performance
+  * Correlate different objects by performing advanced join operations
 * **Federated Application View**
-  * Take an application centric view - correlate an application’s metadata across multiple clusters
+  * Applications take center stage. K-Atlas provides a unique, application-centric view, with metadata from multiple clusters
+  * Single pane of glass view of the entire application - from edge to database, across all clusters, regions etc.
 * **Reporting**
   * Provide advanced reporting on compliance, security and other organizational policies
 * **Policy Enforcement**
@@ -63,14 +64,17 @@ Make sure you have the following prerequisites:
 
 How to [Set Up](docs/installation.md).
 
-## Roadmap
+## Releases
 
-#### v0.5
+#### Latest version (v0.6)
 
-* [x] Support for Kubernetes resource collecting and store in graph database
-* [x] View graphical and tabular results in real time
+* [x] QSL query support
+* [x] Dynamic search result layout based on QSL
+* [x] Graph view based on QSL query required objects & relationships
+* [x] Pagination support for both API and UI
+* [x] Custom metadata definition via new API
 
-More releases at [Release Notes](release.md).
+More details about specific K-Atlas features are at [Release Notes](release.md).
 
 ## Contributing
 
