@@ -84,7 +84,13 @@ function getVisFormatEdge(fromUid, toUid, relation) {
     font: {
       size: 8
     },
-    arrows: "to"
+    arrows: "to",
+    smooth: {
+      enabled: true,
+      type: 'cubicBezier',
+      forceDirection: 'vertical',
+      roundness: 0.5
+    }
   };
 }
 

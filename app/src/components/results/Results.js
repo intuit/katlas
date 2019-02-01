@@ -33,8 +33,10 @@ const styles = theme => ({
   },
   searchBox: {
     marginTop: 30,
-    marginLeft: 5,
-    marginBottom: 20
+    marginLeft: 10,
+    marginBottom: 20,
+    marginRight: 10,
+    width: 'calc(100% - 20px)'
   }
 });
 
@@ -124,8 +126,8 @@ class Results extends Component {
           id='outlined-full-width'
           label='Search'
           className={classes.searchBox}
-          placeholder='Query String'
-          fullWidth
+          //placeholder will almost never be seen in normal UX flow
+          placeholder='Search string...'
           margin='normal'
           variant='outlined'
           InputLabelProps={{

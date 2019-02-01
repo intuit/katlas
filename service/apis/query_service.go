@@ -33,11 +33,11 @@ func NewQueryService(dc db.IDGClient) *QueryService {
 func (s QueryService) GetQueryResult(queryMap map[string][]string) (map[string]interface{}, error) {
 	var err error
 	// default limit is 1000
-	first, offset := 1000, 0
+	limit, offset := 1000, 0
 	// limit should be number and less than 10000
-	if val, ok := queryMap[util.First]; ok {
-		first, err = strconv.Atoi(val[0])
-		if err != nil || first > MaximumLimit {
+	if val, ok := queryMap[util.Limit]; ok {
+		limit, err = strconv.Atoi(val[0])
+		if err != nil || limit > MaximumLimit {
 			return nil, fmt.Errorf("pagination format error or exceeding maxiumum limit %d", MaximumLimit)
 		}
 	}
@@ -55,7 +55,7 @@ func (s QueryService) GetQueryResult(queryMap map[string][]string) (map[string]i
 			return nil, err
 		}
 		// generate queries include count query
-		q, cntQry, err := s.getQueryResultByKeyword(val[0], first, offset)
+		q, cntQry, err := s.getQueryResultByKeyword(val[0], limit, offset)
 		if err != nil {
 			log.Debug(err)
 			return nil, err
@@ -80,7 +80,7 @@ func (s QueryService) GetQueryResult(queryMap map[string][]string) (map[string]i
 		err := fmt.Errorf("Query Params not specified")
 		return nil, err
 	}
-	q, cntQry := getQueryResultByKeyValue(queryMap, first, offset)
+	q, cntQry := getQueryResultByKeyValue(queryMap, limit, offset)
 	ret, err := s.dbclient.GetQueryResult(cntQry)
 	if err != nil {
 		log.Debug(err)
@@ -109,7 +109,7 @@ func GetTotalCnt(data map[string]interface{}) float64 {
 }
 
 // Keyword query http://<dgraph ip:port>/v1/query?keyword=pod
-func (s QueryService) getQueryResultByKeyword(keyword string, first, offset int) (string, string, error) {
+func (s QueryService) getQueryResultByKeyword(keyword string, limit, offset int) (string, string, error) {
 	smds, err := s.dbclient.GetSchemaFromCache(db.LruCache)
 	if err != nil {
 		log.Debug(err)
@@ -153,20 +153,20 @@ func (s QueryService) getQueryResultByKeyword(keyword string, first, offset int)
 	cntOnlyStatements = append(cntOnlyStatements, cntQuery)
 	cntOnlyStatements = append(cntOnlyStatements, "}")
 	template := `objects(func: uid(%s), first:%d,offset:%d) { %s }`
-	query := fmt.Sprintf(template, buf.String(), first, offset, "expand(_all_) { uid expand(_all_) }")
+	query := fmt.Sprintf(template, buf.String(), limit, offset, "uid expand(_all_) { uid expand(_all_) }")
 	statements = append(statements, query)
 	statements = append(statements, "}")
 	return strings.Join(statements, "\n"), strings.Join(cntOnlyStatements, "\n"), nil
 }
 
 // Key-Value query http://<dgraph ip:port>/v1/query?name=pod01&objtype=Pod
-func getQueryResultByKeyValue(queryMap map[string][]string, first, offset int) (string, string) {
+func getQueryResultByKeyValue(queryMap map[string][]string, limit, offset int) (string, string) {
 	//Only indexed fields can be filtered on
 	//Time must be in correct format "2018-10-18 14:36:32 -0700 PDT"
 	qps := []string{}
 	var funcStr, filterStr string
 	for k, v := range queryMap {
-		if k != util.First && k != util.Offset && k != util.Print {
+		if k != util.Limit && k != util.Offset && k != util.Print {
 			qp := "eq(" + k + ",\"" + v[0] + "\")"
 			qps = append(qps, qp)
 		}
@@ -175,9 +175,12 @@ func getQueryResultByKeyValue(queryMap map[string][]string, first, offset int) (
 	if p, ok := queryMap[util.Print]; ok {
 		if "*" != p[0] {
 			print = p[0]
+			if !strings.Contains(print, util.ObjType) {
+				print += "," + util.ObjType
+			}
 		}
 	}
-	funcStr = fmt.Sprintf("(func:%s, first:%d, offset:%d) ", qps[0], first, offset)
+	funcStr = fmt.Sprintf("(func:%s, first:%d, offset:%d) ", qps[0], limit, offset)
 	cntStr := fmt.Sprintf("(func:%s)", qps[0])
 	filters := qps[1:]
 	if len(filters) > 0 {
