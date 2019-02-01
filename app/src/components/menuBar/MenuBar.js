@@ -7,7 +7,7 @@ import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
 
-import logo from './map.png';
+import logo from './katlas-logo-white-300px.png';
 
 const styles = theme => ({
   root: {

@@ -4,7 +4,7 @@ import initialState from './initialState';
 import {
   SET_ROOT_UID, ADD_WATCH_UID, FETCH_ENTITY,
   FETCH_ENTITIES, RECEIVE_ENTITY, RECEIVE_QSL_RESP,
-  ADD_WATCH_QSL_QUERY
+  ADD_WATCH_QSL_QUERY, CLEAR_WATCHES
 } from '../actions/actionTypes';
 import { EdgeLabels } from '../config/appConfig';
 
@@ -66,6 +66,16 @@ export default function entity(state = initialState.entity, action) {
       if (!_.isEqual(state.results, potentialResults)) {
         newState.results = potentialResults;
       }
+      return newState;
+    case CLEAR_WATCHES:
+      newState = {
+        ...state,
+        rootUid: '',
+        entitiesByUid: {},
+        qslQuery: '',
+        results: {},
+        isWaiting: false,
+      };
       return newState;
     default:
       return state;

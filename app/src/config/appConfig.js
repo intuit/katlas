@@ -5,7 +5,7 @@ export const NODE_DEFAULT_STR = 'default';
 export const NODE_DEFAULT_COLOR = '#2575E2';
 export const NODE_ICON_FONT = 'FontAwesome';
 export const NODE_ICON_FONT_SIZE = 40;
-export const NODE_LABEL_MAX_LENGTH = 40;
+export const NODE_LABEL_MAX_LENGTH = 30;
 export const NODE_LABEL_SPLIT_CHAR = '-';
 
 //Node icons to be displayed in ased on Node types used in app
