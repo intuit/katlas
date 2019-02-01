@@ -6,18 +6,18 @@
 [![Slack Chat](https://img.shields.io/badge/slack-live-orange.svg)](https://katlasio.slack.com/)
 
 
-![](.gitbook/assets/image.png)
+![](website/assets/images/katlas-logo-blue-300px.png)
 
 ## What It Does?
 
-**K-Atlas** \(_pronounced **Cutlass**_\), is a distributed graph based platform to automatically collect, discover, explore and relate multi-cluster Kubernetes resources and metadata. The system will have a rich query language that will allow for simple and efficient exploration and extensibility.
+**K-Atlas** \(_pronounced **Cutlass**_\), is a distributed graph based platform to automatically collect, discover, explore and relate multi-cluster Kubernetes resources and metadata. K-Atlas's rich query language allows for simple and efficient exploration and extensibility.
 
-It addresses following problems in an enterprise environment of Kubernetes.
+It addresses following problems in a large scale enterprise environment of Kubernetes.
 
 * **Discoverability**
   * Find K8s objects across multiple distributed K8s clusters
-  * Real-time view discovered objects
-  * Streaming APIs and UI for programmatic and human interactions
+  * Real-time view of discovered objects
+  * Streaming APIs and UI for both programmatic and human interactions
 * **Advanced Exploration**
   * Identify similarities and differences between objects from pods to clusters
   * In depth analysis of individual characteristics like performance
