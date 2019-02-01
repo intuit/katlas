@@ -8,7 +8,7 @@ import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 
 import './Home.css';
-import logo from './map.png';
+import logo from './katlas-logo-blue-300px.png';
 import { ENTER_KEYCODE, ENTER_KEYSTR } from '../../config/appConfig';
 import * as queryActions from '../../actions/queryActions';
 import { validateQslQuery } from '../../utils/validate';
