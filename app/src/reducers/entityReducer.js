@@ -1,20 +1,23 @@
 import _ from 'lodash';
 
 import initialState from './initialState';
-import { SET_ROOT_ENTITY, ADD_ENTITY_WATCH, FETCH_ENTITY,
-  FETCH_ENTITIES, RECEIVE_ENTITY} from '../actions/actionTypes';
+import {
+  SET_ROOT_UID, ADD_WATCH_UID, FETCH_ENTITY,
+  FETCH_ENTITIES, RECEIVE_ENTITY, RECEIVE_QSL_RESP,
+  ADD_WATCH_QSL_QUERY
+} from '../actions/actionTypes';
 import { EdgeLabels } from '../config/appConfig';
 
 export default function entity(state = initialState.entity, action) {
   let newState, now, potentialResults;
   switch (action.type) {
-    case SET_ROOT_ENTITY:
+    case SET_ROOT_UID:
       newState = {
         ...state, //start with a copy of existing state
         rootUid: action.uid, //and apply changes on top of existing state attrs
       };
       return newState;
-    case ADD_ENTITY_WATCH:
+    case ADD_WATCH_UID:
       newState = {
         ...state,
         isWaiting: true,
@@ -35,8 +38,31 @@ export default function entity(state = initialState.entity, action) {
       };
       //extend the entity obj separately since we only want to change part of it
       newState.entitiesByUid[action.results.uid] = action.results;
+      if (!state.qslQuery) {
+        potentialResults = entityWalk(newState.rootUid, newState.entitiesByUid);
+      } else {
+        potentialResults = qslWalk(action.results, newState.entitiesByUid);
+      }
       //build a new result obj but only update newState if it's different
-      potentialResults = entityWalk(newState.rootUid, newState.entitiesByUid);
+      if (!_.isEqual(state.results, potentialResults)) {
+        newState.results = potentialResults;
+      }
+      return newState;
+    case ADD_WATCH_QSL_QUERY:
+      newState = {
+        ...state,
+        isWaiting: true,
+        qslQuery: action.query
+      };
+      return newState;
+    case RECEIVE_QSL_RESP:
+      now = +new Date();
+      newState = {
+        ...state,
+        latestTimestamp: now,
+        isWaiting: false,
+      };
+      potentialResults = qslWalk(action.results, newState.entitiesByUid);
       if (!_.isEqual(state.results, potentialResults)) {
         newState.results = potentialResults;
       }
@@ -53,6 +79,11 @@ const entityWalk = (rootUid, entityObj) => {
   encounteredUids[rootUid] = true;
 
   entityWalkHelper(results, entityObj, encounteredUids);
+  return results;
+};
+
+const qslWalk = (results, entityObj) => {
+  entityWalkHelper(results, entityObj, {});
   return results;
 };
 

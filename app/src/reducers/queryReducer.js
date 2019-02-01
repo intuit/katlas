@@ -1,31 +1,47 @@
 import initialState from './initialState';
-import {CHANGE_QUERY, SUBMIT_QUERY, RECEIVE_QUERY} from '../actions/actionTypes';
+import {
+  REQUEST_QUERY,
+  SUBMIT_QUERY,
+  RECEIVE_QUERY,
+  RECEIVE_METADATA
+} from '../actions/actionTypes';
 
 export default function query(state = initialState.query, action) {
   let newState;
   switch (action.type) {
-    case CHANGE_QUERY:
+    case REQUEST_QUERY:
       newState = {
         ...state,
-        current: action.query,
-        submitted: false,
+        current: action.queryStr,
+        page: action.page,
+        rowsPerPage: action.rowsPerPage,
+        isWaiting: true,
+        isQSL: action.isQSL
       };
       return newState;
     case SUBMIT_QUERY:
       newState = {
         ...state,
-        submitted: true,
-        isWaiting: true,
-        results: [],
-      }
+        results: []
+      };
       return newState;
     case RECEIVE_QUERY:
       newState = {
         ...state,
-        isWaiting: false,
-        results: action.results
+        results: action.results,
+        count: action.count,
+        isWaiting: false
       };
       return newState;
+    case RECEIVE_METADATA:
+      const newMetadata = {
+        ...state.metadata,
+        [action.objType]: action.metadata
+      };
+      return {
+        ...state,
+        metadata: newMetadata
+      };
     default:
       return state;
   }

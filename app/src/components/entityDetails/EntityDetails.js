@@ -18,18 +18,21 @@ const styles = theme => ({
 //used in multiple routes/views of the app.
 class EntityDetails extends Component {
   render() {
-    const { classes } = this.props;
+    const { classes, selectedObj } = this.props;
 
     return (
       <Paper className={classes.root} square={true}>
-        <ReactJson src={this.props.selectedObj} theme="ocean"/>
+        <ReactJson src={selectedObj} theme="ocean"/>
       </Paper>
     );
   }
 }
 
 EntityDetails.propTypes = {
-  selectedObj: PropTypes.object,
+  selectedObj: PropTypes.oneOfType([
+    PropTypes.object,
+    PropTypes.array,
+  ]),
 };
 
 export default withStyles(styles)(EntityDetails);

@@ -6,8 +6,9 @@ import fetchMock from 'fetch-mock';
 
 import {AutoHideDuration} from './Notifier';
 import App from '../app/App';
-import {HttpService} from '../../services/HttpService';
+import ApiService from '../../services/ApiService';
 import {QUERY_LEN_ERR} from "../../utils/errors";
+import '../../../public/conf.js'; // to import the configuration
 
 //Use the real store rather than mock Store to keep consistent with the same that is used by HttpService.
 import store from '../../store.js';
@@ -109,8 +110,6 @@ it('Notifier can open snackbar for errors returned from httpService', () => {
   //Check for id of Notifier Snack Bar. Initially not present.
   expect(wrapper.find('#snackbar-message-id').length).toEqual(0);
 
-  let dummyUrl = "http://katlas.com/v1/qsl";
-  let dummyParams = {qslstring: 'Cluster'};
   const response = {
     body: {},
     status: 400
@@ -118,10 +117,7 @@ it('Notifier can open snackbar for errors returned from httpService', () => {
 
   fetchMock.get('*', response, { overwriteRoutes: true });
 
-  return HttpService.get({
-    url: dummyUrl,
-    params: dummyParams
-  }).then((response) => {
+  return ApiService.getQSLResult("Cluster").then((response) => {
     expect(fetchMock.called).toBeTruthy();
     expect(response).toEqual(null);
 

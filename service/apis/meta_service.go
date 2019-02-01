@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/util"
 	"github.com/mitchellh/mapstructure"
@@ -26,6 +27,10 @@ type IMetaService interface {
 	GetMetadataField(name string, fieldName string) (MetadataField, error)
 	// Get all metadata fields
 	GetMetadataFields(name string) ([]MetadataField, error)
+	// Create schema
+	CreateSchema(sm db.Schema) error
+	// Remove schema from cache
+	RemoveSchemaCache(cache *lru.Cache)
 }
 
 // MetaService implements IMetaService interface
@@ -45,15 +50,13 @@ type Metadata struct {
 
 // MetadataField describe attributes of Metadata
 type MetadataField struct {
-	FieldName string `json:"fieldName"`
+	FieldName string `json:"fieldname"`
 	// Type of filed, could be one of [int, long, string, json, double, bool, date, enum, relationship]
-	FieldType string `json:"fieldType"`
+	FieldType string `json:"fieldtype"`
 	// The field is required if value is true
 	Mandatory bool `json:"mandatory"`
-	// The field will be @index in schema if value is true
-	Index bool `json:"index"`
 	// If FieldType is relationship, need to set reference object type
-	RefDataType string `json:"refDataType,omitempty"`
+	RefDataType string `json:"refdatatype,omitempty"`
 	// One or Many
 	Cardinality string `json:"cardinality,omitempty"`
 }
@@ -131,47 +134,48 @@ func SetDefaultKey(dkMap map[string]interface{}, data map[string]interface{}) er
 
 // CreateMetadata save new metadata to the storage
 func (s MetaService) CreateMetadata(data map[string]interface{}) (map[string]string, error) {
-	var rkeys = []string{"name", "fields", "objtype"}
+	var rkeys = []string{util.Name, util.Fields, util.ObjType}
 	err := CheckKeys(rkeys, data)
 	if err != nil {
 		return nil, err
 	}
-	fMap, ok := data["fields"].([]interface{})
+	fMap, ok := data[util.Fields].([]interface{})
 	if !ok {
 		return nil, fmt.Errorf("error in metadata field")
 	}
-	log.Debugf("fMap is %#v", fMap)
-	const cardinality = "One"
+
 	if len(fMap) > 0 {
 		for i := range fMap {
-			rkeys = []string{"fieldName", "fieldType"}
+			rkeys = []string{util.FieldName, util.FieldType}
 			err = CheckKeys(rkeys, fMap[i].(map[string]interface{}))
 			if err != nil {
 				return nil, err
 			}
 			dkMap := map[string]interface{}{
-				"cardinality": cardinality,
-				"mandatory":   false,
-				"index":       false,
+				util.Cardinality: util.One,
+				util.Mandatory:   false,
 			}
 			err = SetDefaultKey(dkMap, fMap[i].(map[string]interface{}))
-			if fMap[i].(map[string]interface{})["index"].(bool) == true {
-				rkeys = []string{"upsert", "tokenizer"}
-				err = CheckKeys(rkeys, fMap[i].(map[string]interface{}))
-				if err != nil {
-					return nil, err
-				}
-			}
 		}
 	}
 
 	e := NewEntityService(s.dbclient)
-	uids, err := e.CreateEntity("metadata", data)
+	uids, err := e.CreateEntity(util.Metadata, data)
 
 	if err != nil {
 		log.Error(err)
-		return nil, fmt.Errorf("can't create metadata")
+		return nil, fmt.Errorf("can't create metadata %v", err)
 	}
 	log.Infof("metadata created/updated: %v", uids)
 	return uids, nil
+}
+
+// CreateSchema creates schema
+func (s MetaService) CreateSchema(sm db.Schema) error {
+	return s.dbclient.CreateSchema(sm)
+}
+
+// RemoveSchemaCache to clean lru cache
+func (s MetaService) RemoveSchemaCache(cache *lru.Cache) {
+	s.dbclient.RemoveDBSchemaFromCache(cache)
 }

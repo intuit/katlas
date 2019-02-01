@@ -28,7 +28,7 @@ var ingresstests = []IngressTest{
 			Spec: ext_v1beta1.IngressSpec{},
 		},
 		out: map[string]interface{}{
-			"objtype":         "Ingress",
+			"objtype":         "ingress",
 			"cluster":         "test2",
 			"name":            "test-ingress",
 			"namespace":       "test-namespace",

@@ -34,7 +34,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "test": "react-scripts test",
+    "test": "NODE_ENV=test react-scripts test",
     "eject": "react-scripts eject",
     "build": "react-scripts build && yarn run delete-maps",
     "delete-maps": "yarn run delete-map-files && yarn run delete-references-to-map-files",

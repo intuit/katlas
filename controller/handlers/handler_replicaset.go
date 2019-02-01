@@ -77,14 +77,14 @@ func (t *ReplicaSetHandler) ObjectCreated(obj interface{}) error {
 	if !ValidateReplicaSet(replicaset) {
 		return errors.New("Could not validate replicaset object " + replicaset.ObjectMeta.Name)
 	}
-	SendJSONQueryWithRetries(replicaset, RestSvcEndpoint+"v1/entity/ReplicaSet")
+	SendJSONQueryWithRetries(replicaset, RestSvcEndpoint+"v1/entity/replicaset")
 	return nil
 }
 
 // ObjectDeleted is called when an object is deleted
 func (t *ReplicaSetHandler) ObjectDeleted(obj interface{}, key string) error {
 	log.Info("ReplicaSetHandler.ObjectDeleted")
-	SendDeleteRequest(RestSvcEndpoint + "v1/entity/ReplicaSet/ReplicaSet:" + ClusterName + ":" + strings.Replace(key, "/", ":", -1))
+	SendDeleteRequest(RestSvcEndpoint + "v1/entity/replicaset/replicaset:" + ClusterName + ":" + strings.Replace(key, "/", ":", -1))
 	return nil
 }
 
@@ -97,5 +97,5 @@ func (t *ReplicaSetHandler) ObjectUpdated(objOld, objNew interface{}) error {
 // ReplicaSetSynchronize sync all ReplicaSets periodically in case missing events
 func ReplicaSetSynchronize(client kubernetes.Interface) {
 	clusterreplicasetslist, _ := client.AppsV1beta2().ReplicaSets(AppNamespace).List(v1.ListOptions{})
-	SendJSONQueryWithRetries(clusterreplicasetslist.Items, RestSvcEndpoint+"v1/sync/ReplicaSet")
+	SendJSONQueryWithRetries(clusterreplicasetslist.Items, RestSvcEndpoint+"v1/sync/replicaset")
 }

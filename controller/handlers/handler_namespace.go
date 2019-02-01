@@ -73,14 +73,14 @@ func (t *NamespaceHandler) ObjectCreated(obj interface{}) error {
 	if !ValidateNamespace(namespace) {
 		return errors.New("Could not validate namespace object " + namespace.ObjectMeta.Name)
 	}
-	SendJSONQueryWithRetries(namespace, RestSvcEndpoint+"v1/entity/Namespace")
+	SendJSONQueryWithRetries(namespace, RestSvcEndpoint+"v1/entity/namespace")
 	return nil
 }
 
 // ObjectDeleted is called when an object is deleted
 func (t *NamespaceHandler) ObjectDeleted(obj interface{}, key string) error {
 	log.Info("NamespaceHandler.ObjectDeleted")
-	SendDeleteRequest(RestSvcEndpoint + "v1/entity/Namespace/Namespace:" + ClusterName + ":" + key)
+	SendDeleteRequest(RestSvcEndpoint + "v1/entity/namespace/namespace:" + ClusterName + ":" + key)
 	return nil
 }
 
@@ -93,5 +93,5 @@ func (t *NamespaceHandler) ObjectUpdated(objOld, objNew interface{}) error {
 // NamespaceSynchronize sync all Namespaces periodically in case missing events
 func NamespaceSynchronize(client kubernetes.Interface) {
 	clusternamespaceslist, _ := client.CoreV1().Namespaces().List(v1.ListOptions{})
-	SendJSONQueryWithRetries(clusternamespaceslist.Items, RestSvcEndpoint+"v1/sync/Namespace")
+	SendJSONQueryWithRetries(clusternamespaceslist.Items, RestSvcEndpoint+"v1/sync/namespace")
 }
