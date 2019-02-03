@@ -57,7 +57,7 @@ func serve() {
 	router.HandleFunc("/health", Health).Methods("GET")
 	router.HandleFunc("/", Up).Methods("GET", "POST")
 
-        router.Handle("/metrics", promhttp.Handler()).Methods("GET")
+        router.Handle("/prometheus_metrics", promhttp.Handler()).Methods("GET")
 
 	//Creates an LRU cache of the given size
 	var err error

@@ -1,4 +1,3 @@
-//Package metrics - contains metrics information
 package metrics
 
 import (
@@ -34,10 +33,6 @@ var (
         DgraphNumQSL = promauto.NewCounter(prometheus.CounterOpts{
                 Name: "katlas_service_dgraph_num_qsl",
                 Help: "The total number of QSL processed by for Katlas QSL Service",
-        })
-        DgraphNumSyncEntity = promauto.NewCounter(prometheus.CounterOpts{
-                Name: "katlas_service_dgraph_num_sync_entity",
-                Help: "The total number of Sync Entity Requests processed by Katlas Entity Service",
         })
         DgraphNumCreateEntity = promauto.NewCounter(prometheus.CounterOpts{
                 Name: "katlas_service_dgraph_num_create_entity",

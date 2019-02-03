@@ -195,7 +195,6 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 
 // SyncEntities ...
 func (s EntityService) SyncEntities(meta string, data []map[string]interface{}) error {
-        metrics.DgraphNumSyncEntity.Inc()
 	// get all objects from database base on meta and k8 cluster
 	if len(data) > 0 {
 		objs, err := s.dbclient.GetAllByClusterAndType(meta, data[0][util.Cluster].(string))
