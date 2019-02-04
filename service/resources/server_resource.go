@@ -175,7 +175,7 @@ func (s ServerResource) QueryHandler(w http.ResponseWriter, r *http.Request) {
 
 	obj, err := s.QuerySvc.GetQueryResult(queryMap)
 	if err != nil {
-		http.Error(w, "Service Error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -292,6 +292,7 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 					util.ResourceVersion: d.ResourceVersion,
 					util.K8sObj:          util.K8sObj,
 					util.Labels:          d.ObjectMeta.GetLabels(),
+					util.Asset:           getValues(&data, util.AssetID, "GetAnnotations"),
 				}
 				list = append(list, namespace)
 			}
@@ -310,11 +311,12 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 			util.ResourceVersion: data.ResourceVersion,
 			util.K8sObj:          util.K8sObj,
 			util.Labels:          data.ObjectMeta.GetLabels(),
+			util.Asset:           getValues(&data, util.AssetID, "GetAnnotations"),
 		}, nil
 	case util.Deployment:
 		if isArray {
 			list := make([]map[string]interface{}, 0)
-			data := []ext_v1beta1.Deployment{}
+			data := []v1beta2.Deployment{}
 			err := json.Unmarshal(body, &data)
 			if err != nil {
 				return nil, err
@@ -635,29 +637,38 @@ func buildEntityData(clusterName string, meta string, body []byte, isArray bool)
 	}
 }
 
+func getValues(data interface{}, key, method string) string {
+	vals := []reflect.Value{}
+	switch data.(type) {
+	case *core_v1.Service:
+		vals = reflect.ValueOf(&data.(*core_v1.Service).ObjectMeta).MethodByName(method).Call(nil)
+	case *core_v1.Namespace:
+		vals = reflect.ValueOf(&data.(*core_v1.Namespace).ObjectMeta).MethodByName(method).Call(nil)
+	case *v1beta2.Deployment:
+		vals = reflect.ValueOf(&data.(*v1beta2.Deployment).ObjectMeta).MethodByName(method).Call(nil)
+	case *ext_v1beta1.Ingress:
+		vals = reflect.ValueOf(&data.(*ext_v1beta1.Ingress).ObjectMeta).MethodByName(method).Call(nil)
+	case *core_v1.Pod:
+		vals = reflect.ValueOf(&data.(*core_v1.Pod).ObjectMeta).MethodByName(method).Call(nil)
+	case *v1beta2.ReplicaSet:
+		vals = reflect.ValueOf(&data.(*v1beta2.ReplicaSet).ObjectMeta).MethodByName(method).Call(nil)
+	case *appsv1.StatefulSet:
+		vals = reflect.ValueOf(&data.(*appsv1.StatefulSet).ObjectMeta).MethodByName(method).Call(nil)
+	}
+	if len(vals) > 0 {
+		if val, ok := vals[0].Interface().(map[string]string)[key]; ok {
+			return val
+		}
+	}
+	return ""
+}
+
 func createAppNameList(obj interface{}) []interface{} {
 	appList := make([]interface{}, 0)
-	switch obj.(type) {
-	case *core_v1.Service:
-		if appName, ok := obj.(*core_v1.Service).ObjectMeta.GetLabels()[util.App]; ok {
-			appList = append(appList, appName)
-		}
-		if appName, ok := obj.(*core_v1.Service).ObjectMeta.GetLabels()[util.K8sApp]; ok {
-			appList = append(appList, appName)
-		}
-	case *ext_v1beta1.Ingress:
-		if appName, ok := obj.(*ext_v1beta1.Ingress).ObjectMeta.GetLabels()[util.App]; ok {
-			appList = append(appList, appName)
-		}
-		if appName, ok := obj.(*ext_v1beta1.Ingress).ObjectMeta.GetLabels()[util.K8sApp]; ok {
-			appList = append(appList, appName)
-		}
-	case *v1beta2.Deployment:
-		if appName, ok := obj.(*v1beta2.Deployment).ObjectMeta.GetLabels()[util.App]; ok {
-			appList = append(appList, appName)
-		}
-		if appName, ok := obj.(*v1beta2.Deployment).ObjectMeta.GetLabels()[util.K8sApp]; ok {
-			appList = append(appList, appName)
+	for _, key := range []string{util.App, util.K8sApp} {
+		val := getValues(obj, key, "GetLabels")
+		if val != "" {
+			appList = append(appList, val)
 		}
 	}
 	return appList
@@ -684,13 +695,7 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	var total float64
-	for _, res := range response[util.Objects].([]interface{}) {
-		val, ok := res.(map[string]interface{})[util.Count]
-		if ok {
-			total = val.(float64)
-		}
-	}
+	total := apis.GetTotalCnt(response)
 
 	// get query with pagination
 	query, err = s.QSLSvc.CreateDgraphQuery(vars[util.Query], false)

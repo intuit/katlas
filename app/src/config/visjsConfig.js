@@ -33,5 +33,16 @@ export const options = {
   layout: {
     randomSeed: 42,
     improvedLayout: true,
+    hierarchical: {
+      enabled: true,
+      nodeSpacing: 150,
+      blockShifting: true,
+      edgeMinimization: true,
+      sortMethod: 'hubsize',
+      direction: 'UD'
+    }
   },
+  physics: {
+    enabled: false
+  }
 };
