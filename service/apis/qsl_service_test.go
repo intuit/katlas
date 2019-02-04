@@ -85,7 +85,7 @@ func TestCreateFiltersQuery(t *testing.T) {
 			},
 			nil,
 		},
-		`@name="paas-preprod-west2.cluster.k8s.local"$$first=2`: FResult{
+		`@name="paas-preprod-west2.cluster.k8s.local"$$limit=2`: FResult{
 			[]string{
 				", $name: string",
 				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") )`,
@@ -93,7 +93,7 @@ func TestCreateFiltersQuery(t *testing.T) {
 			},
 			nil,
 		},
-		`@name="paas-preprod-west2.cluster.k8s.local"$$first=2,offset=4`: FResult{
+		`@name="paas-preprod-west2.cluster.k8s.local"$$limit=2,offset=4`: FResult{
 			[]string{
 				", $name: string",
 				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") )`,
@@ -145,10 +145,10 @@ func TestCreateFieldsQuery(t *testing.T) {
 		"*,@name":                            FResult{nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... not both [*,@name]")},
 		"@name,**":                           FResult{nil, errors.New("Field names must be prefixed with @ sign and followed by an alphanumeric field name [**]")},
 		"**,*":                               FResult{nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... not both [**,*]")},
-		"@name":                              FResult{[]string{"name", "uid"}, nil},
-		"@name,@resourceversion":             FResult{[]string{"name", "resourceversion", "uid"}, nil},
-		"@name,@resourceversion,@resourceid": FResult{[]string{"name", "resourceversion", "resourceid", "uid"}, nil},
-		"@name,@resourceversion,@k8sobj":     FResult{[]string{"name", "resourceversion", "k8sobj", "uid"}, nil},
+		"@name":                              FResult{[]string{"name", "objtype", "uid"}, nil},
+		"@name,@resourceversion":             FResult{[]string{"name", "resourceversion", "objtype", "uid"}, nil},
+		"@name,@resourceversion,@resourceid": FResult{[]string{"name", "resourceversion", "resourceid", "objtype", "uid"}, nil},
+		"@name,@resourceversion,@k8sobj":     FResult{[]string{"name", "resourceversion", "k8sobj", "objtype", "uid"}, nil},
 	}
 
 	namespacemetafieldslist := []MetadataField{MetadataField{FieldName: "k8sobj", FieldType: "string", Mandatory: true, RefDataType: "", Cardinality: "one"}, MetadataField{FieldName: "objtype", FieldType: "string", Mandatory: true, RefDataType: "", Cardinality: "one"}, MetadataField{FieldName: "name", FieldType: "string", Mandatory: true, RefDataType: "", Cardinality: "one"}, MetadataField{FieldName: "resourceid", FieldType: "string", Mandatory: false, RefDataType: "", Cardinality: "one"}, MetadataField{FieldName: "resourceversion", FieldType: "string", Mandatory: true, RefDataType: "", Cardinality: "one"}}
@@ -199,6 +199,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 			"}",
 			"{ objects(func: uid(A),first:1000,offset:0) {",
 			"\tname",
+			"\tobjtype",
 			"\tuid",
 			"}",
 			"}",
@@ -347,6 +348,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 			"}",
 			"{ objects(func: uid(A),first:1000,offset:0) {",
 			"\tname",
+			"\tobjtype",
 			"\tuid",
 			"}",
 			"}",
@@ -373,7 +375,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 			"}",
 			"}",
 		}, nil},
-		`cluster[$$first=2]{}.namespace[@name="default"]{*}`: FResult{[]string{
+		`cluster[$$limit=2]{}.namespace[@name="default"]{*}`: FResult{[]string{
 			"{ A as var(func: eq(objtype, cluster))  @cascade {",
 			"\tcount(uid)",
 			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"default\") ){",
@@ -395,7 +397,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 			"}",
 			"}",
 		}, nil},
-		`cluster[$$first=2,offset=2]{}.namespace[@name="default"$$first=2]{*}`: FResult{[]string{
+		`cluster[$$limit=2,offset=2]{}.namespace[@name="default"$$limit=2]{*}`: FResult{[]string{
 			"{ A as var(func: eq(objtype, cluster))  @cascade {",
 			"\tcount(uid)",
 			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"default\") ){",
@@ -417,7 +419,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 			"}",
 			"}",
 		}, nil},
-		`cluster[@objtype="cluster"$$first=2,offset=2]{}.namespace[@name="default"$$first=2,offset=2]{*}`: FResult{[]string{
+		`cluster[@objtype="cluster"$$limit=2,offset=2]{}.namespace[@name="default"$$limit=2,offset=2]{*}`: FResult{[]string{
 			"{ A as var(func: eq(objtype, cluster)) @filter( eq(objtype,\"cluster\") ) @cascade {",
 			"\tcount(uid)",
 			"\t~cluster @filter(eq(objtype, namespace) and eq(name,\"default\") ){",
@@ -445,7 +447,7 @@ func TestCreateDgraphQuery(t *testing.T) {
 	dc := db.NewDGClient(dgraphHost)
 	defer dc.Close()
 	metaSvc := NewMetaService(dc)
-	qslSvc := NewQSLService(dc, metaSvc)
+	qslSvc := NewQSLService(dc)
 
 	// Initialize metadata
 	meta, err := ioutil.ReadFile("../data/meta.json")

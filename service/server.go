@@ -40,7 +40,7 @@ func serve() {
 	metaSvc := apis.NewMetaService(dc)
 	entitySvc := apis.NewEntityService(dc)
 	querySvc := apis.NewQueryService(dc)
-	qslSvc := apis.NewQSLService(dc, metaSvc)
+	qslSvc := apis.NewQSLService(dc)
 	res := resources.ServerResource{EntitySvc: entitySvc, QuerySvc: querySvc, MetaSvc: metaSvc, QSLSvc: qslSvc}
 	router.HandleFunc("/v1/entity/{metadata}/{uid}", res.EntityGetHandler).Methods("GET")
 	// TODO: wire up more resource APIs here

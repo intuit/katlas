@@ -55,4 +55,10 @@ const (
 	Query             = "query"
 	StartTime         = "starttime"
 	Count             = "count"
+	First             = "first"
+	Limit             = "limit"
+	Offset            = "offset"
+	Print             = "print"
+	Asset             = "asset"
+	AssetID           = "iks.intuit.com/service-asset-id"
 )
