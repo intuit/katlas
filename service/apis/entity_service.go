@@ -9,9 +9,9 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/intuit/katlas/service/db"
+	metrics "github.com/intuit/katlas/service/metrics"
 	"github.com/intuit/katlas/service/util"
 	"reflect"
-        metrics "github.com/intuit/katlas/service/metrics"
 )
 
 // KeyMutex lock single object by resourceid
@@ -48,13 +48,13 @@ func NewEntityService(dc db.IDGClient) *EntityService {
 
 // GetEntity get entity return the object with specified ID
 func (s EntityService) GetEntity(meta string, uuid string) (map[string]interface{}, error) {
-        metrics.DgraphNumGetEntity.Inc()
+	metrics.DgraphNumGetEntity.Inc()
 	return s.dbclient.GetEntity(meta, uuid)
 }
 
 // DeleteEntity remove object with given ID
 func (s EntityService) DeleteEntity(uuid string) error {
-        metrics.DgraphNumDeleteEntity.Inc()
+	metrics.DgraphNumDeleteEntity.Inc()
 	return s.dbclient.DeleteEntity(uuid)
 }
 
@@ -70,6 +70,7 @@ func (s EntityService) DeleteEntityByResourceID(meta string, rid string) error {
 	if len(node[util.Objects].([]interface{})) > 0 {
 		// got existing object id
 		for _, obj := range node[util.Objects].([]interface{}) {
+			metrics.DgraphNumDeleteEntity.Inc()
 			err = s.dbclient.DeleteEntity(obj.(map[string]interface{})[util.UID].(string))
 			if err != nil {
 				return err
@@ -82,7 +83,6 @@ func (s EntityService) DeleteEntityByResourceID(meta string, rid string) error {
 
 // CreateEntity save new entity to the storage
 func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (map[string]string, error) {
-        metrics.DgraphNumCreateEntity.Inc()
 	cluster := data[util.Cluster]
 	ns := data[util.Namespace]
 	if _, ok := data[util.ResourceID]; !ok {
@@ -189,6 +189,7 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 				data[util.ResourceVersion] = "0"
 			}
 		}
+		metrics.DgraphNumCreateEntity.Inc()
 		return s.dbclient.CreateEntity(meta, data)
 	}
 	return nil, errors.New("can't get resource lock, ignore after timeout reached")
@@ -239,14 +240,14 @@ func (s EntityService) CreateOrDeleteEdge(fromType string, fromUID string, toTyp
 	// if err := metadata.Validate(fromType, toType, rel); err != nil {
 	// 	return nil, err
 	// }
-        metrics.DgraphNumUpdateEdge.Inc()
+	metrics.DgraphNumUpdateEdge.Inc()
 	return s.dbclient.CreateOrDeleteEdge(fromType, fromUID, toType, toUID, rel, op)
 
 }
 
 // UpdateEntity update entity
 func (s EntityService) UpdateEntity(meta string, uuid string, data map[string]interface{}) error {
-        metrics.DgraphNumUpdateEntity.Inc()
+	metrics.DgraphNumUpdateEntity.Inc()
 	return s.dbclient.UpdateEntity(meta, uuid, data)
 }
 

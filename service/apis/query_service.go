@@ -8,6 +8,7 @@ import (
 	"bytes"
 	log "github.com/Sirupsen/logrus"
 	"github.com/intuit/katlas/service/db"
+	metrics "github.com/intuit/katlas/service/metrics"
 	"github.com/intuit/katlas/service/util"
 )
 
@@ -56,6 +57,7 @@ func (s QueryService) GetQueryResult(queryMap map[string][]string) (map[string]i
 		}
 		// generate queries include count query
 		q, cntQry, err := s.getQueryResultByKeyword(val[0], limit, offset)
+		metrics.DgraphNumKeywordQueries.Inc()
 		if err != nil {
 			log.Debug(err)
 			return nil, err
@@ -81,6 +83,7 @@ func (s QueryService) GetQueryResult(queryMap map[string][]string) (map[string]i
 		return nil, err
 	}
 	q, cntQry := getQueryResultByKeyValue(queryMap, limit, offset)
+	metrics.DgraphNumKeyValueQueries.Inc()
 	ret, err := s.dbclient.GetQueryResult(cntQry)
 	if err != nil {
 		log.Debug(err)

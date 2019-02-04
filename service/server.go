@@ -13,7 +13,7 @@ import (
 	"github.com/intuit/katlas/service/cfg"
 	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/resources"
-        "github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"io/ioutil"
 )
 
@@ -57,7 +57,7 @@ func serve() {
 	router.HandleFunc("/health", Health).Methods("GET")
 	router.HandleFunc("/", Up).Methods("GET", "POST")
 
-        router.Handle("/prometheus_metrics", promhttp.Handler()).Methods("GET")
+	router.Handle("/prometheus_metrics", promhttp.Handler()).Methods("GET")
 
 	//Creates an LRU cache of the given size
 	var err error
@@ -103,7 +103,7 @@ func main() {
 	log.Infof("ServerType=%s", cfg.ServerCfg.ServerType)
 	log.Infof("DgraphHost=%s", cfg.ServerCfg.DgraphHost)
 
-        if cfg.ServerCfg.DgraphHost == "" {
+	if cfg.ServerCfg.DgraphHost == "" {
 		flag.PrintDefaults()
 		log.Fatal("Invalid input params")
 	}
