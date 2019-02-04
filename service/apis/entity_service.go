@@ -60,6 +60,7 @@ func (s EntityService) DeleteEntity(uuid string) error {
 
 // DeleteEntityByResourceID remove object by given resourceid
 func (s EntityService) DeleteEntityByResourceID(meta string, rid string) error {
+	metrics.DgraphNumDeleteEntity.Inc()
 	qm := map[string][]string{util.ResourceID: {rid}, util.ObjType: {meta}, util.Print: {util.ResourceID}}
 	queryService := NewQueryService(s.dbclient)
 	node, err := queryService.GetQueryResult(qm)
@@ -70,7 +71,6 @@ func (s EntityService) DeleteEntityByResourceID(meta string, rid string) error {
 	if len(node[util.Objects].([]interface{})) > 0 {
 		// got existing object id
 		for _, obj := range node[util.Objects].([]interface{}) {
-			metrics.DgraphNumDeleteEntity.Inc()
 			err = s.dbclient.DeleteEntity(obj.(map[string]interface{})[util.UID].(string))
 			if err != nil {
 				return err
@@ -83,6 +83,7 @@ func (s EntityService) DeleteEntityByResourceID(meta string, rid string) error {
 
 // CreateEntity save new entity to the storage
 func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (map[string]string, error) {
+	metrics.DgraphNumCreateEntity.Inc()
 	cluster := data[util.Cluster]
 	ns := data[util.Namespace]
 	if _, ok := data[util.ResourceID]; !ok {
@@ -189,7 +190,6 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 				data[util.ResourceVersion] = "0"
 			}
 		}
-		metrics.DgraphNumCreateEntity.Inc()
 		return s.dbclient.CreateEntity(meta, data)
 	}
 	return nil, errors.New("can't get resource lock, ignore after timeout reached")
