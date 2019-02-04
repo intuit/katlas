@@ -9,10 +9,13 @@ import (
 	log "github.com/Sirupsen/logrus"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/intuit/katlas/service/db"
+	"github.com/intuit/katlas/service/metrics"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGetQueryResultByKeyValue(t *testing.T) {
+
+	prevCounter := metrics.ReadCounter(metrics.DgraphNumKeyValueQueries)
 
 	//Expected values
 	expectPodName := "pod01"
@@ -69,11 +72,18 @@ func TestGetQueryResultByKeyValue(t *testing.T) {
 	} else {
 		assert.Fail(t, "map key is not found!")
 	}
+
+	// 3 queries for get pod, create pod, query
+	expectedDgraphNumKeyValueQueries := 3.0
+	nextCounter := metrics.ReadCounter(metrics.DgraphNumKeyValueQueries)
+	assert.Equal(t, expectedDgraphNumKeyValueQueries, nextCounter-prevCounter, "DgraphNumKeyValueQueries is not equal to expected.")
 }
 
 func TestGetQueryResultByKeywordSearch(t *testing.T) {
 	dc := db.NewDGClient("127.0.0.1:9080")
 	defer dc.Close()
+
+	prevCounter := metrics.ReadCounter(metrics.DgraphNumKeywordQueries)
 
 	var err error
 	db.LruCache, err = lru.New(5)
@@ -98,6 +108,10 @@ func TestGetQueryResultByKeywordSearch(t *testing.T) {
 	}
 	log.Infof("Test Get Query Result: [%v]\n", qr)
 	assert.Nil(t, err)
+
+	expectedDgraphNumKeywordQueries := 1.0
+	nextCounter := metrics.ReadCounter(metrics.DgraphNumKeywordQueries)
+	assert.Equal(t, expectedDgraphNumKeywordQueries, nextCounter-prevCounter, "DgraphNumKeywordQueries is not equal to expected.")
 }
 
 func createPod(dc *db.DGClient, ms *MetaService) (uid string) {
