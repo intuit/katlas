@@ -10,6 +10,7 @@ import (
 	"github.com/dgraph-io/dgo"
 	"github.com/dgraph-io/dgo/protos/api"
 	lru "github.com/hashicorp/golang-lru"
+	metrics "github.com/intuit/katlas/service/metrics"
 	"github.com/intuit/katlas/service/util"
 	"google.golang.org/grpc"
 )
@@ -103,8 +104,11 @@ func (s DGClient) GetEntity(meta string, uuid string) (map[string]interface{}, e
 	`
 	resp, err := s.dc.NewTxn().Query(context.Background(), q)
 	if err != nil {
+		metrics.DgraphNumQueriesErr.Inc()
 		return nil, err
 	}
+	metrics.DgraphNumQueries.Inc()
+
 	m := make(map[string]interface{})
 	err = json.Unmarshal(resp.Json, &m)
 	if err != nil {
@@ -129,9 +133,11 @@ func (s DGClient) DeleteEntity(uuid string) error {
 	}
 	_, err := txn.Mutate(ctx, mu)
 	if err != nil {
+		metrics.DgraphNumMutationsErr.Inc()
 		log.Debug(err)
 		return err
 	}
+	metrics.DgraphNumMutations.Inc()
 	return nil
 }
 
@@ -147,9 +153,12 @@ func (s DGClient) CreateEntity(meta string, data map[string]interface{}) (map[st
 	mu.SetJson = jsonData
 	resp, err := txn.Mutate(ctx, mu)
 	if err != nil {
+		metrics.DgraphNumMutationsErr.Inc()
 		log.Error(err, data)
 		return nil, err
 	}
+	metrics.DgraphNumMutations.Inc()
+
 	log.Infof("%s %s created/updated successfully", meta, data["name"])
 	if uid, ok := data["uid"]; ok {
 		return map[string]string{data["name"].(string): uid.(string)}, nil
@@ -169,9 +178,11 @@ func (s DGClient) SetFieldToNull(delMap map[string]interface{}) error {
 	mu.DeleteJson = delJSON
 	_, err := txn.Mutate(ctx, mu)
 	if err != nil {
+		metrics.DgraphNumMutationsErr.Inc()
 		log.Info(err)
 		return err
 	}
+	metrics.DgraphNumMutations.Inc()
 	return nil
 }
 
@@ -203,9 +214,11 @@ func (s DGClient) CreateOrDeleteEdge(fromType string, fromUID string, toType str
 	}
 	_, err := txn.Mutate(ctx, mu)
 	if err != nil {
+		metrics.DgraphNumMutationsErr.Inc()
 		log.Debug(err)
 		return err
 	}
+	metrics.DgraphNumMutations.Inc()
 	return nil
 }
 
@@ -226,9 +239,11 @@ func (s DGClient) UpdateEntity(meta string, uuid string, data map[string]interfa
 	mu.SetJson = jdata
 	_, err = txn.Mutate(ctx, mu)
 	if err != nil {
+		metrics.DgraphNumMutationsErr.Inc()
 		log.Debug(err)
 		return err
 	}
+	metrics.DgraphNumMutations.Inc()
 	return nil
 }
 
@@ -236,9 +251,11 @@ func (s DGClient) UpdateEntity(meta string, uuid string, data map[string]interfa
 func (s DGClient) GetQueryResult(query string) (map[string]interface{}, error) {
 	resp, err := s.dc.NewTxn().Query(context.Background(), query)
 	if err != nil {
+		metrics.DgraphNumQueriesErr.Inc()
 		log.Errorf("Query[%v] Error [%v]\n", query, err)
 		return nil, err
 	}
+	metrics.DgraphNumQueries.Inc()
 
 	m := make(map[string]interface{})
 	err = json.Unmarshal(resp.Json, &m)
@@ -264,9 +281,11 @@ func (s DGClient) GetAllByClusterAndType(meta string, cluster string) (map[strin
 	}`
 	resp, err := s.dc.NewTxn().Query(context.Background(), q)
 	if err != nil {
+		metrics.DgraphNumQueriesErr.Inc()
 		log.Errorf("Query[%v] Error [%v]\n", q, err)
 		return nil, err
 	}
+	metrics.DgraphNumQueries.Inc()
 
 	m := make(map[string]interface{})
 	err = json.Unmarshal(resp.Json, &m)
@@ -327,9 +346,11 @@ func (s DGClient) GetSchemaFromDB() ([]*api.SchemaNode, error) {
 	`
 	resp, err := s.dc.NewTxn().Query(context.Background(), q)
 	if err != nil {
+		metrics.DgraphNumQueriesErr.Inc()
 		log.Errorf("Query [%v] Error [%v]\n", q, err)
 		return nil, err
 	}
+	metrics.DgraphNumQueries.Inc()
 	smn := resp.Schema
 	return smn, nil
 }
@@ -412,9 +433,11 @@ func (s DGClient) ExecuteDgraphQuery(query string) (map[string]interface{}, erro
 
 	resp, err := txn.Query(context.Background(), query)
 	if err != nil {
+		metrics.DgraphNumQueriesErr.Inc()
 		log.Errorf("query err: %#v\n", err)
 		return nil, errors.New("could not successfully execute query. Please try again later\n" + err.Error())
 	}
+	metrics.DgraphNumQueries.Inc()
 
 	respjson := map[string]interface{}{}
 
