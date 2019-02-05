@@ -35,6 +35,8 @@ It provides a Web Viewer that can be used to search the Kubernetes cluster data 
 
 ## Core Components
 
+![](docs/diagram/K-Atlas.png)
+
 #### Collector
 
 The collector is responsible for discovery of Kubernetes assets in Kubernetes Clusters. For details on the  Collector design, please refer [Design Concepts](docs/design-concepts.md)
@@ -43,11 +45,11 @@ The collector is responsible for discovery of Kubernetes assets in Kubernetes Cl
 
 The K-Atlas Service exposes APIs that can be used to get details about Kubernetes entities and run queries to help diagnose issues in Kubernetes clusters. For details , please refer [K-Atlas APIs](docs/rest-apis.md) 
 
-#### Web Application
+#### K-Atlas Browser
 
 The Web Application exposes UI search capability to search clusters based on several criteria and provide a real time graphical view of entities. For details on usage, please Click [here to see a demo](https://www.useloom.com/share/eb97aa1054004be197e3ed732223e689)
 
-#### Database
+#### Graph Database
 
 Dgraph is used as the graph database. To know more about our motivation to choose Dgraph, please refer [Design Concepts](docs/design-concepts.md)
 
