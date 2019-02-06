@@ -9,6 +9,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/intuit/katlas/service/db"
+	metrics "github.com/intuit/katlas/service/metrics"
 	"github.com/intuit/katlas/service/util"
 	"reflect"
 )
@@ -47,16 +48,19 @@ func NewEntityService(dc db.IDGClient) *EntityService {
 
 // GetEntity get entity return the object with specified ID
 func (s EntityService) GetEntity(meta string, uuid string) (map[string]interface{}, error) {
+	metrics.DgraphNumGetEntity.Inc()
 	return s.dbclient.GetEntity(meta, uuid)
 }
 
 // DeleteEntity remove object with given ID
 func (s EntityService) DeleteEntity(uuid string) error {
+	metrics.DgraphNumDeleteEntity.Inc()
 	return s.dbclient.DeleteEntity(uuid)
 }
 
 // DeleteEntityByResourceID remove object by given resourceid
 func (s EntityService) DeleteEntityByResourceID(meta string, rid string) error {
+	metrics.DgraphNumDeleteEntity.Inc()
 	qm := map[string][]string{util.ResourceID: {rid}, util.ObjType: {meta}, util.Print: {util.ResourceID}}
 	queryService := NewQueryService(s.dbclient)
 	node, err := queryService.GetQueryResult(qm)
@@ -79,6 +83,7 @@ func (s EntityService) DeleteEntityByResourceID(meta string, rid string) error {
 
 // CreateEntity save new entity to the storage
 func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (map[string]string, error) {
+	metrics.DgraphNumCreateEntity.Inc()
 	cluster := data[util.Cluster]
 	ns := data[util.Namespace]
 	if _, ok := data[util.ResourceID]; !ok {
@@ -235,12 +240,14 @@ func (s EntityService) CreateOrDeleteEdge(fromType string, fromUID string, toTyp
 	// if err := metadata.Validate(fromType, toType, rel); err != nil {
 	// 	return nil, err
 	// }
+	metrics.DgraphNumUpdateEdge.Inc()
 	return s.dbclient.CreateOrDeleteEdge(fromType, fromUID, toType, toUID, rel, op)
 
 }
 
 // UpdateEntity update entity
 func (s EntityService) UpdateEntity(meta string, uuid string, data map[string]interface{}) error {
+	metrics.DgraphNumUpdateEntity.Inc()
 	return s.dbclient.UpdateEntity(meta, uuid, data)
 }
 

@@ -56,6 +56,8 @@ class GraphContainer extends Component {
   }
 
   componentWillUnmount() {
+    const { clearWatches } = this.props.entityActions;
+    clearWatches();
     clearInterval(this.intervalHandle);
   }
 

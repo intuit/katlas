@@ -46,3 +46,7 @@ export const receiveQslResp = results => ({
   type: types.RECEIVE_QSL_RESP,
   results
 });
+
+export const clearWatches = () => ({
+  type: types.CLEAR_WATCHES
+});

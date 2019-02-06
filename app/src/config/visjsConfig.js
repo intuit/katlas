@@ -35,6 +35,7 @@ export const options = {
     improvedLayout: true,
     hierarchical: {
       enabled: true,
+      nodeSpacing: 150,
       blockShifting: true,
       edgeMinimization: true,
       sortMethod: 'hubsize',
@@ -42,6 +43,6 @@ export const options = {
     }
   },
   physics: {
-    enabled: true
+    enabled: false
   }
 };
