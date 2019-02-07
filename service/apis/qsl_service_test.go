@@ -21,9 +21,29 @@ type FResult struct {
 func TestCreateFiltersQuery(t *testing.T) {
 
 	tests := map[string]FResult{
+		`@labels.$app="nginx"`: FResult{
+			[]string{
+				`@filter( regexp(labels,/"app" *: *"nginx"/) )`,
+				"",
+			},
+			nil,
+		},
+		`@labels.$app~="nginx"`: FResult{
+			[]string{
+				`@filter( regexp(labels,/"app" *: *"nginx"/) )`,
+				"",
+			},
+			nil,
+		},
+		`@labels~="^nginx$"`: FResult{
+			[]string{
+				`@filter( regexp(labels,/^nginx$/) )`,
+				"",
+			},
+			nil,
+		},
 		`@name="paas-preprod-west2.cluster.k8s.local"||@k8sobj="K8sObj"||@resourceid="paas-preprod-west2.cluster.k8s.local"`: FResult{
 			[]string{
-				", $name: string, $k8sobj: string, $resourceid: string",
 				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") or eq(k8sobj,"K8sObj") or eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
 				"",
 			},
@@ -31,7 +51,6 @@ func TestCreateFiltersQuery(t *testing.T) {
 		},
 		`@name="paas-preprod-west2.cluster.k8s.local"&&@k8sobj="K8sObj"&&@resourceid="paas-preprod-west2.cluster.k8s.local"`: FResult{
 			[]string{
-				", $name: string, $k8sobj: string, $resourceid: string",
 				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") and eq(k8sobj,"K8sObj") and eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
 				"",
 			},
@@ -39,7 +58,6 @@ func TestCreateFiltersQuery(t *testing.T) {
 		},
 		`@name="paas-preprod-west2.cluster.k8s.local"||@k8sobj="K8sObj"&&@resourceid="paas-preprod-west2.cluster.k8s.local"`: FResult{
 			[]string{
-				", $name: string, $k8sobj: string, $resourceid: string",
 				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") or eq(k8sobj,"K8sObj") and eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
 				"",
 			},
@@ -47,7 +65,6 @@ func TestCreateFiltersQuery(t *testing.T) {
 		},
 		`@name="paas-preprod-west2.cluster.k8s.local"||@k8sobj="K8sObj"`: FResult{
 			[]string{
-				", $name: string, $k8sobj: string",
 				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") or eq(k8sobj,"K8sObj") )`,
 				"",
 			},
@@ -55,7 +72,6 @@ func TestCreateFiltersQuery(t *testing.T) {
 		},
 		`@k8sobj="K8sObj"&&@resourceid="paas-preprod-west2.cluster.k8s.local"`: FResult{
 			[]string{
-				", $k8sobj: string, $resourceid: string",
 				`@filter( eq(k8sobj,"K8sObj") and eq(resourceid,"paas-preprod-west2.cluster.k8s.local") )`,
 				"",
 			},
@@ -63,7 +79,6 @@ func TestCreateFiltersQuery(t *testing.T) {
 		},
 		`@name="paas-preprod-west2.cluster.k8s.local"`: FResult{
 			[]string{
-				", $name: string",
 				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") )`,
 				"",
 			},
@@ -71,7 +86,6 @@ func TestCreateFiltersQuery(t *testing.T) {
 		},
 		`@name="paas-preprod-west2.cluster.k8s.local?"`: FResult{
 			[]string{
-				", $name: string",
 				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") )`,
 				"",
 			},
@@ -79,7 +93,6 @@ func TestCreateFiltersQuery(t *testing.T) {
 		},
 		`@numreplicas>=1`: FResult{
 			[]string{
-				", $numreplicas: int",
 				`@filter( ge(numreplicas,1) )`,
 				"",
 			},
@@ -87,7 +100,6 @@ func TestCreateFiltersQuery(t *testing.T) {
 		},
 		`@name="paas-preprod-west2.cluster.k8s.local"$$limit=2`: FResult{
 			[]string{
-				", $name: string",
 				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") )`,
 				",first: 2",
 			},
@@ -95,7 +107,6 @@ func TestCreateFiltersQuery(t *testing.T) {
 		},
 		`@name="paas-preprod-west2.cluster.k8s.local"$$limit=2,offset=4`: FResult{
 			[]string{
-				", $name: string",
 				`@filter( eq(name,"paas-preprod-west2.cluster.k8s.local") )`,
 				",first: 2,offset: 4",
 			},
@@ -104,17 +115,13 @@ func TestCreateFiltersQuery(t *testing.T) {
 	}
 
 	for k, v := range tests {
-		realOut1, realOut2, realPag, err := CreateFiltersQuery(k)
+		realOut, realPag, err := CreateFiltersQuery(k)
 		if err == nil {
-			if !(v.values[0] == realOut1) {
-				t.Errorf("filter declaration incorrect\n input: %s\n testdec: %s\n realdec: %s", k, v.values[0], realOut1)
+			if !(v.values[0] == realOut) {
+				t.Errorf("filter function incorrect\n input: %s\n testfunc: %s\n realfunc: %s", k, v.values[1], realOut)
 			}
 
-			if !(v.values[1] == realOut2) {
-				t.Errorf("filter function incorrect\n input: %s\n testfunc: %s\n realfunc: %s", k, v.values[1], realOut2)
-			}
-
-			if !(v.values[2] == realPag) {
+			if !(v.values[1] == realPag) {
 				t.Errorf("filter pagination incorrect\n input: %s\n testpag: %s\n realpag: %s", k, v.values[2], realPag)
 			}
 		} else {
