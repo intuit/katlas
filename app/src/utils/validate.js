@@ -4,7 +4,7 @@ export function validateIpAddress(input) {
   return !!input.match(ipFormat);
 }
 
-export const QSLRegEx = /([a-zA-Z0-9]+)\[?(?:(\@[\(\)\"\,\@\$\=\>\<\~\!a-zA-Z0-9\-\.\|\&\:_\^\*]*|\**|\$\$[a-zA-Z0-9\,\=]+))\]?\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)/;
+export const QSLRegEx = /([a-zA-Z0-9]+)\[?(?:(@[()",@$~=><!a-zA-Z0-9\-.|&:_^*]*|\**|\$\$[a-zA-Z0-9,=]+))\]?\{([*|[,@"=a-zA-Z0-9-]*)/;
 
 export function validateQslQuery(input) {
   //type coerce match array or null value to bool
