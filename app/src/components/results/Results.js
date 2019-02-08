@@ -13,8 +13,8 @@ import SplitterLayout from 'react-splitter-layout';
 import { ENTER_KEYCODE } from '../../config/appConfig';
 import ResultList from './ResultList';
 import EntityDetails from '../entityDetails/EntityDetails';
-import * as apiCfg from '../../config/apiConfig';
 import * as queryActions from '../../actions/queryActions';
+import { getQueryParam } from '../../utils/url';
 
 const styles = theme => ({
   progress: {
@@ -40,21 +40,13 @@ const styles = theme => ({
   }
 });
 
-function getQueryParam(locationSearchStr, queryParamStr) {
-  const params = new URLSearchParams(locationSearchStr);
-  return params.get(queryParamStr) || '';
-}
-
 class Results extends Component {
   constructor(props) {
     super(props);
-    const queryStr = getQueryParam(
-      this.props.location.search,
-      apiCfg.SERVICES.queryParamName
-    );
+    const { queryStr } = getQueryParam(this.props.location.search);
     this.state = {
       selectedIdx: 0,
-      queryStr: queryStr
+      queryStr: queryStr || ''
     };
   }
 
@@ -72,10 +64,14 @@ class Results extends Component {
   handleSubmit = () => {
     const { queryStr } = this.state;
     const {
-      queryActions: { submitQuery }
+      query,
+      queryActions: { submitQuery, fetchQuery }
     } = this.props;
 
-    submitQuery(queryStr);
+    if (queryStr !== query.current) {
+      submitQuery(queryStr);
+      fetchQuery(queryStr);
+    }
   };
 
   componentDidMount() {
@@ -88,26 +84,6 @@ class Results extends Component {
     fetchQuery(queryStr, query.page, query.rowsPerPage);
   }
 
-  componentDidUpdate(prevProps) {
-    //recognize change in query param here and re-issue API request as necessary
-    const currentQuery = getQueryParam(
-      this.props.location.search,
-      apiCfg.SERVICES.queryParamName
-    );
-    const prevQuery = getQueryParam(
-      prevProps.location.search,
-      apiCfg.SERVICES.queryParamName
-    );
-    const {
-      query,
-      queryActions: { fetchQuery }
-    } = this.props;
-    if (prevQuery !== currentQuery) {
-      //should only run if query param changes
-      fetchQuery(currentQuery, 0, query.rowsPerPage);
-    }
-  }
-
   handleRowClick = (event, idx) => {
     this.setState({ selectedIdx: idx });
   };
@@ -116,7 +92,7 @@ class Results extends Component {
     const {
       classes,
       query,
-      queryActions: { updatePagination }
+      queryActions: { submitQuery, fetchQuery }
     } = this.props;
     const { queryStr, selectedIdx } = this.state;
 
@@ -161,7 +137,8 @@ class Results extends Component {
               query={query}
               selectedIdx={selectedIdx}
               onRowClick={this.handleRowClick}
-              updatePagination={updatePagination}
+              submitQuery={submitQuery}
+              fetchQuery={fetchQuery}
             />
             <EntityDetails selectedObj={query.results[selectedIdx]} />
           </SplitterLayout>
