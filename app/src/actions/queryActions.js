@@ -11,12 +11,13 @@ import { encodeQueryData } from '../utils/url';
 //TODO:DM - is there a better place to define router related consts?
 const APP_RESULTS_ROUTE = '/results?';
 const GRAPH_ROUTE = '/graph/';
+const DEFAULT_ROWS_PER_PAGE = 25;
 
-export function submitQuery(query, page = 0, limit = 25) {
+export function submitQuery(query, page = 0, limit = DEFAULT_ROWS_PER_PAGE) {
   return dispatch => {
     if (query !== '' && query.length >= 3) {
       // this is for URL only, not updating the redux state
-      const data = {query, page, limit};
+      const data = { query, page, limit };
       history.push(APP_RESULTS_ROUTE + encodeQueryData(data));
     } else {
       dispatch(notifyActions.showNotify(QUERY_LEN_ERR));
@@ -41,7 +42,11 @@ export const requestQuery = (queryStr, isQSL, page, rowsPerPage) => ({
   rowsPerPage
 });
 
-export function fetchQuery(query, page = 0, rowsPerPage = 25) {
+export function fetchQuery(
+  query,
+  page = 0,
+  rowsPerPage = DEFAULT_ROWS_PER_PAGE
+) {
   return dispatch => {
     let requestPromise;
 
