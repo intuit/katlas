@@ -43,10 +43,12 @@ const styles = theme => ({
 class Results extends Component {
   constructor(props) {
     super(props);
-    const { queryStr } = getQueryParam(this.props.location.search);
+    const { queryStr, page, limit } = getQueryParam(this.props.location.search);
     this.state = {
       selectedIdx: 0,
-      queryStr: queryStr || ''
+      queryStr: queryStr || '',
+      page,
+      limit
     };
   }
 
@@ -76,12 +78,24 @@ class Results extends Component {
 
   componentDidMount() {
     const {
-      query,
       queryActions: { fetchQuery }
     } = this.props;
-    const { queryStr } = this.state;
+    const { queryStr, page, limit } = this.state;
 
-    fetchQuery(queryStr, query.page, query.rowsPerPage);
+    fetchQuery(queryStr, page, limit);
+  }
+
+  componentDidUpdate(prevProps) {
+    const {
+      location,
+      queryActions: { fetchQuery }
+    } = this.props;
+    const locationChanged = location !== prevProps.location;
+
+    if (locationChanged) {
+      const { queryStr, page, limit } = getQueryParam(this.props.location.search);
+      fetchQuery(queryStr, page, limit);
+    }
   }
 
   handleRowClick = (event, idx) => {
@@ -92,7 +106,7 @@ class Results extends Component {
     const {
       classes,
       query,
-      queryActions: { submitQuery, fetchQuery }
+      queryActions: { submitQuery }
     } = this.props;
     const { queryStr, selectedIdx } = this.state;
 
@@ -138,7 +152,6 @@ class Results extends Component {
               selectedIdx={selectedIdx}
               onRowClick={this.handleRowClick}
               submitQuery={submitQuery}
-              fetchQuery={fetchQuery}
             />
             <EntityDetails selectedObj={query.results[selectedIdx]} />
           </SplitterLayout>

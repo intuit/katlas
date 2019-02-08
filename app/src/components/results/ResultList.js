@@ -40,15 +40,13 @@ const styles = theme => ({
 
 class ResultList extends Component {
   handleChangePage = (event, page) => {
-    const { submitQuery, fetchQuery, query, rowsPerPage } = this.props;
+    const { submitQuery, query, rowsPerPage } = this.props;
     submitQuery(query.current, page, rowsPerPage);
-    fetchQuery(query.current, page, rowsPerPage);
   };
 
   handleChangeRowsPerPage = event => {
-    const { submitQuery, fetchQuery, query, page } = this.props;
+    const { submitQuery, query, page } = this.props;
     submitQuery(query.current, page, event.target.value);
-    fetchQuery(query.current, page, event.target.value);
   };
 
   renderTableHeader = () => {
