@@ -40,19 +40,13 @@ const styles = theme => ({
 
 class ResultList extends Component {
   handleChangePage = (event, page) => {
-    const {
-      updatePagination,
-      query: { rowsPerPage }
-    } = this.props;
-    updatePagination(page, rowsPerPage);
+    const { submitQuery, query, rowsPerPage } = this.props;
+    submitQuery(query.current, page, rowsPerPage);
   };
 
   handleChangeRowsPerPage = event => {
-    const {
-      updatePagination,
-      query: { page }
-    } = this.props;
-    updatePagination(page, event.target.value);
+    const { submitQuery, query, page } = this.props;
+    submitQuery(query.current, page, event.target.value);
   };
 
   renderTableHeader = () => {
