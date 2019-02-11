@@ -46,8 +46,8 @@ func TestQslSearch(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping TestQSLSearch in short mode")
 	}
-	testURL1 := TestBaseURL + "/v1/qsl/k8sobj[@name=\"node01\"]{*}"
-	testURL2 := TestBaseURL + "/v1/qsl/k8sobj[@name=\"node01\"]{@labels}"
+	testURL1 := TestBaseURL + "/v1/qsl/k8snode[@name=\"node01\"]{*}"
+	testURL2 := TestBaseURL + "/v1/qsl/k8snode[@name=\"node01\"]{@labels}"
 
 	tests := []TestStruct{
 		{testURL1, "", 200, "", 0},
