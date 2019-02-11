@@ -1,75 +1,63 @@
 package serviceapitests
 
 import (
-	"io/ioutil"
-	"log"
-	"net/http"
 	"testing"
 )
 
 type Query interface {
-	KeywordSearch(t *testing.T) (statusCode int, err error)
-	NameValueSearch(t *testing.T) (responseBody string, err error)
+	KeywordSearch(t *testing.T, url string) (statusCode int, respBody []byte, err error)
+	QslSearch(t *testing.T, url string) (statusCode int, respBody []byte, err error)
 }
 
-//Suite tests all the functionality that Query should implement
-func KeywordSearch(t *testing.T) (statusCode int, err error) {
-	TestURL := TestBaseURL + "/v1/query?name=node01"
-	log.Printf("TestURL= %s", TestURL)
+// Keyword search for query
+func KeywordSearch(t *testing.T, url string) (statusCode int, respBody []byte, err error) {
 
-	req, err := http.NewRequest("GET", TestURL, nil)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Error(err) //Something is wrong while sending request
-	}
-	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	t.Logf("TestURL= %s", TestURL)
-	log.Printf("Response code = %d", resp.StatusCode)
-	log.Printf("Response header content-type = %s", resp.Header.Get("Content-Type"))
-	log.Printf("Response body = %s", body)
-	return resp.StatusCode, nil
+	respStatusCode, respBody, _ := GetResponseByGet(t, url)
+	return respStatusCode, respBody, nil
 }
 
-func NameValueSearch(t *testing.T) (responseBody string, err error) {
-	TestURL := TestBaseURL + "/v1/query?name=node01"
-	log.Printf("TestURL= %s", TestURL)
-	req, err := http.NewRequest("GET", TestURL, nil)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Error(err) //Something is wrong while sending request
-	}
-	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
+// Qsl search for query
+func QslSearch(t *testing.T, url string) (statusCode int, respBody []byte, err error) {
 
-	t.Logf("TestURL= %s", TestURL)
-	log.Printf("Response code = %d", resp.StatusCode)
-	log.Printf("Response header content-type = %s", resp.Header.Get("Content-Type"))
-	log.Printf("Response body = %s", body)
-	return string(body), nil
+	respStatusCode, respBody, _ := GetResponseByGet(t, url)
+	return respStatusCode, respBody, nil
 }
 
-//Test one for KeywordSearch
+// Test keyword search query
 func TestKeywordSearch(t *testing.T) {
-	log.Println("******Testing TestKeywordSearch start ******")
-	expected := 200
-	res, _ := KeywordSearch(t)
-	if res != expected {
-		t.Errorf("Got result: %d, want %d", res, expected)
-		t.Fail()
+	testURL1 := TestBaseURL + "/v1/query?keyword=node01"
+	testURL2 := TestBaseURL + "/v1/query?keyword=node02"
+
+	tests := []TestStruct{
+		{testURL1, "", 200, "", 0},
+		{testURL2, "", 200, "", 0},
 	}
+
+	for i, testCase := range tests {
+		resCode, resBody, _ := KeywordSearch(t, testCase.testURL)
+		tests[i].observedStatusCode = resCode
+		tests[i].responseBody = string(resBody)
+	}
+	DisplayTestCaseResults("TestKeywordSearch", tests, t)
 }
 
-func TestNameValueSearch(t *testing.T) {
+// Test Qsl search query
+func TestQslSearch(t *testing.T) {
 	if testing.Short() {
-		t.Skip("skipping TestNameValueSearch in short mode")
+		t.Skip("skipping TestQSLSearch in short mode")
 	}
-	//expected := 200
-	res, _ := NameValueSearch(t)
-	t.Logf("Response body: %s", res)
-	if res == "" {
-		t.Error("Got result is empty")
-		t.Fail()
+	testURL1 := TestBaseURL + "/v1/qsl/k8sobj[@name=\"node01\"]{*}"
+	testURL2 := TestBaseURL + "/v1/qsl/k8sobj[@name=\"node01\"]{@labels}"
+
+	tests := []TestStruct{
+		{testURL1, "", 200, "", 0},
+		{testURL2, "", 200, "", 0},
 	}
+
+	for i, testCase := range tests {
+		resCode, resBody, _ := QslSearch(t, testCase.testURL)
+		tests[i].observedStatusCode = resCode
+		tests[i].responseBody = string(resBody)
+	}
+	DisplayTestCaseResults("TestQslSearch", tests, t)
 }
