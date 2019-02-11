@@ -4,13 +4,20 @@ export function validateIpAddress(input) {
   return !!input.match(ipFormat);
 }
 
-export const QSLRegEx = /([a-zA-Z0-9]+)\[?(?:(@[()",@$=><!a-zA-Z0-9\-.|&:_]*|\**|\$\$[a-zA-Z0-9,=]+))\]?\{([*|[,@"=a-zA-Z0-9-]*)/;
+export const QSLRegEx = /([a-zA-Z0-9]+)\[?(?:(@[()",@$~=><!a-zA-Z0-9\-.|&:_^*]*|\**|\$\$[a-zA-Z0-9,=]+))\]?\{([*|[,@"=a-zA-Z0-9-]*)/;
+
 export function validateQslQuery(input) {
+  if (input === null) {
+    return false;
+  }
   //type coerce match array or null value to bool
   return !!input.match(QSLRegEx);
 }
 
 export function validateHexId(input) {
+  if (input === null) {
+    return false;
+  }
   const hexIdFormat = /(0x|0X)?[a-fA-F0-9]+$/g;
   //type coerce match array or null value to bool
   return !!input.match(hexIdFormat);

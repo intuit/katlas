@@ -39,6 +39,11 @@ Provide an easy to use language for users to query objects from dgraph without h
     * combine to get $$limit=x,offset=y to get the limit x objects starting from index y
   * count() supported in filter
     * the function take relationship objtype as parameter and all comparators (=,<,>,<=,>=) can be used
+  * ~= can be used for regex search in the filter
+    * e.g. `pod[@name~="^nginx"]{*}` will return all pods which name start with `nginx`
+  * use .$ to query json format field with key/value pair
+    * e.g. labels of K8s Pod is json data, we can filter pod by labels key
+    * `pod[@labels.$app="nginx"]{@labels}`
 
 ## Examples
   ```

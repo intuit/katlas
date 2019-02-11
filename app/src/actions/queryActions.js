@@ -6,15 +6,19 @@ import history from '../history';
 import ApiService from '../services/ApiService';
 import { QUERY_LEN_ERR } from '../utils/errors';
 import { validateQslQuery, getQSLObjTypes } from '../utils/validate';
+import { encodeQueryData } from '../utils/url';
 
 //TODO:DM - is there a better place to define router related consts?
-const APP_RESULTS_ROUTE = '/results?query=';
+const APP_RESULTS_ROUTE = '/results?';
 const GRAPH_ROUTE = '/graph/';
+const DEFAULT_ROWS_PER_PAGE = 25;
 
-export function submitQuery(query) {
+export function submitQuery(query, page = 0, limit = DEFAULT_ROWS_PER_PAGE) {
   return dispatch => {
     if (query !== '' && query.length >= 3) {
-      history.push(APP_RESULTS_ROUTE + encodeURIComponent(query));
+      // this is for URL only, not updating the redux state
+      const data = { query, page, limit };
+      history.push(APP_RESULTS_ROUTE + encodeQueryData(data));
     } else {
       dispatch(notifyActions.showNotify(QUERY_LEN_ERR));
     }
@@ -27,7 +31,7 @@ export function submitQslQuery(query) {
     if (validateQslQuery(query)) {
       history.push(GRAPH_ROUTE + query);
     }
-  }
+  };
 }
 
 export const requestQuery = (queryStr, isQSL, page, rowsPerPage) => ({
@@ -38,7 +42,11 @@ export const requestQuery = (queryStr, isQSL, page, rowsPerPage) => ({
   rowsPerPage
 });
 
-export function fetchQuery(query, page, rowsPerPage) {
+export function fetchQuery(
+  query,
+  page = 0,
+  rowsPerPage = DEFAULT_ROWS_PER_PAGE
+) {
   return dispatch => {
     let requestPromise;
 
@@ -67,12 +75,6 @@ export const receiveQuery = (results, count) => ({
   results,
   count
 });
-
-export const updatePagination = (page, rowsPerPage) => {
-  return (dispatch, getState) => {
-    dispatch(fetchQuery(getState().query.current, page, rowsPerPage));
-  };
-};
 
 export const requestMetadata = objType => ({
   type: types.REQUEST_METADATA,

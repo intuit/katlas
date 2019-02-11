@@ -155,7 +155,7 @@ const intPresenter = (uid, name, val) => {
 };
 
 const jsonPresenter = (uid, name, val) => {
-  // we only shows 2 key pairs
+  // we only shows 3 key pairs
   let count = 0;
   let output = [];
   if (val === undefined) {
