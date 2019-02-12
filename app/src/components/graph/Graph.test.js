@@ -9,7 +9,7 @@ import configureStore from '../../store/configureStore';
 const div = document.createElement('div');
 const store = configureStore();
 
-//TODO:DM - extend this test suite, especially around legend construction given mock data
+//TODO:DM - extend this test suite, especially wrt legend construction given mock data
 it('deep renders graph', () => {
   render(
     <Provider store={store}>
