@@ -13,7 +13,6 @@
 
 .Graph-legend-container {
   overflow: auto;
-  height: 100px;
   text-align: center;
   flex-direction: row;
 }
@@ -23,7 +22,7 @@
 }
 
 .Graph-legend-icon {
-  font-family: "FontAwesome";
+  font-family: 'FontAwesome';
 }
 
 .Graph-legend-vr {
