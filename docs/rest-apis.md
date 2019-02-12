@@ -208,8 +208,8 @@ return
 CRUD API for entity
 
 **Create Entity**:
-
 Create an entity based on given metadata
+
 Name | Description
 :---|:---
 `Request HTTP Method`| POST
@@ -245,6 +245,7 @@ return
 
 **Get Entity**:
 Get an entity based on given metadata and uid
+
 Name | Description
 :---|:---
 `Request HTTP Method`| GET
@@ -277,8 +278,8 @@ return
 }
 ```
 **Update Entity**:
-
 Create an entity based on given metadata
+
 Name | Description
 :---|:---
 `Request HTTP Method`| POST
@@ -307,8 +308,8 @@ return
 ```
 
 **Delete Entity**:
-
 Delete an entity based on given metadata and resourceid
+
 Name | Description
 :---|:---
 `Request HTTP Method`| DELETE
