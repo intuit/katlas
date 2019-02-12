@@ -100,7 +100,7 @@ class Graph extends Component {
                 )
               })}
             </Grid>
-            <p>You may zoom in and pan the graph using touch gestures or mouse.</p>
+            <p>You may zoom and pan the graph using touch gestures or mouse.</p>
           </div>
         </div>
       );
