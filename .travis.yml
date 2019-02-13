@@ -41,8 +41,9 @@ script:
   - docker ps -a
   - cd $TRAVIS_BUILD_DIR/e2etests
   - go test -v ./...
-  - if [ "$TRAVIS_BRANCH" == "travisci" ]; then
   #- if [ "$TRAVIS_BRANCH" == "master" ]; then
+  - |
+    if [ "$TRAVIS_BRANCH" == "travisci" ]; then
         # Login to docker hub
         echo "$DOCKER_PASSWORD" |docker login -u $DOCKER_USERNAME --password-stdin
         # Push image to docker hub
