@@ -25,6 +25,10 @@ describe('validation util', () => {
       '@Cluster[objtype="Cluster"]{*}.@Node[objtype="Node"]{*}')).toBe(false);
   });
 
+  it('should consider null input as an invalid QSL query', () => {
+    expect(validateQslQuery(null)).toBe(false);
+  });
+
   it('should correctly recognize a short hex ID', () => {
     expect(validateHexId('0x1')).toBe(true);
   });
@@ -35,6 +39,10 @@ describe('validation util', () => {
 
   it('should correctly recognize an invalid hex ID', () => {
     expect(validateHexId('0xfoo')).toBe(false);
+  });
+
+  it('should consider null input as an invalid hex ID', () => {
+    expect(validateHexId(null)).toBe(false);
   });
 
   it('should get all obj types from query', () => {

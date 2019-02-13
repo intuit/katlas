@@ -98,25 +98,12 @@ function getVisFormatEdge(fromUid, toUid, relation) {
 }
 
 function getVisFormatNode(uid, nodeName, nodeObjtype, nodeStatus, level) {
-  let idParam = uid;
-  let titleParam = "";
-
-  if (nodeObjtype !== undefined && nodeObjtype !== null) {
-    titleParam = nodeObjtype;
-  } else {
-    titleParam = nodeName;
-  }
-
-  //some names are too large to render elegantly, split them by middle dash, if present, across 2 lines of text
-  nodeName = nameSplitter(nodeName);
-
   const color = NodeStatusColorMap.get(nodeStatus || NODE_DEFAULT_STR);
 
   const n = {
     level,
-    id: idParam,
+    id: uid,
     uid,
-    label: nodeName,
     icon:{
       face: NODE_ICON_FONT,
       code: getNodeIcon(nodeObjtype),
@@ -124,7 +111,11 @@ function getVisFormatNode(uid, nodeName, nodeObjtype, nodeStatus, level) {
       color,
     },
     name: nodeName,
-    title: titleParam,
+    title: '<table>' +
+      '<tr><th>Name:</th><th>' + nodeName + '</th></tr>' +
+      '<tr><td>UID:</td><td>' + uid + '</td></tr>' +
+      '<tr><td>Type:</td><td>' + nodeObjtype + '</td></tr>' +
+      '</table>',
     status: nodeStatus,
   };
   legendTypesObj[nodeObjtype] = {
@@ -162,7 +153,7 @@ export function getVisData(data) {
       }
       const val = block[prop];
       //determine whether we are looking at a property for this node OR a set of child nodes
-      if (Array.isArray(val) && val.length > 0 &&
+      if (_.isArray(val) && val.length > 0 &&
         typeof val[0] === "object") {
         // These are child nodes
         for (let i = 0; i < val.length; i++) {
@@ -224,15 +215,4 @@ export function colorMixer(rgbA, rgbB, amountToMix){
   let g = colorChannelMixer(rgbA[1],rgbB[1],amountToMix);
   let b = colorChannelMixer(rgbA[2],rgbB[2],amountToMix);
   return "rgb("+r+","+g+","+b+")";
-}
-
-//split long label names; if too long, split by its middle char across 2 lines
-function nameSplitter(name){
-  let splitName = name;
-  if (typeof name !== 'string') return name;
-  if (name.length > NODE_LABEL_MAX_LENGTH){
-    splitName = name.slice(0, name.length/2) + '\n' +
-      name.slice(name.length/2);
-  }
-  return splitName;
 }
