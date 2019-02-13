@@ -41,9 +41,9 @@ script:
   - docker ps -a
   - cd $TRAVIS_BUILD_DIR/e2etests
   - go get -u github.com/jstemmer/go-junit-report
-  - go test -v 2>&1 | go-junit-report > test-result-report.xml
-  #- go test -v ./...
-  - cat test-result-report.xml
+  - go test -v ./...
+  - go test -v ./... 2>&1 | go-junit-report > test-result-report.xml
+  - cat ./test-result-report.xml
   - |
     if [ "$TRAVIS_BRANCH" == "master" ]; then
         # Login to docker hub
@@ -53,23 +53,6 @@ script:
         docker push katlas/katlas-browser:${TRAVIS_COMMIT_SHORTID}
         docker push katlas/katlas-collector:${TRAVIS_COMMIT_SHORTID}
     fi
-  #- statusCode=$(curl -sw '%{http_code}\n' http://127.0.0.1:8011/v1/query?name=pod -o /dev/null)
-  #- echo $statusCode
-  #- |
-  #  if [ $statusCode -ne "200" ]; then
-  #      echo "Integration Test - Fail!";
-  #  else
-  #      echo "Integration Test - Success!";
-  #      if [ "$TRAVIS_BRANCH" == "master" ]; then
-            # Login to docker hub
-  #          echo "$DOCKER_PASSWORD" |docker login -u $DOCKER_USERNAME --password-stdin
-            # Push image to docker hub
-  #          docker push katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
-  #          docker push katlas/katlas-browser:${TRAVIS_COMMIT_SHORTID}
-  #          docker push katlas/katlas-collector:${TRAVIS_COMMIT_SHORTID}
-  #      fi
-  #  fi
-
 
 after_success:
   - cd $TRAVIS_BUILD_DIR/service
