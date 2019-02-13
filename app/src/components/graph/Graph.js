@@ -1,15 +1,16 @@
 import React, { Component } from 'react';
-import { connect } from "react-redux";
-import { bindActionCreators } from "redux";
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import { withRouter } from 'react-router-dom';
 import _ from 'lodash';
-import vis from 'vis';
+import vis from 'vis/dist/vis.min.js';
+import 'vis/dist/vis-network.min.css'; //necessary for tooltip operation
 import { Grid } from '@material-ui/core';
 
-import * as entityActions from "../../actions/entityActions";
-import { options } from "../../config/visjsConfig";
-import { getVisData, clearVisData, colorMixer, getLegends } from "../../utils/graph";
-import { NodeStatusPulseColors } from "../../config/appConfig";
+import * as entityActions from '../../actions/entityActions';
+import { options } from '../../config/visjsConfig';
+import { getVisData, clearVisData, colorMixer, getLegends } from '../../utils/graph';
+import { NodeStatusPulseColors } from '../../config/appConfig';
 import './Graph.css';
 
 const PULSE_TIME_STEP_MS = 100;
@@ -63,11 +64,10 @@ class Graph extends Component {
           <div className="Graph-container" align="center" id="graph"/>
           {/*Graph Legend*/}
           <div className='Graph-legend-container'>
-            Legend
+            <h3>Legend</h3>
             <Grid
               container
-              spacing={16}
-              className={''}
+              spacing={24}
               alignItems="center"
               direction="row"
               justify="center"
@@ -100,6 +100,7 @@ class Graph extends Component {
                 )
               })}
             </Grid>
+            <p>You may zoom and pan the graph using touch gestures or mouse.</p>
           </div>
         </div>
       );
@@ -109,15 +110,17 @@ class Graph extends Component {
     let nodes, edges;
     if (_.isEmpty(jsonData)) return;
 
-    //should we allow for both obj and arr style responses here?
+
+    //if we receive an object, graph that directly. but if we receive an array,
+    //take just it's first (0th index) item.
     if (_.isArray(jsonData)) {
       nodes = [];
       edges = [];
-      jsonData.forEach(item => {
-        let {nodes: n, edges: e} = getVisData(item);
-        nodes = nodes.concat(n);
-        edges = edges.concat(e);
-      });
+      //NOTE: could instead iterate over array items, continuously extending
+      //nodes and edges arrs with getVisData results. ex:
+      let { nodes: n, edges: e } = getVisData(jsonData[0]);
+      nodes = nodes.concat(n);
+      edges = edges.concat(e);
     } else {
       let obj = getVisData(jsonData);
       nodes = obj.nodes;
