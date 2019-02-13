@@ -33,16 +33,10 @@ script:
   - cd $TRAVIS_BUILD_DIR/controller
   - docker build --no-cache -f Dockerfile -t katlas/katlas-collector:${TRAVIS_COMMIT_SHORTID} .
   - docker images katlas/katlas-collector:${TRAVIS_COMMIT_SHORTID}
-
-after_success:
-  - cd $TRAVIS_BUILD_DIR/service
-  - bash <(curl -s https://codecov.io/bash)
-  - cd $TRAVIS_BUILD_DIR/app
-  - bash <(curl -s https://codecov.io/bash) -f coverage/coverage-final.json
   - cd $TRAVIS_BUILD_DIR/service
   - HOST=$(ifconfig docker0 | grep 'inet addr' |cut -d':' -f2 | awk '{print $1}')
   - echo $HOST
-  - docker run -d -it -p 8011:8011 -e ENV_NAMESPACE=qal -e SERVER_TYPE=http -e DGRAPH_HOST=$HOST:9080 --name katlas-service katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
+  - docker run -d -it -p 8011:8011 -e ENV_NAMESPACE=local -e SERVER_TYPE=http -e DGRAPH_HOST=$HOST:9080 --name katlas-service katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
   - sleep 5s
   - docker ps -a
   - statusCode=$(curl -sw '%{http_code}\n' http://127.0.0.1:8011/v1/query?name=pod -o /dev/null)
@@ -61,3 +55,32 @@ after_success:
             docker push katlas/katlas-collector:${TRAVIS_COMMIT_SHORTID}
         fi
     fi
+
+
+after_success:
+  - cd $TRAVIS_BUILD_DIR/service
+  - bash <(curl -s https://codecov.io/bash)
+  - cd $TRAVIS_BUILD_DIR/app
+  - bash <(curl -s https://codecov.io/bash) -f coverage/coverage-final.json
+  #- cd $TRAVIS_BUILD_DIR/service
+  #- HOST=$(ifconfig docker0 | grep 'inet addr' |cut -d':' -f2 | awk '{print $1}')
+  #- echo $HOST
+  #- docker run -d -it -p 8011:8011 -e ENV_NAMESPACE=qal -e SERVER_TYPE=http -e DGRAPH_HOST=$HOST:9080 --name katlas-service katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
+  #- sleep 5s
+  #- docker ps -a
+  #- statusCode=$(curl -sw '%{http_code}\n' http://127.0.0.1:8011/v1/query?name=pod -o /dev/null)
+  #- echo $statusCode
+  #- |
+  #  if [ $statusCode -ne "200" ]; then
+  #      echo "Integration Test - Fail!";
+  #  else
+  #      echo "Integration Test - Success!";
+  #      if [ "$TRAVIS_BRANCH" == "master" ]; then
+  #          # Login to docker hub
+  #          echo "$DOCKER_PASSWORD" |docker login -u $DOCKER_USERNAME --password-stdin
+  #          # Push image to docker hub
+  #          docker push katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
+  #          docker push katlas/katlas-browser:${TRAVIS_COMMIT_SHORTID}
+  #          docker push katlas/katlas-collector:${TRAVIS_COMMIT_SHORTID}
+  #      fi
+  #  fi
