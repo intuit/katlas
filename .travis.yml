@@ -44,6 +44,12 @@ script:
   - go test -v ./...
   - go test -v ./... 2>&1 | go-junit-report > test-result-report.xml
   - cat ./test-result-report.xml
+
+after_success:
+  - cd $TRAVIS_BUILD_DIR/service
+  - bash <(curl -s https://codecov.io/bash)
+  - cd $TRAVIS_BUILD_DIR/app
+  - bash <(curl -s https://codecov.io/bash) -f coverage/coverage-final.json
   - |
     if [ "$TRAVIS_BRANCH" == "master" ]; then
         # Login to docker hub
@@ -53,9 +59,3 @@ script:
         docker push katlas/katlas-browser:${TRAVIS_COMMIT_SHORTID}
         docker push katlas/katlas-collector:${TRAVIS_COMMIT_SHORTID}
     fi
-
-after_success:
-  - cd $TRAVIS_BUILD_DIR/service
-  - bash <(curl -s https://codecov.io/bash)
-  - cd $TRAVIS_BUILD_DIR/app
-  - bash <(curl -s https://codecov.io/bash) -f coverage/coverage-final.json
