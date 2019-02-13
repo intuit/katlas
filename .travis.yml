@@ -40,10 +40,12 @@ script:
   - sleep 5s
   - docker ps -a
   - cd $TRAVIS_BUILD_DIR/e2etests
-  - go test -v ./...
-  #- if [ "$TRAVIS_BRANCH" == "master" ]; then
+  - go get -u github.com/jstemmer/go-junit-report
+  - go test -v 2>&1 | go-junit-report > test-result-report.xml
+  #- go test -v ./...
+  - cat test-result-report.xml
   - |
-    if [ "$TRAVIS_BRANCH" == "travisci" ]; then
+    if [ "$TRAVIS_BRANCH" == "master" ]; then
         # Login to docker hub
         echo "$DOCKER_PASSWORD" |docker login -u $DOCKER_USERNAME --password-stdin
         # Push image to docker hub
