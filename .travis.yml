@@ -24,6 +24,8 @@ before_script:
 script:
   - cd $TRAVIS_BUILD_DIR/service
   - go test -v ./... -coverprofile=coverage.txt -covermode=atomic
+  - go test -v ./... 2>&1 | go-junit-report > unit-test-result-report.xml
+  - cat ./unit-test-result-report.xml
   - docker build --no-cache -f Dockerfile -t katlas/katlas-service:${TRAVIS_COMMIT_SHORTID} .
   - docker images katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
   - cd $TRAVIS_BUILD_DIR/app
@@ -42,8 +44,8 @@ script:
   - cd $TRAVIS_BUILD_DIR/e2etests
   - go get -u github.com/jstemmer/go-junit-report
   - go test -v ./...
-  - go test -v ./... 2>&1 | go-junit-report > test-result-report.xml
-  - cat ./test-result-report.xml
+  - go test -v ./... 2>&1 | go-junit-report > e2e-test-result-report.xml
+  - cat ./e2e-test-result-report.xml
 
 after_success:
   - cd $TRAVIS_BUILD_DIR/service
