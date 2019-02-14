@@ -21,6 +21,7 @@ before_script:
   - docker exec -d -it diggy dgraph alpha --lru_mb 2048 --zero localhost:5080
   - TRAVIS_COMMIT_SHORTID="${TRAVIS_COMMIT:0:7}"
   - echo "${TRAVIS_COMMIT_SHORTID}"
+  - go get -u github.com/jstemmer/go-junit-report
 script:
   - cd $TRAVIS_BUILD_DIR/service
   - go test -v ./... -coverprofile=coverage.txt -covermode=atomic
@@ -42,7 +43,6 @@ script:
   - sleep 5s
   - docker ps -a
   - cd $TRAVIS_BUILD_DIR/e2etests
-  - go get -u github.com/jstemmer/go-junit-report
   - go test -v ./...
   - go test -v ./... 2>&1 | go-junit-report > e2e-test-result-report.xml
   - cat ./e2e-test-result-report.xml
