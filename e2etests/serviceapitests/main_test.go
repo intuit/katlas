@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -68,15 +69,40 @@ func getResponse(t *testing.T, req *http.Request) (statusCode int, responseBody 
 	return resp.StatusCode, body, nil
 }
 
-// DisplayTestCaseResults ... Compare testcase expected statuscode and observed statuscode to assert test success|fail
-func DisplayTestCaseResults(functionalityName string, tests []TestStruct, t *testing.T) {
+// DisplayTestCaseResults ... Compare testcase expected statuscode with observed statuscode, and expected response string with observer response string to assert test success|fail
+func DisplayTestCaseResults(functionalityName string, tests []TestStruct, t *testing.T, expectResponseStr string) {
 
 	for _, test := range tests {
 
 		if test.observedStatusCode == test.expectedStatusCode {
-			t.Logf("*** %s Passed Case: ***\n  -testURL : %s \n -requestBody : %s \n -expectedStatus : %d \n -responseBody : %s \n -observedStatusCode : %d \n", functionalityName, test.testURL, test.requestBody, test.expectedStatusCode, test.responseBody, test.observedStatusCode)
+			if strings.Contains(expectResponseStr, "&") {
+				expectResStrs := strings.Split(expectResponseStr, "&")
+				if strings.Contains(test.responseBody, expectResStrs[0]) && strings.Contains(test.responseBody, expectResStrs[1]) {
+					t.Logf("*** %s Passed Case: ***\n  -testURL : %s \n -requestBody : %s \n -expectedStatus : %d \n -responseBody : %s \n -observedStatusCode : %d \n -expectResponseStr : %s \n",
+						functionalityName, test.testURL, test.requestBody, test.expectedStatusCode, test.responseBody, test.observedStatusCode, expectResponseStr)
+				} else {
+					t.Errorf("*** %s Failed Case: ***\n  -testURL : %s \n -requestBody : %s \n -expectedStatus : %d \n -responseBody : %s \n -observedStatusCode : %d \n -expectResponseStr : %s \n",
+						functionalityName, test.testURL, test.requestBody, test.expectedStatusCode, test.responseBody, test.observedStatusCode, expectResponseStr)
+				}
+			} else if strings.Contains(expectResponseStr, "|") {
+				expectResStrs := strings.Split(expectResponseStr, "|")
+				if strings.Contains(test.responseBody, expectResStrs[0]) || strings.Contains(test.responseBody, expectResStrs[1]) {
+					t.Logf("*** %s Passed Case: ***\n  -testURL : %s \n -requestBody : %s \n -expectedStatus : %d \n -responseBody : %s \n -observedStatusCode : %d \n -expectResponseStr : %s \n",
+						functionalityName, test.testURL, test.requestBody, test.expectedStatusCode, test.responseBody, test.observedStatusCode, expectResponseStr)
+				} else {
+					t.Errorf("*** %s Failed Case: ***\n  -testURL : %s \n -requestBody : %s \n -expectedStatus : %d \n -responseBody : %s \n -observedStatusCode : %d \n -expectResponseStr : %s \n",
+						functionalityName, test.testURL, test.requestBody, test.expectedStatusCode, test.responseBody, test.observedStatusCode, expectResponseStr)
+				}
+			} else if strings.Contains(test.responseBody, expectResponseStr) {
+				t.Logf("*** %s Passed Case: ***\n  -testURL : %s \n -requestBody : %s \n -expectedStatus : %d \n -responseBody : %s \n -observedStatusCode : %d \n -expectResponseStr : %s \n",
+					functionalityName, test.testURL, test.requestBody, test.expectedStatusCode, test.responseBody, test.observedStatusCode, expectResponseStr)
+			} else {
+				t.Errorf("*** %s Failed Case: ***\n  -testURL : %s \n -requestBody : %s \n -expectedStatus : %d \n -responseBody : %s \n -observedStatusCode : %d \n -expectResponseStr : %s \n",
+					functionalityName, test.testURL, test.requestBody, test.expectedStatusCode, test.responseBody, test.observedStatusCode, expectResponseStr)
+			}
 		} else {
-			t.Errorf("*** %s Failed Case: ***\n  -testURL : %s \n -requestBody : %s \n -expectedStatus : %d \n -responseBody : %s \n -observedStatusCode : %d \n", functionalityName, test.testURL, test.requestBody, test.expectedStatusCode, test.responseBody, test.observedStatusCode)
+			t.Errorf("*** %s Failed Case: ***\n  -testURL : %s \n -requestBody : %s \n -expectedStatus : %d \n -responseBody : %s \n -observedStatusCode : %d \n -expectResponseStr : %s \n",
+				functionalityName, test.testURL, test.requestBody, test.expectedStatusCode, test.responseBody, test.observedStatusCode, expectResponseStr)
 		}
 	}
 }

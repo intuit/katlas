@@ -38,7 +38,7 @@ func TestKeywordSearch(t *testing.T) {
 		tests[i].observedStatusCode = resCode
 		tests[i].responseBody = string(resBody)
 	}
-	DisplayTestCaseResults("TestKeywordSearch", tests, t)
+	DisplayTestCaseResults("TestKeywordSearch", tests, t, "uid")
 }
 
 // Test Qsl search query
@@ -46,8 +46,8 @@ func TestQslSearch(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping TestQSLSearch in short mode")
 	}
-	testURL1 := TestBaseURL + "/v1/qsl/k8snode[@name=\"node01\"]{*}"
-	testURL2 := TestBaseURL + "/v1/qsl/k8snode[@name=\"node01\"]{@labels}"
+	testURL1 := TestBaseURL + "/v1/qsl/node[@name=\"node01\"]{*}"
+	testURL2 := TestBaseURL + "/v1/qsl/node[@name=\"node01\"]{@labels}"
 
 	tests := []TestStruct{
 		{testURL1, "", 200, "", 0},
@@ -59,5 +59,5 @@ func TestQslSearch(t *testing.T) {
 		tests[i].observedStatusCode = resCode
 		tests[i].responseBody = string(resBody)
 	}
-	DisplayTestCaseResults("TestQslSearch", tests, t)
+	DisplayTestCaseResults("TestQslSearch", tests, t, "uid")
 }
