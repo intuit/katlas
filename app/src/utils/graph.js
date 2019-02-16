@@ -31,7 +31,7 @@ let edges, nodes;
 let legendTypesObj = {};
 let legendStatusesObj = {};
 
-function parseDgraphData(data) {
+function parseDgraphData(data, level) {
   if (data === null || data === undefined ) {
     console.error("Empty data");
     return;
@@ -43,11 +43,14 @@ function parseDgraphData(data) {
       //Store entire block in map, so we can use to create edges later
       //Edges cannot be created here as we may not have got the uid still
       //As json from dgraph has randomized order and uid may be after Array elements
-      uidMap.set(uid, data);
+      uidMap.set(uid, {
+        data,
+        level
+      });
     }
     //if this key is a relationship type (as defined in EdgeLabels) recurse to get children nodes
     if (EdgeLabels.indexOf(key) > -1) {
-      _.forEach(val, (item) => parseDgraphData(item));
+      _.forEach(val, (item) => parseDgraphData(item, level + 1));
     }
   });
 }
@@ -84,37 +87,35 @@ function getVisFormatEdge(fromUid, toUid, relation) {
     font: {
       size: 8
     },
-    arrows: "to"
+    arrows: "to",
+    smooth: {
+      enabled: true,
+      type: 'cubicBezier',
+      forceDirection: 'vertical',
+      roundness: 0.5
+    }
   };
 }
 
-function getVisFormatNode(uid, nodeName, nodeObjtype, nodeStatus) {
-  let idParam = uid;
-  let titleParam = "";
-
-  if (nodeObjtype !== undefined && nodeObjtype !== null) {
-    titleParam = nodeObjtype;
-  } else {
-    titleParam = nodeName;
-  }
-
-  //some names are too large to render elegantly, split them by middle dash, if present, across 2 lines of text
-  nodeName = nameSplitter(nodeName);
-
+function getVisFormatNode(uid, nodeName, nodeObjtype, nodeStatus, level) {
   const color = NodeStatusColorMap.get(nodeStatus || NODE_DEFAULT_STR);
 
   const n = {
-    id: idParam,
-    uid: uid,
-    label: nodeName,
+    level,
+    id: uid,
+    uid,
     icon:{
       face: NODE_ICON_FONT,
       code: getNodeIcon(nodeObjtype),
       size: NODE_ICON_FONT_SIZE,
-      color: color,
+      color,
     },
     name: nodeName,
-    title: titleParam,
+    title: '<table>' +
+      '<tr><th>Name:</th><th>' + nodeName + '</th></tr>' +
+      '<tr><td>UID:</td><td>' + uid + '</td></tr>' +
+      '<tr><td>Type:</td><td>' + nodeObjtype + '</td></tr>' +
+      '</table>',
     status: nodeStatus,
   };
   legendTypesObj[nodeObjtype] = {
@@ -123,7 +124,7 @@ function getVisFormatNode(uid, nodeName, nodeObjtype, nodeStatus) {
   };
   legendStatusesObj[nodeStatus] = {
     code: getNodeIcon(NODE_DEFAULT_STR),
-    color: color,
+    color,
   };
   return n;
 }
@@ -140,11 +141,11 @@ function validateJSONData(uid, nodeName, nodeObjtype) {
 export function getVisData(data) {
   let existingUids = {};
   clearVisData();
-  parseDgraphData(data);
+  parseDgraphData(data, 0);
 
-  for (const [uid, v] of uidMap.entries()) {
+  for (const [uid, val] of uidMap.entries()) {
     let nodeName = "", nodeObjtype = "", nodeStatus = "";
-    const block = v;
+    const { data: block, level } = val;
 
     for (const prop in block) {
       if (!block.hasOwnProperty(prop)) {
@@ -152,7 +153,7 @@ export function getVisData(data) {
       }
       const val = block[prop];
       //determine whether we are looking at a property for this node OR a set of child nodes
-      if (Array.isArray(val) && val.length > 0 &&
+      if (_.isArray(val) && val.length > 0 &&
         typeof val[0] === "object") {
         // These are child nodes
         for (let i = 0; i < val.length; i++) {
@@ -177,7 +178,7 @@ export function getVisData(data) {
       }
     }
     validateJSONData(uid, nodeName, nodeObjtype);
-    let n = getVisFormatNode(uid, nodeName, nodeObjtype, nodeStatus);
+    let n = getVisFormatNode(uid, nodeName, nodeObjtype, nodeStatus, level);
     if(!existingUids[n.uid]){
       nodes.push(n);
       existingUids[n.uid] = true;
@@ -214,20 +215,4 @@ export function colorMixer(rgbA, rgbB, amountToMix){
   let g = colorChannelMixer(rgbA[1],rgbB[1],amountToMix);
   let b = colorChannelMixer(rgbA[2],rgbB[2],amountToMix);
   return "rgb("+r+","+g+","+b+")";
-}
-
-//Function to split long label names. If too long, name is split by its middle
-//dash '-' char across 2 lines of text. If there are no '-' chars, name is not split
-function nameSplitter(name){
-  let splitName = name;
-  if (typeof name !== 'string') return name;
-  if (name.length > NODE_LABEL_MAX_LENGTH){
-    let nnDashSplit = name.split(NODE_LABEL_SPLIT_CHAR);
-    if(nnDashSplit.length > 1){
-      splitName = nnDashSplit.slice(0, nnDashSplit.length/2).join(NODE_LABEL_SPLIT_CHAR) +
-        NODE_LABEL_SPLIT_CHAR + '\n' +
-        nnDashSplit.slice(nnDashSplit.length/2).join(NODE_LABEL_SPLIT_CHAR);
-    }
-  }
-  return splitName;
 }

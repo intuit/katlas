@@ -5,7 +5,7 @@ export const NODE_DEFAULT_STR = 'default';
 export const NODE_DEFAULT_COLOR = '#2575E2';
 export const NODE_ICON_FONT = 'FontAwesome';
 export const NODE_ICON_FONT_SIZE = 40;
-export const NODE_LABEL_MAX_LENGTH = 40;
+export const NODE_LABEL_MAX_LENGTH = 30;
 export const NODE_LABEL_SPLIT_CHAR = '-';
 
 //Node icons to be displayed in ased on Node types used in app
@@ -14,18 +14,21 @@ export const NodeIconMap = new Map([
   //comment indicating which FontAwesome icon name is being used.
   //Determine mapping at FA 4.7 docs - https://fontawesome.com/v4.7.0/icons/
   ['default', '\uf111'], //fa-circle
-  ['Cluster', '\uf0c2'], //fa-cloud
-  ['Namespace', '\uf1c9'], //fa-file-code-o
-  ['Service', '\uf085'], //fa-gears
-  ['Deployment', '\uf135'], //fa-rocket
-  ['ReplicaSet', '\uf1b3'], //fa-cubes
-  ['Pod', '\uf1b2'], //fa-cube
-  ['Container', '\uf1b2'], //fa-cube
-  ['PersistentVolume', '\uf1c0'], //fa-database
-  ['PersistentVolumeClaim', '\uf044'], //fa-pencil-square-o
-  ['StatefulSet', '\uf0c5'], //fa-copy
-  ['Ingress', '\uf090'], //fa-sign-in
-  ['Node', '\uf233'], //fa-server
+  ['cluster', '\uf0c2'], //fa-cloud
+  ['namespace', '\uf1c9'], //fa-file-code-o
+  ['service', '\uf085'], //fa-gears
+  ['deployment', '\uf135'], //fa-rocket
+  ['replicaset', '\uf1b3'], //fa-cubes
+  ['pod', '\uf1b2'], //fa-cube
+  ['container', '\uf1b2'], //fa-cube
+  ['persistentvolume', '\uf1c0'], //fa-database
+  ['persistentvolumeclaim', '\uf044'], //fa-pencil-square-o
+  ['statefulset', '\uf0c5'], //fa-copy
+  ['ingress', '\uf090'], //fa-sign-in
+  ['node', '\uf233'], //fa-server
+  ['daemonset', '\uf2ac'], //fa-snapchat-ghost
+  ['application', '\uf0e4'], //fa-tachometer
+  ['asset', '\uf219'], //fa-diamond
 ]);
 
 export const NodeStatusColorMap = new Map([
@@ -52,4 +55,4 @@ export const EdgeLabels = ['belongs_to', 'binds', 'claims', 'contains',
   'controlled_by', 'has', 'is_bound_to', 'routes_traffic', 'runs',
   //relationship types used after dgraph metadata changes, not currently using
   //'~cluster', '~namesapce' since they often have hundreds of children
-  'cluster', 'namespace', 'owner', 'nodename', '~owner'];
+  'cluster', 'namespace', 'owner', 'nodename', '~owner', '~application'];

@@ -11,19 +11,20 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/intuit/katlas/service/db"
+	metrics "github.com/intuit/katlas/service/metrics"
+	"github.com/intuit/katlas/service/util"
 	"strconv"
 )
 
 // regex to get objtype[filters]{fields}
-var blockRegex = `([a-zA-Z0-9]+)\[?(?:(\@[\(\)\"\,\@\$\=\>\<\!a-zA-Z0-9\-\.\|\&\:_]*|\**|\$\$[a-zA-Z0-9\,\=]+))\]?\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
+var blockRegex = `([a-zA-Z0-9]+)\[?(?:(\@[\(\)\"\,\@\$\=\>\<\~\!a-zA-Z0-9\-\.\|\&\:_\^\*]*|\**|\$\$[a-zA-Z0-9\,\=]+))\]?\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
 
 // regex to get KeyOperatorValue from something like numreplicas>=2
-var filterRegex = `\@([a-zA-Z0-9\(\)]*)([\!\<\>\=]*)(\"?[a-zA-Z0-9\-\.\|\&\:_]*\"?)`
+var filterRegex = `\@([a-zA-Z0-9\(\)\.\$]*)([\!\<\>\=\~]*)(\"?[a-zA-Z0-9\-\.\|\&\:_\$\^]*\"?)`
 
 // QSLService service for QSL
 type QSLService struct {
 	DBclient db.IDGClient
-	metaSvc  *MetaService
 }
 
 // MaximumLimit define pagination limit
@@ -51,7 +52,8 @@ func IsStar(s string) bool {
 
 // GetMetadata - get a list of the fields supoorted for this object type
 func (qa *QSLService) GetMetadata(objtype string) ([]MetadataField, error) {
-	metafieldslist, err := qa.metaSvc.GetMetadataFields(objtype)
+	m := NewMetaService(qa.DBclient)
+	metafieldslist, err := m.GetMetadataFields(objtype)
 	if err != nil {
 		log.Error(err)
 		return []MetadataField{}, errors.New("Failed to connect to dgraph to get metadata")
@@ -64,12 +66,12 @@ func (qa *QSLService) GetMetadata(objtype string) ([]MetadataField, error) {
 }
 
 // NewQSLService creates an instance of a QSLService
-func NewQSLService(host db.IDGClient, m *MetaService) *QSLService {
-	return &QSLService{host, m}
+func NewQSLService(host db.IDGClient) *QSLService {
+	return &QSLService{host}
 }
 
 // CreateFiltersQuery translates the filters part of the qsl string to dgraph
-// input @name="name",@objtype="objtype"$$first=2,offset=2
+// input @name="name",@objtype="objtype"$$limit=2,offset=2
 // filterfunc
 // @name="cluster1" -> eq(name,cluster1)
 // @name="paas-preprod-west2.cluster.k8s.local",@k8sobj="K8sObj",@resourceid="paas-preprod-west2.cluster.k8s.local"
@@ -78,12 +80,12 @@ func NewQSLService(host db.IDGClient, m *MetaService) *QSLService {
 // @name="paas-preprod-west2.cluster.k8s.local",@k8sobj="K8sObj",@resourceid="paas-preprod-west2.cluster.k8s.local"
 // -> , $name: string, $k8sobj: string, $resourceid: string
 // pagination
-// $$first=2,offset=2
+// $$limit=2,offset=2
 // -> first: 2,offset: 2
-func CreateFiltersQuery(filterlist string) (string, string, string, error) {
+func CreateFiltersQuery(filterlist string) (string, string, error) {
 	// default for empty filters is assume no filters
 	if len(filterlist) == 0 {
-		return "", "", "", nil
+		return "", "", nil
 	}
 
 	// for the pagination
@@ -95,29 +97,32 @@ func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 		for _, item := range splitlist {
 			splitval := strings.Split(item, "=")
 
-			if splitval[0] == "first" || splitval[0] == "offset" {
+			switch splitval[0] {
+			case util.Limit:
+				paginate += "," + util.First + ": " + splitval[1]
+			case util.Offset:
 				paginate += "," + splitval[0] + ": " + splitval[1]
-				val, err := strconv.Atoi(splitval[1])
-				if err != nil || val > MaximumLimit {
-					return "", "", "", fmt.Errorf("pagination format error or exceeding maxiumum limit %d", MaximumLimit)
-				}
-			} else {
-				return "", "", "", errors.New("Invalid pagination filters in " + filterlist)
+			default:
+				return "", "", errors.New("Invalid pagination filters in " + filterlist)
 			}
-
+			val, err := strconv.Atoi(splitval[1])
+			if err != nil {
+				return "", "", errors.New("Pagination format error " + filterlist)
+			}
+			if splitval[0] == util.Limit && val > MaximumLimit {
+				return "", "", fmt.Errorf("pagination exceeding maxiumum limit %d", MaximumLimit)
+			}
 		}
 		// get rid of the first comma
 		paginate = paginate[0:]
 		if strings.HasPrefix(filterlist, "$$") {
-			return "", "", paginate, nil
+			return "", paginate, nil
 		}
 	}
 
 	// split the whole string by the | "or" symbol because of higher priority for ands
 	// e.g. a&b&c|d&e == (a&b&c) | (d&e)
 	splitlist := strings.Split(filtersAndPages[0], "||")
-	// the variable definitions e.g. $name: string,
-	filterdeclaration := ""
 	// the eq functions eq(name,paas-preprod-west2.cluster.k8s.local)
 	filterfunc := []string{}
 
@@ -128,6 +133,7 @@ func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 		"<":  "lt",
 		"=":  "eq",
 		"!=": "not eq",
+		"~=": "regexp",
 	}
 
 	for _, item := range splitlist {
@@ -142,22 +148,33 @@ func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 			// should be 4 elements in matches
 			// the whole string, key, operator, value
 			if len(matches) < 4 {
-				return "", "", "", errors.New("Invalid filters in " + filterlist)
+				return "", "", errors.New("Invalid filters in " + filterlist)
 			}
 
 			keyname := matches[1]
 			operator := matches[2]
 			value := matches[3]
 
-			// if the value is meant to be an int, it won't have quotes around it
-			dectype := ": string"
-			if string(value[0]) != "\"" {
-				dectype = ": int"
+			// json field query
+			// use regex search to match json key and value
+			if strings.Contains(keyname, ".$") {
+				tmp := strings.Split(keyname, ".$")
+				keyname = tmp[0]
+				value = "/\"" + tmp[1] + "\" *: *" + value + "/"
+				if operator != "=" && operator != "~=" {
+					return "", "", errors.New("Filter on json type can only use equal or regexp operator " + filterlist)
+				}
+				operator = "~="
+			} else {
+				// if regrex search, add / and remove " for dgraph query
+				if operator == "~=" {
+					value = "/" + strings.Replace(value, `"`, "", -1) + "/"
+				}
 			}
 
 			// if the value is a string make sure it has quotes on both sides
 			if string(value[0]) == "\"" && !(string(value[len(value)-1]) == "\"") {
-				return "", "", "", errors.New("Invalid filters in " + filterlist)
+				return "", "", errors.New("Invalid filters in " + filterlist)
 			}
 
 			// if keyname is count filter, add prefix cnt_ to the var name
@@ -165,14 +182,13 @@ func CreateFiltersQuery(filterlist string) (string, string, string, error) {
 				keyname = "val(cnt_" + keyname[6:]
 			}
 
-			filterdeclaration = filterdeclaration + ", $" + keyname + dectype
 			interfilterfunc = append(interfilterfunc, " "+operatorMap[operator]+"("+keyname+","+value+") ")
 		}
 
 		filterfunc = append(filterfunc, strings.Join(interfilterfunc, "and"))
 
 	}
-	return filterdeclaration, "@filter(" + strings.Join(filterfunc, "or") + ")", paginate, nil
+	return "@filter(" + strings.Join(filterfunc, "or") + ")", paginate, nil
 
 }
 
@@ -214,9 +230,11 @@ func CreateFieldsQuery(fieldlist string, metafieldslist []MetadataField, tabs in
 		return nil, errors.New("Fields may be a string of * indicating how many levels, or a list of fields @field1,@field2,... not both [" + fieldlist + "]")
 
 	}
-
 	splitlist := strings.Split(fieldlist, ",")
 	returnlist := []string{}
+	if !strings.Contains(fieldlist, util.ObjType) {
+		splitlist = append(splitlist, "@"+util.ObjType)
+	}
 	// if we have a list of fields e.g. @name,@resourceversion,@creationtime
 	for _, item := range splitlist {
 		// each item must begin with @ followed by an alphanumeric string
@@ -241,6 +259,7 @@ func CreateFieldsQuery(fieldlist string, metafieldslist []MetadataField, tabs in
 // CreateDgraphQuery translates the querystring to a dgraph query
 func (qa *QSLService) CreateDgraphQuery(query string, cntOnly bool) (string, error) {
 	log.Info("Received Query: ", strings.Split(query, "}."))
+	metrics.DgraphNumQSL.Inc()
 
 	// remove all whitespace
 	whitespace := regexp.MustCompile("\\s*")
@@ -312,7 +331,7 @@ func (qa *QSLService) buildRootQuery(qry string, template string, cntOnly bool) 
 		return nil, "", "", err
 	}
 
-	_, ff, pag, err := CreateFiltersQuery(filters)
+	ff, pag, err := CreateFiltersQuery(filters)
 	if err != nil {
 		return nil, "", "", err
 	}
@@ -374,7 +393,7 @@ func (qa *QSLService) buildEdgeQuery(qry string, template string, parent string,
 	if err != nil {
 		return nil, "", "", err
 	}
-	_, ff, pag, err := CreateFiltersQuery(filters)
+	ff, pag, err := CreateFiltersQuery(filters)
 	if err != nil {
 		return nil, "", "", err
 	}
@@ -472,14 +491,13 @@ func (qa *QSLService) getRelationName(objType string, parent string) (string, er
 
 	if !found {
 		// if not, see if we can find the relation from the parent to this object
-		metafieldslist2, err := qa.metaSvc.GetMetadataFields(parent)
+		m := NewMetaService(qa.DBclient)
+		metafieldslist2, err := m.GetMetadataFields(parent)
 		if err != nil {
 			log.Error(err)
 			return "", errors.New("Failed to connect to dgraph to get metadata")
 		}
 		log.Debugf("couldn't find relation for %s->%s,", parent, objType)
-		log.Debugf("metadata fields for %s: %#v", parent, metafieldslist)
-
 		for _, item := range metafieldslist2 {
 			if item.FieldType == "relationship" {
 				log.Debugf("2 found relationship for %s-%s->%s", parent, item.FieldName, item.RefDataType)

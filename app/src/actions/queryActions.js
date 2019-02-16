@@ -5,45 +5,68 @@ import * as notifyActions from './notifyActions';
 import history from '../history';
 import ApiService from '../services/ApiService';
 import { QUERY_LEN_ERR } from '../utils/errors';
+import { validateQslQuery, getQSLObjTypes } from '../utils/validate';
+import { encodeQueryData } from '../utils/url';
 
 //TODO:DM - is there a better place to define router related consts?
-const APP_RESULTS_ROUTE = '/results?query=';
+const APP_RESULTS_ROUTE = '/results?';
+const GRAPH_ROUTE = '/graph/';
+const DEFAULT_ROWS_PER_PAGE = 25;
 
-//QSL requests will always include this telltale character
-//TODO:SS - check with @kianjones4 to see if this is the best strategy and char to use. possibly square brackets are an even better choice? what's least likely to occur in kube elements which might otherwise end up in a naive keyword search?
-const QSL_TAG = '{';
-
-export function submitQuery(query) {
+export function submitQuery(query, page = 0, limit = DEFAULT_ROWS_PER_PAGE) {
   return dispatch => {
     if (query !== '' && query.length >= 3) {
-      history.push(APP_RESULTS_ROUTE + encodeURIComponent(query));
+      // this is for URL only, not updating the redux state
+      const data = { query, page, limit };
+      history.push(APP_RESULTS_ROUTE + encodeQueryData(data));
     } else {
       dispatch(notifyActions.showNotify(QUERY_LEN_ERR));
     }
   };
 }
 
-export const requestQuery = (queryStr, page, rowsPerPage) => ({
+export function submitQslQuery(query) {
+  return dispatch => {
+    //currently, we'll navigate to the graph without any addl validation steps
+    if (validateQslQuery(query)) {
+      history.push(GRAPH_ROUTE + query);
+    }
+  };
+}
+
+export const requestQuery = (queryStr, isQSL, page, rowsPerPage) => ({
   type: types.REQUEST_QUERY,
   queryStr,
+  isQSL,
   page,
   rowsPerPage
 });
 
-export function fetchQuery(query, page, rowsPerPage) {
+export function fetchQuery(
+  query,
+  page = 0,
+  rowsPerPage = DEFAULT_ROWS_PER_PAGE
+) {
   return dispatch => {
-    dispatch(requestQuery(query, page, rowsPerPage));
     let requestPromise;
 
-    if (query.includes(QSL_TAG)) {
+    if (validateQslQuery(query)) {
+      dispatch(requestQuery(query, true, page, rowsPerPage));
+      const objTypes = getQSLObjTypes(query);
+      // cache metadata
+      objTypes.forEach(objType => dispatch(fetchMetadata(objType)));
+
       requestPromise = ApiService.getQSLResult(query, page, rowsPerPage);
     } else {
-      requestPromise = ApiService.getQueryResult(query);
+      dispatch(requestQuery(query, false, page, rowsPerPage));
+      requestPromise = ApiService.getQueryResult(query, page, rowsPerPage);
     }
 
-    return requestPromise
-      .then(handleResponse)
-      .then(([results, count]) => dispatch(receiveQuery(results, count)));
+    return requestPromise.then(json => {
+      if (json != null) {
+        dispatch(receiveQuery(json.objects, json.count));
+      }
+    });
   };
 }
 
@@ -53,40 +76,26 @@ export const receiveQuery = (results, count) => ({
   count
 });
 
-export const updatePagination = (page, rowsPerPage) => {
+export const requestMetadata = objType => ({
+  type: types.REQUEST_METADATA,
+  objType
+});
+
+export const receiveMetadata = (objType, metadata) => ({
+  type: types.RECEIVE_METADATA,
+  objType,
+  metadata
+});
+
+export function fetchMetadata(objType) {
   return (dispatch, getState) => {
-    dispatch(fetchQuery(getState().query.current, page, rowsPerPage));
+    // only fetch metadata not cached before
+    if (objType in getState().query.metadata) {
+      return;
+    }
+    dispatch(requestMetadata(objType));
+    ApiService.getMetadata(objType).then(json =>
+      dispatch(receiveMetadata(objType, json))
+    );
   };
-};
-
-function handleResponse(json) {
-  let results = [];
-  let existingUids = {};
-  let count = 0;
-  for (let objKey in json) {
-    let objArr = json[objKey];
-    if (objKey === 'count') {
-      count = objArr;
-      continue;
-    }
-
-    if (objArr.length) {
-      objArr.forEach(obj => {
-        //screen out duplicate UID entries
-        if (!existingUids[obj.uid]) {
-          results.push(obj);
-          existingUids[obj.uid] = true;
-        } else {
-          console.warn('duplicated uid:' + obj.uid);
-        }
-      });
-    }
-  }
-
-  // TODO, as search query does not support pagination, there is no count returned.
-  // will remove this once it supports pagination
-  if (count === 0) {
-    count = results.length;
-  }
-  return [results, count];
 }

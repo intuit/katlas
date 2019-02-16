@@ -19,17 +19,45 @@ before_script:
   - mkdir -p /tmp/data
   - docker run -d -it -p 5080:5080 -p 6080:6080 -p 8080:8080 -p 9080:9080 -p 8000:8000 -v /tmp/data:/dgraph --name diggy dgraph/dgraph dgraph zero
   - docker exec -d -it diggy dgraph alpha --lru_mb 2048 --zero localhost:5080
-
+  - TRAVIS_COMMIT_SHORTID="${TRAVIS_COMMIT:0:7}"
+  - echo "${TRAVIS_COMMIT_SHORTID}"
+  - go get -u github.com/jstemmer/go-junit-report
 script:
   - cd $TRAVIS_BUILD_DIR/service
   - go test -v ./... -coverprofile=coverage.txt -covermode=atomic
-  - docker build --no-cache -f Dockerfile -t katlas-service:${TRAVIS_COMMIT} .
+  - go test -v ./... 2>&1 | go-junit-report > unit-test-result-report.xml
+  - cat ./unit-test-result-report.xml
+  - docker build --no-cache -f Dockerfile -t katlas/katlas-service:${TRAVIS_COMMIT_SHORTID} .
+  - docker images katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
   - cd $TRAVIS_BUILD_DIR/app
   - yarn test --coverage
-  - docker build --no-cache -f Dockerfile -t katlas-browser:${TRAVIS_COMMIT} .
+  - docker build --no-cache -f Dockerfile -t katlas/katlas-browser:${TRAVIS_COMMIT_SHORTID} .
+  - docker images katlas/katlas-browser:${TRAVIS_COMMIT_SHORTID}
+  - cd $TRAVIS_BUILD_DIR/controller
+  - docker build --no-cache -f Dockerfile -t katlas/katlas-collector:${TRAVIS_COMMIT_SHORTID} .
+  - docker images katlas/katlas-collector:${TRAVIS_COMMIT_SHORTID}
+  - cd $TRAVIS_BUILD_DIR/service
+  - HOST=$(ifconfig docker0 | grep 'inet addr' |cut -d':' -f2 | awk '{print $1}')
+  - echo $HOST
+  - docker run -d -it -p 8011:8011 -e ENV_NAMESPACE=local -e SERVER_TYPE=http -e DGRAPH_HOST=$HOST:9080 --name katlas-service katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
+  - sleep 5s
+  - docker ps -a
+  - cd $TRAVIS_BUILD_DIR/e2etests
+  - go test -v ./...
+  - go test -v ./... 2>&1 | go-junit-report > e2e-test-result-report.xml
+  - cat ./e2e-test-result-report.xml
 
 after_success:
   - cd $TRAVIS_BUILD_DIR/service
   - bash <(curl -s https://codecov.io/bash)
   - cd $TRAVIS_BUILD_DIR/app
   - bash <(curl -s https://codecov.io/bash) -f coverage/coverage-final.json
+  - |
+    if [ "$TRAVIS_BRANCH" == "master" ]; then
+        # Login to docker hub
+        echo "$DOCKER_PASSWORD" |docker login -u $DOCKER_USERNAME --password-stdin
+        # Push image to docker hub
+        docker push katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
+        docker push katlas/katlas-browser:${TRAVIS_COMMIT_SHORTID}
+        docker push katlas/katlas-collector:${TRAVIS_COMMIT_SHORTID}
+    fi

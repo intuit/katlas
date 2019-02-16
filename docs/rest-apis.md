@@ -1,256 +1,412 @@
----
-description: >-
-  This section documents all the externally exposed K-Atlas APIs. The APIs can
-  be accessed when the Rest-API is running locally or when it is run as part of
-  the Kubernetes cluster.
----
-
 # K-Atlas APIs
 
+### Introduction
+The following documents describes K-Atlas API. It provides interfaces for data collector and user to CRUD resource including  metadata, entity and history.
 
+### HTTP Header
+|Header |Description|
+|:--- |:---|
+|Content-Type | application/json|
 
-When running locally- Use the local Ip and port that the Rest Service is running on.
+### HTTP Status Codes
+|Status Code |Description|
+|:-----------|:----------|
+|200 - OK |The request has succeeded|
+|201 - Created |The request has been fulfilled and resulted in a new resource being created|
+|202 - Accepted |The request has been accepted for processing, but the processing has not been completed|
+|204 - No Content |The server has fulfilled the request but does not need to return an entity-body, and might want to return updated meta information|
+|400 - Bad Request |The request was malformed|
+|404 - Not Found |Resource not found|
+|500 - Server Error |The request could not be fulfilled due to an internal error in the server|
+|503 - Service Unavailable |The request could not be fulfilled due to an error/unavailability of a downstream dependency|
 
-Eg http://127.0.0.1:8011/
+### Metadata Service
+CRUD API for metadata. The metadata is a schema describing the types of data.
 
-When running as part of the cluster, Use the appropriate Address and Port. 
+**Create Metadata**:
 
-{% hint style="info" %}
-If following the Installation instructions as part of [Installation](installation.md), address will be &lt;minikube-ip&gt;:30415
-{% endhint %}
+Name | Description
+:---|:---
+`Request HTTP Method`| POST
+`Request Path` | /v1/metadata
+`Request Header Params`| Header above
+`Request Body` | JSON format <br/>1. Use single json to create single schema <br/>2. Array can be used to create multiple schema at a time
+`Response` | Response code <br/> Success or error message
 
-{% api-method method="get" host="http" path="" %}
-{% api-method-summary %}
-Get status of Katlas service
-{% endapi-method-summary %}
-
-{% api-method-description %}
-http://address/health
-{% endapi-method-description %}
-
-{% api-method-spec %}
-{% api-method-request %}
-{% api-method-path-parameters %}
-{% api-method-parameter name="health" type="string" required=true %}
-Gives health status for the Rest-API
-{% endapi-method-parameter %}
-{% endapi-method-path-parameters %}
-{% endapi-method-request %}
-
-{% api-method-response %}
-{% api-method-response-example httpCode=200 %}
-{% api-method-response-example-description %}
-Request was successful. Return the result in JSON format.
-{% endapi-method-response-example-description %}
-
+**Example**:
 ```
-
+POST /v1/metadata
+with body
+[
+  {
+    "name":"application",
+    "objtype":"metadata",
+    "fields":[
+      {
+        "fieldname":"creationtime",
+        "fieldtype":"string",
+        "mandatory":true,
+        "cardinality":"one"
+      },
+      {
+        "fieldname":"objtype",
+        "fieldtype":"string",
+        "mandatory":true,
+        "cardinality":"one"
+      },
+      {
+        "fieldname":"name",
+        "fieldtype":"string",
+        "mandatory":true,
+        "cardinality":"one"
+      },
+      {
+        "fieldname":"resourceid",
+        "fieldtype":"string",
+        "mandatory":false,
+        "cardinality":"one"
+      },
+      {
+        "fieldname":"labels",
+        "fieldtype":"json",
+        "mandatory":false,
+        "cardinality":"one"
+      },
+      {
+        "fieldname":"resourceversion",
+        "fieldtype":"string",
+        "mandatory":true,
+        "cardinality":"one"
+      }
+    ]
+  }
+]
 ```
-{% endapi-method-response-example %}
+**Get Metadata**:
 
-{% api-method-response-example httpCode=500 %}
-{% api-method-response-example-description %}
-Request failed as Rest-API Service was not accessible.
-{% endapi-method-response-example-description %}
+Name | Description
+:---|:---
+`Request HTTP Method`| GET
+`Request Path` | /v1/metadata/{type}
+`Request Header Params`| Header above
+`Request Body` | N/A
+`Response` | Response code <br/> Metadata with JSON format
 
+**Example**:
 ```
-
-```
-{% endapi-method-response-example %}
-{% endapi-method-response %}
-{% endapi-method-spec %}
-{% endapi-method %}
-
-{% api-method method="get" host="http://address/v1/query?" path="attribute=value\[&attribute=value\]" %}
-{% api-method-summary %}
-Get Query Results based on a key-value query
-{% endapi-method-summary %}
-
-{% api-method-description %}
-This endpoint allows the user to get the query results from Dgraph for a match if the provided attributes and values.
-{% endapi-method-description %}
-
-{% api-method-spec %}
-{% api-method-request %}
-{% api-method-path-parameters %}
-{% api-method-parameter name="/v1/query" type="string" required=true %}
-
-{% endapi-method-parameter %}
-{% endapi-method-path-parameters %}
-
-{% api-method-query-parameters %}
-{% api-method-parameter name="attribute=value" type="string" required=true %}
-Attribute name and the value to be matched in dgraph
-{% endapi-method-parameter %}
-{% endapi-method-query-parameters %}
-{% endapi-method-request %}
-
-{% api-method-response %}
-{% api-method-response-example httpCode=200 %}
-{% api-method-response-example-description %}
-Request was successful. Return the result in JSON format.
-{% endapi-method-response-example-description %}
-
-```
+GET /v1/metadata/application
+return
 {
-	"objects": [{
-		"clustername": "",
-		"ip": "100.107.8.104",
-		"k8sobj": "",
-		"name": "webapp-deployment-4-7495658878-nflv5",
-		"objtype": "Pod",
-		"resourceversion": "",
-		"starttime": "2018-10-18 14:36:34 -0700 PDT",
-		"status": "Running",
-		"uid": "0xea67"
-	}]
+  "status":"success",
+  "code":200,
+  "result":{
+    "uid":"0x1f019",
+    "name":"application",
+    "objtype":"metadata",
+    "fields":[
+      {
+        "fieldname":"resourceid",
+        "fieldtype":"string",
+        "mandatory":false,
+        "cardinality":"One"
+      },
+      {
+        "fieldname":"labels",
+        "fieldtype":"json",
+        "mandatory":false,
+        "cardinality":"One"
+      },
+      {
+        "fieldname":"resourceversion",
+        "fieldtype":"string",
+        "mandatory":true,
+        "cardinality":"One"
+      },
+      {
+        "fieldname":"creationtime",
+        "fieldType":"string",
+        "mandatory":true,
+        "cardinality":"One"
+      },
+      {
+        "fieldname":"objtype",
+        "fieldType":"string",
+        "mandatory":true,
+        "cardinality":"One"
+      },
+      {
+        "fieldname":"name",
+        "fieldType":"string",
+        "mandatory":true,
+        "cardinality":"One"
+      }
+    ]
+  }
 }
 ```
-{% endapi-method-response-example %}
 
-{% api-method-response-example httpCode=500 %}
-{% api-method-response-example-description %}
-Request failed as Rest-API Service was not accessible.
-{% endapi-method-response-example-description %}
+**Update Metadata**:
 
+Name | Description
+:---|:---
+`Request HTTP Method`| POST
+`Request Path` | /v1/metadata/{type}
+`Request Header Params`| Header above
+`Request Body` | Data with JSON format for update
+`Response` | Response code <br/> Metadata name and unified ID. Or error message if any
+
+**Example**:
 ```
-
-```
-{% endapi-method-response-example %}
-{% endapi-method-response %}
-{% endapi-method-spec %}
-{% endapi-method %}
-
-{% api-method method="get" host="http://address" path="/v1/query?keyword=\"\"" %}
-{% api-method-summary %}
-Get Query Results based on a keyword query
-{% endapi-method-summary %}
-
-{% api-method-description %}
-This endpoint allows the user to get the query results from Dgraph for a case-insensitive substring match for the provided keyword.
-{% endapi-method-description %}
-
-{% api-method-spec %}
-{% api-method-request %}
-{% api-method-path-parameters %}
-{% api-method-parameter name="/v1/query" type="string" required=true %}
-
-{% endapi-method-parameter %}
-{% endapi-method-path-parameters %}
-
-{% api-method-query-parameters %}
-{% api-method-parameter name="keyword" type="string" required=true %}
-Keyword to be searched in dgraph.
-{% endapi-method-parameter %}
-{% endapi-method-query-parameters %}
-{% endapi-method-request %}
-
-{% api-method-response %}
-{% api-method-response-example httpCode=200 %}
-{% api-method-response-example-description %}
-Request was successful. Return the result in JSON format.
-{% endapi-method-response-example-description %}
-
-```
+POST /v1/metadata/application
+with body
 {
-	"obj17": [{
-		"assetid": "987654321",
-		"awsacctnumber": "1911-6338-0763",
-		"awsregion": "us-west-1",
-		"name": "webapp cluster",
-		"objtype": "k8s_cluster",
-		"resourceversion": "v1",
-		"teamid": "123456789",
-		"uid": "0x15fcf"
-	}, {
-		"assetid": "987654321",
-		"awsacctnumber": "1911-6338-0763",
-		"awsregion": "us-west-1",
-		"name": "webapp cluster",
-		"objtype": "k8s_cluster",
-		"resourceversion": "v1",
-		"teamid": "123456789",
-		"uid": "0x15ff0"
-	}]
-```
-{% endapi-method-response-example %}
-
-{% api-method-response-example httpCode=500 %}
-{% api-method-response-example-description %}
-Request failed as Rest-API Service was not accessible.
-{% endapi-method-response-example-description %}
-
-```
-
-```
-{% endapi-method-response-example %}
-{% endapi-method-response %}
-{% endapi-method-spec %}
-{% endapi-method %}
-
-{% api-method method="get" host="http://address" path="/v1/entity/:type/:uid" %}
-{% api-method-summary %}
-Get Entity Details by uid
-{% endapi-method-summary %}
-
-{% api-method-description %}
-This endpoint allows the user to get details for the provided kubernetes entitity in dgraph.
-{% endapi-method-description %}
-
-{% api-method-spec %}
-{% api-method-request %}
-{% api-method-path-parameters %}
-{% api-method-parameter name="/v1/entity" type="string" required=true %}
-
-{% endapi-method-parameter %}
-{% endapi-method-path-parameters %}
-
-{% api-method-headers %}
-{% api-method-parameter name="TODO" type="string" required=true %}
-
-{% endapi-method-parameter %}
-{% endapi-method-headers %}
-
-{% api-method-query-parameters %}
-{% api-method-parameter name="type" type="string" required=true %}
-Type of entity \[Ingress, Service, Deployment, Pod, StatefulSet\]
-{% endapi-method-parameter %}
-
-{% api-method-parameter name="uid" type="string" required=true %}
-Dgraph uid for the entity
-{% endapi-method-parameter %}
-{% endapi-method-query-parameters %}
-{% endapi-method-request %}
-
-{% api-method-response %}
-{% api-method-response-example httpCode=200 %}
-{% api-method-response-example-description %}
-Request was successful. Return the result in JSON format.
-{% endapi-method-response-example-description %}
-
-```javascript
+  "fields":[
+    {
+      "fieldname":"belongsTo",
+      "fieldtype":"relationship",
+      "mandatory":true,
+      "refdatatype":"namespace"
+    }
+  ]
+}
+return
 {
-    "name": "Cake's name",
-    "recipe": "Cake's recipe name",
-    "cake": "Binary cake"
+  "status": "success",
+  "code" : 200,
+  "result": {
+    "objtype": "metadata",
+    "uid" : "0x123ba0"
+  }
 }
 ```
-{% endapi-method-response-example %}
 
-{% api-method-response-example httpCode=404 %}
-{% api-method-response-example-description %}
-Could not find a cake matching this query.
-{% endapi-method-response-example-description %}
+**Delete Metadata**:
 
-```javascript
+Name | Description
+:---|:---
+`Request HTTP Method`| DELETE
+`Request Path` | /v1/metadata/{type}
+`Request Header Params`| Header above
+`Request Body` | N/A
+`Response` | Response code <br/> Metadata name and unified ID. Or error message if any
+
+**Example**:
+```
+DELETE /v1/metadata/application
+return
 {
-    "message": "Ain't no cake like that."
+  "status":"success",
+  "code":200,
+  "result":{
+    "objtype":"metadata",
+    "uid":"0x467ba0"
+  }
 }
 ```
-{% endapi-method-response-example %}
-{% endapi-method-response %}
-{% endapi-method-spec %}
-{% endapi-method %}
 
+### Entity Service
+CRUD API for entity
 
+**Create Entity**:
+Create an entity based on given metadata
 
+Name | Description
+:---|:---
+`Request HTTP Method`| POST
+`Request Path` | /v1/entity/{metadata}
+`Request Header Params`| Header above
+`Request Body` | JSON format data
+`Response` | Response code <br/> Entity type and unified ID. Or error message if any
+
+**Example**:
+```
+POST /v1/entity/pod
+with body
+{
+  "description":"describe this object",
+  "resourceid":"unique_id_of_pod",
+  "name":"pod01",
+  "resourceversion":"6365014",
+  "starttime":"2018-09-01T10:01:03Z",
+  "status":"Running",
+  "ip":"172.20.32.128",
+  "namespace":"ns"
+}
+return
+{
+  "status":"success",
+  "code":200,
+  "result":{
+    "objtype":"pod",
+    "uid":"0x467ba0"
+  }
+}
+```
+
+**Get Entity**:
+Get an entity based on given metadata and uid
+
+Name | Description
+:---|:---
+`Request HTTP Method`| GET
+`Request Path` | /v1/entity/{metadata}/{uid}
+`Request Header Params`| Header above
+`Request Body` | N/A
+`Response` | Response code <br/> Entity or error message if any
+
+**Example**:
+```
+GET /v1/entity/pod/0x467ba0
+return
+{
+  "status":"success",
+  "code":200,
+  "result":{
+    "uid":"0x467ba0",
+    "objtype":"pod",
+    "description":"describe this object",
+    "resourceid":"unique_id_of_pod",
+    "name":"pod01",
+    "resourceversion":"6365014",
+    "starttime":"2018-09-01T10:01:03Z",
+    "status":"Running",
+    "ip":"172.20.32.128",
+    "namespace":{
+      "uid":"0x56291a"
+    }
+  }
+}
+```
+**Update Entity**:
+Create an entity based on given metadata
+
+Name | Description
+:---|:---
+`Request HTTP Method`| POST
+`Request Path` | /v1/entity/{metadata}
+`Request Header Params`| Header above
+`Request Body` | JSON format data
+`Response` | Response code <br/> Entity type and unified ID. Or error message if any
+
+**Example**:
+```
+POST /v1/entity/pod/0x467ba0
+with body
+{
+  "resourceversion":"6365015",
+  "status":"Failed"
+}
+return
+{
+  "status":"success",
+  "code":200,
+  "result":{
+    "objtype":"pod",
+    "uid":"0x467ba0"
+  }
+}
+```
+
+**Delete Entity**:
+Delete an entity based on given metadata and resourceid
+
+Name | Description
+:---|:---
+`Request HTTP Method`| DELETE
+`Request Path` | /v1/entity/{metadata}/{resourceid}
+`Request Header Params`| Header above
+`Request Body` | N/A
+`Response` | Response code <br/> Entity type and unified ID. Or error message if any
+
+**Example**:
+```
+DELETE /v1/entity/pod/resourceid01
+return
+{
+  "status":"success",
+  "code":200,
+  "result":{
+    "objtype":"pod",
+    "uid":"0x467ba0"
+  }
+}
+```
+
+### Query Service
+Query to get resources
+
+**Keyword Search**:
+
+Name | Description
+:---|:---
+`Request HTTP Method`| GET
+`Request Path` | /v1/query
+`Request Header Params`| Header above
+`Request Query Params` | The keyword to be matched as substring
+`Request Body` | N/A
+`Response` | Response code <br/> Entity type and unified ID. Or error message if any
+
+**Example**:
+```
+GET /v1/query?keyword=webapp
+return
+{
+  "status":"success",
+  "code":200,
+  "result":[
+    {
+      "uid":"0x467ba0",
+      "objtype":"pod",
+      "description":"describe this object",
+      "resourceid":"webapp",
+      "name":"webapp",
+      "resourceversion":"6365014",
+      "starttime":"2018-09-01T10:01:03Z",
+      "status":"Running",
+      "ip":"172.20.32.128"
+    },
+    {
+      "uid":"0x467ba2",
+      "objtype":"namespace",
+      "resourceid":"webapp-ns",
+      "name":"webapp-ns",
+      "resourceversion":"6365014"
+    }
+  ]
+}
+```
+
+**Key/value Query**:
+
+Name | Description
+:---|:---
+`Request HTTP Method`| GET
+`Request Path` | /v1/query
+`Request Header Params`| Header above
+`Request Query Params` | The key=value pairs to be matched
+`Request Body` | N/A
+`Response` | Response code <br/> Entity type and unified ID. Or error message if any
+
+**Example**:
+```
+GET /v1/query?name=webapp&objtype=pod
+return
+{
+  "status":"success",
+  "code":200,
+  "result":{
+    "uid":"0x467ba0",
+    "objtype":"pod",
+    "description":"describe this object",
+    "resourceid":"webapp",
+    "name":"webapp",
+    "resourceversion":"6365014",
+    "starttime":"2018-09-01T10:01:03Z",
+    "status":"Running",
+    "ip":"172.20.32.128"
+  }
+}
+```
+
+**QSL query**:
+refer https://github.com/intuit/katlas/blob/master/docs/qsl-api.md

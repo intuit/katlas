@@ -18,20 +18,28 @@ export const options = {
       top: 25
     }
   },
-  height: "100%",
-  width: "100%",
+  height: '100%',
+  width: '100%',
   interaction: {
     hover: true,
     keyboard: {
       enabled: true,
       bindToWindow: false
     },
-    navigationButtons: true,
-    tooltipDelay: 1000000,
     zoomView: true
   },
   layout: {
     randomSeed: 42,
     improvedLayout: true,
+    hierarchical: {
+      enabled: true,
+      blockShifting: true,
+      edgeMinimization: true,
+      sortMethod: 'hubsize',
+      direction: 'UD'
+    }
   },
+  physics: {
+    enabled: false
+  }
 };

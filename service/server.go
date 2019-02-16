@@ -13,6 +13,7 @@ import (
 	"github.com/intuit/katlas/service/cfg"
 	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/resources"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"io/ioutil"
 )
 
@@ -39,7 +40,7 @@ func serve() {
 	metaSvc := apis.NewMetaService(dc)
 	entitySvc := apis.NewEntityService(dc)
 	querySvc := apis.NewQueryService(dc)
-	qslSvc := apis.NewQSLService(dc, metaSvc)
+	qslSvc := apis.NewQSLService(dc)
 	res := resources.ServerResource{EntitySvc: entitySvc, QuerySvc: querySvc, MetaSvc: metaSvc, QSLSvc: qslSvc}
 	router.HandleFunc("/v1/entity/{metadata}/{uid}", res.EntityGetHandler).Methods("GET")
 	// TODO: wire up more resource APIs here
@@ -55,6 +56,8 @@ func serve() {
 
 	router.HandleFunc("/health", Health).Methods("GET")
 	router.HandleFunc("/", Up).Methods("GET", "POST")
+
+	router.Handle("/prometheus_metrics", promhttp.Handler()).Methods("GET")
 
 	//Creates an LRU cache of the given size
 	var err error

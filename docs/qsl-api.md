@@ -5,7 +5,7 @@
 Provide an easy to use language for users to query objects from dgraph without having to use graphQL
 
 ## Format
-  `objecttype1[@fieldname="value" && @count(relationship)>1 $$first=1,offset=0]{@filedname}.objecttype2[@fieldname="value"]{*}`
+  `objecttype1[@fieldname="value" && @count(relationship)>1 $$limit=1,offset=0]{@filedname}.objecttype2[@fieldname="value"]{*}`
 
 ### Details
   * objecttype - the kubernetes Kind of the object
@@ -33,12 +33,17 @@ Provide an easy to use language for users to query objects from dgraph without h
     * filters can be empty and will default to returning all objects of its type
     * fields can also be empty and will default to showing nothing for that object type
   * optional pagination
-    * in filters, use `objecttype[@filtername="value"$$first=1,offset=1]{@field1,@field2}`
-    * $$first=n will return the first n objects by uid
+    * in filters, use `objecttype[@filtername="value"$$limit=1,offset=1]{@field1,@field2}`
+    * $$limit=n will return the limit n objects by uid
     * $$offset=m will return the objects in uid order starting from m
-    * combine to get $$first=x,offset=y to get the first x objects starting from index y
+    * combine to get $$limit=x,offset=y to get the limit x objects starting from index y
   * count() supported in filter
     * the function take relationship objtype as parameter and all comparators (=,<,>,<=,>=) can be used
+  * ~= can be used for regex search in the filter
+    * e.g. `pod[@name~="^nginx"]{*}` will return all pods which name start with `nginx`
+  * use .$ to query json format field with key/value pair
+    * e.g. labels of K8s Pod is json data, we can filter pod by labels key
+    * `pod[@labels.$app="nginx"]{@labels}`
 
 ## Examples
   ```
@@ -58,8 +63,8 @@ Provide an easy to use language for users to query objects from dgraph without h
   ```
 
   ```
-  deployment[@name="helm"$$first=10]{*}
-    return all of the fields of the first 10 pods named "helm" by uid
+  deployment[@name="helm"$$limit=10]{*}
+    return all of the fields of the 10 pods named "helm" by uid
   ```
 
   ```
@@ -68,8 +73,8 @@ Provide an easy to use language for users to query objects from dgraph without h
   ```
 
   ```
-  pod[$$first=10,offset=0]{*}.replicaset[$$first=1]{*}
-    return first 10 pods which has relicaset and each pod return 1 replicaset
+  pod[$$limit=10,offset=0]{*}.replicaset[$$limit=1]{*}
+    return 10 pods which has relicaset and each pod return 1 replicaset
   ```
 
   ```
@@ -217,7 +222,7 @@ Provide an easy to use language for users to query objects from dgraph without h
   ```
 
   ```
-  qsl: cluster[@objtype="Cluster"$$first=2]{*}.namespace[@name="default"$$first=2,offset=2]{*}
+  qsl: cluster[@objtype="Cluster"$$limit=2]{*}.namespace[@name="default"$$limit=2,offset=2]{*}
   dgraph: { A as var(func: eq(objtype, cluster)) @filter( eq(objtype,"cluster") ) @cascade {
           	count(uid)
           	~cluster @filter(eq(objtype, namespace) and eq(name,"default") ){

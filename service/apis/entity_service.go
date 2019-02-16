@@ -9,6 +9,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/intuit/katlas/service/db"
+	metrics "github.com/intuit/katlas/service/metrics"
 	"github.com/intuit/katlas/service/util"
 	"reflect"
 )
@@ -47,17 +48,20 @@ func NewEntityService(dc db.IDGClient) *EntityService {
 
 // GetEntity get entity return the object with specified ID
 func (s EntityService) GetEntity(meta string, uuid string) (map[string]interface{}, error) {
+	metrics.DgraphNumGetEntity.Inc()
 	return s.dbclient.GetEntity(meta, uuid)
 }
 
 // DeleteEntity remove object with given ID
 func (s EntityService) DeleteEntity(uuid string) error {
+	metrics.DgraphNumDeleteEntity.Inc()
 	return s.dbclient.DeleteEntity(uuid)
 }
 
 // DeleteEntityByResourceID remove object by given resourceid
 func (s EntityService) DeleteEntityByResourceID(meta string, rid string) error {
-	qm := map[string][]string{util.ResourceID: {rid}, util.ObjType: {meta}}
+	metrics.DgraphNumDeleteEntity.Inc()
+	qm := map[string][]string{util.ResourceID: {rid}, util.ObjType: {meta}, util.Print: {util.ResourceID}}
 	queryService := NewQueryService(s.dbclient)
 	node, err := queryService.GetQueryResult(qm)
 	if err != nil {
@@ -79,6 +83,7 @@ func (s EntityService) DeleteEntityByResourceID(meta string, rid string) error {
 
 // CreateEntity save new entity to the storage
 func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (map[string]string, error) {
+	metrics.DgraphNumCreateEntity.Inc()
 	cluster := data[util.Cluster]
 	ns := data[util.Namespace]
 	if _, ok := data[util.ResourceID]; !ok {
@@ -95,7 +100,7 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 	if len(fs) > 0 {
 		for _, field := range fs {
 			fieldValue, ok := data[field.FieldName]
-			if !ok || fieldValue == nil || ((reflect.ValueOf(fieldValue).Kind() == reflect.Interface ||
+			if !ok || fieldValue == "" || fieldValue == nil || ((reflect.ValueOf(fieldValue).Kind() == reflect.Interface ||
 				reflect.ValueOf(fieldValue).Kind() == reflect.Ptr ||
 				reflect.ValueOf(fieldValue).Kind() == reflect.Slice) &&
 				reflect.ValueOf(fieldValue).IsNil()) {
@@ -147,7 +152,9 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 	if mutex.TryLock(data[util.ResourceID]) {
 		defer mutex.Unlock(data[util.ResourceID])
 		// check if entity already exist
-		qm := map[string][]string{util.ResourceID: {data[util.ResourceID].(string)}, util.ObjType: {meta}}
+		qm := map[string][]string{util.ResourceID: {data[util.ResourceID].(string)},
+			util.ObjType: {meta},
+			util.Print:   {util.ResourceVersion}}
 		queryService := NewQueryService(s.dbclient)
 		node, err := queryService.GetQueryResult(qm)
 		if err != nil {
@@ -233,12 +240,14 @@ func (s EntityService) CreateOrDeleteEdge(fromType string, fromUID string, toTyp
 	// if err := metadata.Validate(fromType, toType, rel); err != nil {
 	// 	return nil, err
 	// }
+	metrics.DgraphNumUpdateEdge.Inc()
 	return s.dbclient.CreateOrDeleteEdge(fromType, fromUID, toType, toUID, rel, op)
 
 }
 
 // UpdateEntity update entity
 func (s EntityService) UpdateEntity(meta string, uuid string, data map[string]interface{}) error {
+	metrics.DgraphNumUpdateEntity.Inc()
 	return s.dbclient.UpdateEntity(meta, uuid, data)
 }
 
@@ -274,7 +283,7 @@ func buildDataMap(k8sObj interface{}, relData interface{}, relType string, clust
 	} else if strings.EqualFold(relType, util.Namespace) || strings.EqualFold(relType, util.Node) {
 		dataMap[util.Cluster] = cluster
 		dataMap[util.ResourceID] = relType + ":" + cluster.(string) + ":" + dataMap[util.Name].(string)
-	} else if strings.EqualFold(relType, util.Application) {
+	} else if strings.EqualFold(relType, util.Application) || strings.EqualFold(relType, util.Asset) {
 		dataMap[util.ResourceID] = relType + ":" + dataMap[util.Name].(string)
 	} else {
 		if cluster != nil {
@@ -292,7 +301,7 @@ func buildDataMap(k8sObj interface{}, relData interface{}, relType string, clust
 // get uid from relationship object, if object not present, create it
 func (s EntityService) getUIDFromRelData(data map[string]interface{}, objType string) (*string, error) {
 	// query by ResourceID to get uid
-	qm := map[string][]string{util.ResourceID: {data[util.ResourceID].(string)}, util.ObjType: {objType}}
+	qm := map[string][]string{util.ResourceID: {data[util.ResourceID].(string)}, util.ObjType: {objType}, util.Print: {util.ResourceID}}
 	queryService := NewQueryService(s.dbclient)
 	node, err := queryService.GetQueryResult(qm)
 	if err != nil {

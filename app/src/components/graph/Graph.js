@@ -1,15 +1,16 @@
 import React, { Component } from 'react';
-import { connect } from "react-redux";
-import { bindActionCreators } from "redux";
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 import { withRouter } from 'react-router-dom';
 import _ from 'lodash';
-import vis from 'vis';
+import vis from 'vis/dist/vis.min.js';
+import 'vis/dist/vis-network.min.css'; //necessary for tooltip operation
 import { Grid } from '@material-ui/core';
 
-import * as entityActions from "../../actions/entityActions";
-import { options } from "../../config/visjsConfig";
-import { getVisData, clearVisData, colorMixer, getLegends } from "../../utils/graph";
-import { NodeStatusPulseColors } from "../../config/appConfig";
+import * as entityActions from '../../actions/entityActions';
+import { options } from '../../config/visjsConfig';
+import { getVisData, clearVisData, colorMixer, getLegends } from '../../utils/graph';
+import { NodeStatusPulseColors } from '../../config/appConfig';
 import './Graph.css';
 
 const PULSE_TIME_STEP_MS = 100;
@@ -37,7 +38,6 @@ class Graph extends Component {
     };
 
     //TODO:DM - can I mitigate need for these hard binds with => fns or something else?
-    this.validateInputs = this.validateInputs.bind(this);
     this.renderGraph = this.renderGraph.bind(this);
     this.renderVisGraph = this.renderVisGraph.bind(this);
     this.clearNetwork = this.clearNetwork.bind(this);
@@ -57,15 +57,6 @@ class Graph extends Component {
     this.clearNetwork();
   }
 
-  validateInputs() {
-    const errorList = [];
-    if (this.state.data.length <= 0) {
-      errorList.push("emptyDataField");
-    }
-    this.setState({errors: errorList});
-    return errorList;
-  }
-
   render() {
       return (
         <div className="Graph">
@@ -73,11 +64,10 @@ class Graph extends Component {
           <div className="Graph-container" align="center" id="graph"/>
           {/*Graph Legend*/}
           <div className='Graph-legend-container'>
-            Legend
+            <h3>Legend</h3>
             <Grid
               container
-              spacing={16}
-              className={''}
+              spacing={24}
               alignItems="center"
               direction="row"
               justify="center"
@@ -90,7 +80,7 @@ class Graph extends Component {
                       style={{color: '#000000'}}>
                       {this._legends.types[typeKey].code}
                     </span>
-                    <p>{typeKey}</p>
+                    <p>{typeKey || 'Unknown'}</p>
                   </Grid>
                 )
               })}
@@ -110,15 +100,33 @@ class Graph extends Component {
                 )
               })}
             </Grid>
+            <p>You may zoom and pan the graph using touch gestures or mouse.</p>
           </div>
         </div>
       );
   }
 
   renderGraph(jsonData) {
+    let nodes, edges;
     if (_.isEmpty(jsonData)) return;
 
-    const {nodes, edges} = getVisData(jsonData);
+
+    //if we receive an object, graph that directly. but if we receive an array,
+    //take just it's first (0th index) item.
+    if (_.isArray(jsonData)) {
+      nodes = [];
+      edges = [];
+      //NOTE: could instead iterate over array items, continuously extending
+      //nodes and edges arrs with getVisData results. ex:
+      let { nodes: n, edges: e } = getVisData(jsonData[0]);
+      nodes = nodes.concat(n);
+      edges = edges.concat(e);
+    } else {
+      let obj = getVisData(jsonData);
+      nodes = obj.nodes;
+      edges = obj.edges;
+    }
+
     this._edges = edges;
     this._legends = getLegends();
 
@@ -195,10 +203,10 @@ class Graph extends Component {
         const targetNodeUid = element.nodes[0];
         const pathComponents = this.props.location.pathname.split('/');
         const currentNodeUid = pathComponents[pathComponents.length - 1];
-        //only add node data if target node is not current node
+        //only add node data if not already target node
         //TODO:DM - rather than just current node, could skip any already watched UIDs
         if (targetNodeUid !== currentNodeUid) {
-          this.props.entityActions.addEntityWatch(targetNodeUid);
+          this.props.entityActions.addWatchUid(targetNodeUid);
           //and immediately attempt to fetch for the indicated UID
           this.props.entityActions.fetchEntity(targetNodeUid);
         }
