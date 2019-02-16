@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/intuit/katlas/service/db"
 	metrics "github.com/intuit/katlas/service/metrics"
@@ -27,9 +28,9 @@ type IEntityService interface {
 	// remove object with given ID
 	DeleteEntityByResourceID(rid string) error
 	// save new entity to the storage
-	CreateEntity(meta string, data map[string]interface{}) (map[string]string, error)
+	CreateEntity(meta string, data map[string]interface{}) (string, error)
 	// update entity with given ID in the storage
-	UpdateEntity(uuid string, data map[string]interface{}) error
+	UpdateEntity(meta string, uuid string, data map[string]interface{}, option ...map[string]interface{})
 	// create or remove relationship between entities by given IDs
 	CreateOrDeleteEdge(fromUID string, toUID string, rel string, op db.Action) error
 	// sync data between source and underlying database
@@ -82,7 +83,7 @@ func (s EntityService) DeleteEntityByResourceID(meta string, rid string) error {
 }
 
 // CreateEntity save new entity to the storage
-func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (map[string]string, error) {
+func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (string, error) {
 	metrics.DgraphNumCreateEntity.Inc()
 	cluster := data[util.Cluster]
 	ns := data[util.Namespace]
@@ -94,7 +95,7 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 	fs, err := m.GetMetadataFields(meta)
 	if err != nil {
 		log.Debug(err)
-		return nil, err
+		return "", err
 	}
 	delMap := make(map[string]interface{})
 	if len(fs) > 0 {
@@ -107,7 +108,7 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 				delete(data, field.FieldName)
 				continue
 			}
-			if strings.EqualFold(field.Cardinality, util.Many) || field.FieldType == util.Relationship {
+			if strings.EqualFold(field.Cardinality, util.Many) {
 				delMap[field.FieldName] = nil
 			}
 			// if field type is json, should convert it to facets - key value pair on node
@@ -118,19 +119,19 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 			} else if field.FieldType == util.Relationship {
 				// replace value with relationship object uid
 				if strings.EqualFold(field.Cardinality, util.Many) {
-					uidMaps := []map[string]string{}
+					uidMaps := []map[string]interface{}{}
 					for _, rel := range data[field.FieldName].([]interface{}) {
 						dataMap := buildDataMap(data[util.K8sObj], rel, field.RefDataType, cluster, ns)
 						uid, err := s.getUIDFromRelData(dataMap, field.RefDataType)
 						if err != nil {
 							log.Error(err)
-							return nil, err
+							return "", err
 						}
-						uidMaps = append(uidMaps, map[string]string{util.UID: *uid})
+						uidMaps = append(uidMaps, map[string]interface{}{util.UID: *uid})
 					}
 					data[field.FieldName] = uidMaps
 				} else {
-					uidMap := map[string]string{}
+					uidMap := map[string]interface{}{}
 					// pod can be owned by multi-objs like replicaset, daemonset
 					// FIX-later: hack to set refDataType to dynamic value from owner reference
 					if strings.EqualFold(meta, util.Pod) && strings.EqualFold(field.FieldName, util.Owner) {
@@ -140,7 +141,7 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 					uid, err := s.getUIDFromRelData(dataMap, field.RefDataType)
 					if err != nil {
 						log.Error(err)
-						return nil, err
+						return "", err
 					}
 					uidMap[util.UID] = *uid
 					data[field.FieldName] = uidMap
@@ -159,40 +160,31 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (m
 		node, err := queryService.GetQueryResult(qm)
 		if err != nil {
 			log.Error(err)
-			return nil, err
+			return "", err
 		}
 		if len(node[util.Objects].([]interface{})) > 0 {
 			// got existing object id
 			uid := node[util.Objects].([]interface{})[0].(map[string]interface{})[util.UID].(string)
 			data[util.UID] = uid
-			cv, hasVersion := node[util.Objects].([]interface{})[0].(map[string]interface{})[util.ResourceVersion]
-			var currentVersion int64
-			if hasVersion {
-				currentVersion, _ = strconv.ParseInt(cv.(string), 10, 64)
+			valid := validateResourceVersion(node, data)
+			if !valid {
+				return uid, nil
 			}
-			// check resourceversion
-			if version, ok := data[util.ResourceVersion]; ok {
-				inputVersion, _ := strconv.ParseInt(version.(string), 10, 64)
-				// input version less than or equal current version, ignore
-				if inputVersion <= currentVersion {
-					return map[string]string{util.Objects: uid}, nil
-				}
-			} else {
-				// increase version
-				if hasVersion {
-					data[util.ResourceVersion] = strconv.FormatInt(currentVersion+1, 10)
-				}
+			if len(delMap) > 0 {
+				delMap[util.UID] = uid
+				s.dbclient.SetFieldToNull(delMap)
 			}
-			delMap[util.UID] = uid
-			s.dbclient.SetFieldToNull(delMap)
 		} else {
 			if _, ok := data[util.ResourceVersion]; !ok {
 				data[util.ResourceVersion] = "0"
 			}
 		}
+		if _, ok := data[util.UID]; !ok {
+			data[util.UID] = "_:A"
+		}
 		return s.dbclient.CreateEntity(meta, data)
 	}
-	return nil, errors.New("can't get resource lock, ignore after timeout reached")
+	return "", errors.New("can't get resource lock, ignore after timeout reached")
 }
 
 // SyncEntities ...
@@ -246,9 +238,66 @@ func (s EntityService) CreateOrDeleteEdge(fromType string, fromUID string, toTyp
 }
 
 // UpdateEntity update entity
-func (s EntityService) UpdateEntity(meta string, uuid string, data map[string]interface{}) error {
-	metrics.DgraphNumUpdateEntity.Inc()
-	return s.dbclient.UpdateEntity(meta, uuid, data)
+func (s EntityService) UpdateEntity(meta string, uuid string, data map[string]interface{}, option ...map[string]interface{}) error {
+	node, err := s.GetEntity(meta, uuid)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+	if len(node[util.Objects].([]interface{})) > 0 {
+		rid := node[util.Objects].([]interface{})[0].(map[string]interface{})[util.ResourceID].(string)
+		// lock by specified key to ensure only one thread can modify object
+		if mutex.TryLock(rid) {
+			defer mutex.Unlock(rid)
+			valid := validateResourceVersion(node, data)
+			if !valid {
+				return fmt.Errorf("Resource %s %s version has conflict", meta, uuid)
+			}
+		}
+		replace := true
+		if len(option) > 0 {
+			replace = option[0]["replace"].(bool)
+		}
+		if replace {
+			// delete predicate if data type is list or edge
+			delMap := make(map[string]interface{})
+			for k, v := range data {
+				if reflect.TypeOf(v).Kind() == reflect.Map || reflect.TypeOf(v).Kind() == reflect.Slice {
+					delMap[k] = nil
+				}
+			}
+			if len(delMap) > 0 {
+				delMap[util.UID] = uuid
+				s.dbclient.SetFieldToNull(delMap)
+			}
+		}
+		metrics.DgraphNumUpdateEntity.Inc()
+		return s.dbclient.UpdateEntity(meta, uuid, data)
+	}
+	return fmt.Errorf("Resource %s %s not found for update", meta, uuid)
+}
+
+// check resource version
+func validateResourceVersion(node, data map[string]interface{}) bool {
+	cv, hasVersion := node[util.Objects].([]interface{})[0].(map[string]interface{})[util.ResourceVersion]
+	var currentVersion int64
+	if hasVersion {
+		currentVersion, _ = strconv.ParseInt(cv.(string), 10, 64)
+	}
+	// check resourceversion
+	if version, ok := data[util.ResourceVersion]; ok {
+		inputVersion, _ := strconv.ParseInt(version.(string), 10, 64)
+		// input version less than or equal current version, ignore
+		if inputVersion <= currentVersion {
+			return false
+		}
+	} else {
+		// increase version
+		if hasVersion {
+			data[util.ResourceVersion] = strconv.FormatInt(currentVersion+1, 10)
+		}
+	}
+	return true
 }
 
 // build resourceid
@@ -273,11 +322,17 @@ func buildDataMap(k8sObj interface{}, relData interface{}, relType string, clust
 		dataMap[util.Name] = relData.(string)
 	} else if reflect.TypeOf(relData).Kind() == reflect.Map {
 		dataMap = relData.(map[string]interface{})
-		dataMap[util.Name] = relData.(map[string]interface{})[util.Name]
 	}
+	dataMap[util.ObjType] = relType
 	if k8sObj != nil {
 		dataMap[util.K8sObj] = util.K8sObj
 	}
+	_, hasRID := dataMap[util.ResourceID]
+	_, hasUID := dataMap[util.UID]
+	if hasRID || hasUID {
+		return dataMap
+	}
+	// compose resource id
 	if strings.EqualFold(relType, util.Cluster) {
 		dataMap[util.ResourceID] = relType + ":" + dataMap[util.Name].(string)
 	} else if strings.EqualFold(relType, util.Namespace) || strings.EqualFold(relType, util.Node) {
@@ -294,12 +349,15 @@ func buildDataMap(k8sObj interface{}, relData interface{}, relType string, clust
 		}
 		dataMap[util.ResourceID] = getResourceID(relType, dataMap)
 	}
-	dataMap[util.ObjType] = relType
 	return dataMap
 }
 
 // get uid from relationship object, if object not present, create it
 func (s EntityService) getUIDFromRelData(data map[string]interface{}, objType string) (*string, error) {
+	if _, ok := data[util.UID]; ok {
+		id := data[util.UID].(string)
+		return &id, nil
+	}
 	// query by ResourceID to get uid
 	qm := map[string][]string{util.ResourceID: {data[util.ResourceID].(string)}, util.ObjType: {objType}, util.Print: {util.ResourceID}}
 	queryService := NewQueryService(s.dbclient)
@@ -314,14 +372,10 @@ func (s EntityService) getUIDFromRelData(data map[string]interface{}, objType st
 		uid = node[util.Objects].([]interface{})[0].(map[string]interface{})[util.UID].(string)
 	} else {
 		// create new object
-		uids, err := s.CreateEntity(objType, data)
+		uid, err = s.CreateEntity(objType, data)
 		if err != nil {
 			log.Error(err)
 			return nil, err
-		}
-		for _, obj := range uids {
-			uid = obj
-			break
 		}
 	}
 	return &uid, nil

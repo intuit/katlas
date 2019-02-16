@@ -62,7 +62,7 @@ type IDGClient interface {
 	GetEntity(meta string, uuid string) (map[string]interface{}, error)
 	GetAllByClusterAndType(meta string, cluster string) (map[string]interface{}, error)
 	DeleteEntity(uuid string) error
-	CreateEntity(meta string, data map[string]interface{}) (map[string]string, error)
+	CreateEntity(meta string, data map[string]interface{}) (string, error)
 	CreateOrDeleteEdge(fromType string, fromUID string, toType string, toUID string, rel string, op Action) error
 	SetFieldToNull(delMap map[string]interface{}) error
 	UpdateEntity(meta string, uuid string, data map[string]interface{}) error
@@ -93,7 +93,7 @@ func NewDGClient(dgraphHost string) *DGClient {
 func (s DGClient) GetEntity(meta string, uuid string) (map[string]interface{}, error) {
 	q := `
 		{
-			objects(func: uid(` + uuid + `)) {
+			objects(func: uid(` + uuid + `)) @filter(eq(objtype,` + meta + `)) {
                 uid
 				expand(_all_) {
                     uid
@@ -142,7 +142,7 @@ func (s DGClient) DeleteEntity(uuid string) error {
 }
 
 // CreateEntity - create entity
-func (s DGClient) CreateEntity(meta string, data map[string]interface{}) (map[string]string, error) {
+func (s DGClient) CreateEntity(meta string, data map[string]interface{}) (string, error) {
 	ctx := context.Background()
 	txn := s.dc.NewTxn()
 	defer txn.Discard(ctx)
@@ -155,15 +155,19 @@ func (s DGClient) CreateEntity(meta string, data map[string]interface{}) (map[st
 	if err != nil {
 		metrics.DgraphNumMutationsErr.Inc()
 		log.Error(err, data)
-		return nil, err
+		return "", err
 	}
 	metrics.DgraphNumMutations.Inc()
 
 	log.Infof("%s %s created/updated successfully", meta, data["name"])
-	if uid, ok := data["uid"]; ok {
-		return map[string]string{data["name"].(string): uid.(string)}, nil
+	// return created blank node uid
+	if uid, ok := resp.Uids["A"]; ok {
+		return uid, nil
 	}
-	return resp.Uids, nil
+	if uid, ok := resp.Uids["blank-0"]; ok {
+		return uid, nil
+	}
+	return data[util.UID].(string), nil
 }
 
 // SetFieldToNull - remove list or edges from nodes
@@ -243,6 +247,7 @@ func (s DGClient) UpdateEntity(meta string, uuid string, data map[string]interfa
 		log.Debug(err)
 		return err
 	}
+	log.Infof("%s %s updated successfully", meta, data["name"])
 	metrics.DgraphNumMutations.Inc()
 	return nil
 }

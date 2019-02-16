@@ -117,14 +117,9 @@ func createPod(dc *db.DGClient, ms *MetaService) (uid string) {
 	dc.CreateSchema(db.Schema{Predicate: "objtype", Type: "string", Index: true, Tokenizer: []string{"term", "trigram"}})
 	dc.CreateSchema(db.Schema{Predicate: "ip", Type: "string", Index: true, Tokenizer: []string{"term"}})
 
-	pids, _ := s.CreateEntity("K8sPod", pod)
-	var pid string
-	for _, v := range pids {
-		pid = v
-		break
-	}
+	pid, _ := s.CreateEntity("K8sPod", pod)
 
-	p, _ := s.GetEntity("K8sPod", pid)
+	p, _ := s.GetEntity("Pod", pid)
 	o := p["objects"].([]interface{})[0].(map[string]interface{})
 	if val, ok := o["name"]; ok {
 		log.Infof("name: [%v]\n", val)

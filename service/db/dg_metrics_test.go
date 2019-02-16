@@ -116,12 +116,7 @@ func TestMetricsDgraphNumMutations(t *testing.T) {
 		"objtype": "k8snode",
 		"name":    "test-node-metrics",
 	}
-	nids1, _ := client.CreateEntity("k8snode", node1)
-	var nid1 string
-	for _, v := range nids1 {
-		nid1 = v
-		break
-	}
+	nid1, _ := client.CreateEntity("k8snode", node1)
 	defer client.DeleteEntity(nid1)
 	expectedDgraphNumMutations = 1.0
 	nextCounter = metrics.ReadCounter(metrics.DgraphNumMutations)
@@ -149,12 +144,7 @@ func TestMetricsDgraphNumMutations(t *testing.T) {
 		"objtype": "k8snode",
 		"name":    "test-node-metrics",
 	}
-	nids2, _ := client.CreateEntity("k8snode", node2)
-	var nid2 string
-	for _, v := range nids2 {
-		nid2 = v
-		break
-	}
+	nid2, _ := client.CreateEntity("k8snode", node2)
 	defer client.DeleteEntity(nid2)
 	prevCounter = metrics.ReadCounter(metrics.DgraphNumMutations)
 	update := make(map[string]interface{})
@@ -187,12 +177,7 @@ func TestMetricsDgraphNumMutationsErr(t *testing.T) {
 		"objtype": "k8snode",
 		"name":    "test-node-metrics",
 	}
-	nids1, _ := client.CreateEntity("k8snode", node1)
-	var nid1 string
-	for _, v := range nids1 {
-		nid1 = v
-		break
-	}
+	nid1, _ := client.CreateEntity("k8snode", node1)
 	defer client.DeleteEntity(nid1)
 	expectedDgraphNumMutationsErr = 1.0
 	nextCounter = metrics.ReadCounter(metrics.DgraphNumMutationsErr)
@@ -224,12 +209,7 @@ func TestMetricsDgraphNumMutationsErr(t *testing.T) {
 		"objtype": "k8snode",
 		"name":    "test-node-metrics",
 	}
-	nids2, _ := client.CreateEntity("k8snode", node2)
-	var nid2 string
-	for _, v := range nids2 {
-		nid2 = v
-		break
-	}
+	nid2, _ := client.CreateEntity("k8snode", node2)
 	defer client.DeleteEntity(nid2)
 	prevCounter = metrics.ReadCounter(metrics.DgraphNumMutationsErr)
 	client = NewDGClient("127.0.0.1:9080")

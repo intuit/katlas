@@ -11,6 +11,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func init() {
+	dc := db.NewDGClient("127.0.0.1:9080")
+	dc.CreateSchema(db.Schema{Predicate: "name", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "objtype", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "resourceid", Type: "string", Index: true, Tokenizer: []string{"term"}})
+}
+
 func TestMetricsDgraphNumKeywordQueries(t *testing.T) {
 
 	prevCounter := metrics.ReadCounter(metrics.DgraphNumKeywordQueries)
@@ -80,12 +87,7 @@ func TestMetricsDgraphCreateEntity(t *testing.T) {
 		"objtype": "k8snode",
 		"name":    "test-node-metrics",
 	}
-	nids, _ := s.CreateEntity("k8snode", node)
-	var nid string
-	for _, v := range nids {
-		nid = v
-		break
-	}
+	nid, _ := s.CreateEntity("k8snode", node)
 	defer s.DeleteEntity(nid)
 	expectedDgraphNumCreateEntity := 1.0
 	nextCounter := metrics.ReadCounter(metrics.DgraphNumCreateEntity)
@@ -103,12 +105,7 @@ func TestMetricsDgraphGetEntity(t *testing.T) {
 		"objtype": "k8snode",
 		"name":    "test-node-metrics",
 	}
-	nids, _ := s.CreateEntity("k8snode", node)
-	var nid string
-	for _, v := range nids {
-		nid = v
-		break
-	}
+	nid, _ := s.CreateEntity("k8snode", node)
 	defer s.DeleteEntity(nid)
 	_, _ = s.GetEntity("k8snode", nid)
 
@@ -128,12 +125,7 @@ func TestMetricsDgraphUpdateEntity(t *testing.T) {
 		"objtype": "k8snode",
 		"name":    "test-node-metrics",
 	}
-	nids, _ := s.CreateEntity("k8snode", node)
-	var nid string
-	for _, v := range nids {
-		nid = v
-		break
-	}
+	nid, _ := s.CreateEntity("k8snode", node)
 	defer s.DeleteEntity(nid)
 	update := make(map[string]interface{})
 	s.UpdateEntity("k8snode", nid, update)
@@ -157,12 +149,7 @@ func TestMetricsDgraphDeleteEntity(t *testing.T) {
 		"objtype": "k8snode",
 		"name":    "test-node-metrics",
 	}
-	nids, _ := s.CreateEntity("k8snode", node)
-	var nid string
-	for _, v := range nids {
-		nid = v
-		break
-	}
+	nid, _ := s.CreateEntity("k8snode", node)
 	s.DeleteEntity(nid)
 	expectedDgraphNumDeleteEntity = 1.0
 	nextCounter = metrics.ReadCounter(metrics.DgraphNumDeleteEntity)
