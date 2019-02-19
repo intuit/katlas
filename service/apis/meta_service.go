@@ -132,6 +132,12 @@ func SetDefaultKey(dkMap map[string]interface{}, data map[string]interface{}) er
 
 // CreateMetadata save new metadata to the storage
 func (s MetaService) CreateMetadata(data map[string]interface{}) (string, error) {
+	queryService := NewQueryService(s.dbclient)
+	qm := map[string][]string{util.Name: {data[util.Name].(string)}, util.ObjType: {util.Metadata}}
+	metas, _ := queryService.GetQueryResult(qm)
+	if len(metas[util.Objects].([]interface{})) > 0 {
+		return "", fmt.Errorf("metadata %s already exist, creation failed", data[util.Name].(string) )
+	}
 	var rkeys = []string{util.Name, util.Fields, util.ObjType}
 	err := CheckKeys(rkeys, data)
 	if err != nil {
