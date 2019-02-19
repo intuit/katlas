@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import _ from 'lodash';
 
 import { getQSLObjTypesAndProjection } from '../../utils/validate';
 import { CustomTableCell } from './ResultList';
@@ -20,16 +21,18 @@ export const getQueryLayout = (queryStr, metadata) => {
     const objProjection = queryProjection[objType];
     let fieldLayout = {};
     const objMeta = metadata[objType];
-    objMeta.fields.forEach(field => {
-      const [shown, projection] = getFieldProjector(objType, field);
-      if (
-        shown &&
-        !excludeFields.includes(field.fieldname) &&
-        (objProjection === '*' || objProjection.includes(field.fieldname))
-      ) {
-        fieldLayout[field.fieldname] = projection;
-      }
-    });
+    if(objMeta.fields && _.isArray(objMeta.fields)){
+      objMeta.fields.forEach(field => {
+        const [shown, projection] = getFieldProjector(objType, field);
+        if (
+          shown &&
+          !excludeFields.includes(field.fieldname) &&
+          (objProjection === '*' || objProjection.includes(field.fieldname))
+        ) {
+          fieldLayout[field.fieldname] = projection;
+        }
+      });
+    }
     layout[objType] = fieldLayout;
   }
 
