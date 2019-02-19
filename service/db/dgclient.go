@@ -93,7 +93,6 @@ func NewDGClient(dgraphHost string) *DGClient {
 func (s DGClient) GetEntity(meta string, uuid string) (map[string]interface{}, error) {
 	q := `
 		query qry($uuid: string, $type: string) {
-			
 			objects(func: uid($uuid)) @filter(eq(objtype, $type)) {
 				uid
 				expand(_all_) {
@@ -278,13 +277,13 @@ func (s DGClient) GetAllByClusterAndType(meta string, cluster string) (map[strin
 	query qry($type: string, $cluster: string) 
 	{
   		objects (func: eq (objtype, $type)) @cascade {
-            uid
-    		name
+			uid
+			name
 			resourceid
-    		cluster @filter (eq(name, $cluster)) {
-      			name
+			cluster @filter (eq(name, $cluster)) {
+				name
 			}
-  		}
+		}
 	}`
 	resp, err := s.dc.NewTxn().QueryWithVars(context.Background(), q, map[string]string{"$type": meta, "$cluster": cluster})
 	if err != nil {
