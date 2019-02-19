@@ -11,7 +11,7 @@ import (
 
 func TestMetaService(t *testing.T) {
 	dc := db.NewDGClient("127.0.0.1:9080")
-
+	defer dc.Close()
 	q := NewQueryService(dc)
 	m := NewMetaService(dc)
 	e := NewEntityService(dc)
@@ -73,6 +73,7 @@ func TestMetaService(t *testing.T) {
 
 func TestDeleteMetadata(t *testing.T) {
 	dc := db.NewDGClient("127.0.0.1:9080")
+	defer dc.Close()
 	m := NewMetaService(dc)
 	q := NewQueryService(dc)
 	// create pod metadata
@@ -145,6 +146,7 @@ func TestDeleteMetadata(t *testing.T) {
 
 func TestMetadataUpdate(t *testing.T) {
 	dc := db.NewDGClient("127.0.0.1:9080")
+	defer dc.Close()
 	m := NewMetaService(dc)
 	q := NewQueryService(dc)
 	// create pod metadata

@@ -30,7 +30,7 @@ Name | Description
 `Request HTTP Method`| POST
 `Request Path` | /v1/metadata
 `Request Header Params`| Header above
-`Request Body` | JSON format <br/>1. Use single json to create single metadata <br/>2. Array can be used to create multiple metadatas at a time
+`Request Body` | JSON format <br/>1. Use single json to create single metadata entry <br/>2. Array can be used to create multiple metadata entries at a time
 `Response` | Response code <br/> Success or error message
 
 **Example**:
@@ -431,7 +431,7 @@ Name | Description
 `Request HTTP Method`| GET
 `Request Path` | /v1/query
 `Request Header Params`| Header above
-`Request Query Params` | The key=value pairs to be matched, using `print` to specify which fields to be returned, seprated by comma
+`Request Query Params` | The key=value pairs to be matched, using `print` to specify which fields to be returned, separated by comma
 `Request Body` | N/A
 `Response` | Response code <br/> Entity type and unified ID with specified fields (return all fields by default). Or error message if any
 

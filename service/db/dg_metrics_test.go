@@ -27,7 +27,7 @@ func TestMetricsDgraphNumQueries(t *testing.T) {
 
 	//GetEntity
 	prevCounter = metrics.ReadCounter(metrics.DgraphNumQueries)
-	var nid string
+	nid := "0x01"
 	_, _ = client.GetEntity("k8snode", nid)
 	expectedDgraphNumQueries = 1.0
 	nextCounter = metrics.ReadCounter(metrics.DgraphNumQueries)
@@ -70,7 +70,7 @@ func TestMetricsDgraphNumQueriesErr(t *testing.T) {
 	prevCounter = metrics.ReadCounter(metrics.DgraphNumQueriesErr)
 	client = NewDGClient("127.0.0.1:9080")
 	client.Close()
-	var nid string
+	var nid = "nid"
 	_, _ = client.GetEntity("k8snode", nid)
 	expectedDgraphNumQueriesErr = 1.0
 	nextCounter = metrics.ReadCounter(metrics.DgraphNumQueriesErr)

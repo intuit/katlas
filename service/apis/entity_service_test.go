@@ -13,6 +13,7 @@ import (
 
 func TestCreateEntity(t *testing.T) {
 	dc := db.NewDGClient("127.0.0.1:9080")
+	defer dc.Close()
 	s := NewEntityService(dc)
 	// create node
 	node := map[string]interface{}{

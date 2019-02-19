@@ -92,17 +92,18 @@ func NewDGClient(dgraphHost string) *DGClient {
 // GetEntity - get entity by uid
 func (s DGClient) GetEntity(meta string, uuid string) (map[string]interface{}, error) {
 	q := `
-		{
-			objects(func: uid(` + uuid + `)) @filter(eq(objtype,` + meta + `)) {
-                uid
+		query qry($uuid: string, $type: string) {
+			
+			objects(func: uid($uuid)) @filter(eq(objtype, $type)) {
+				uid
 				expand(_all_) {
-                    uid
-                    expand(_all_)
-                }
+					uid
+					expand(_all_)
+				}
 			}
 		}
 	`
-	resp, err := s.dc.NewTxn().Query(context.Background(), q)
+	resp, err := s.dc.NewTxn().QueryWithVars(context.Background(), q, map[string]string{"$uuid": uuid, "$type": meta})
 	if err != nil {
 		metrics.DgraphNumQueriesErr.Inc()
 		return nil, err
@@ -274,17 +275,18 @@ func (s DGClient) GetQueryResult(query string) (map[string]interface{}, error) {
 // GetAllByClusterAndType - query to get result by filter edge
 func (s DGClient) GetAllByClusterAndType(meta string, cluster string) (map[string]interface{}, error) {
 	q := `
+	query qry($type: string, $cluster: string) 
 	{
-  		objects (func: eq (objtype, "` + meta + `")) @cascade {
+  		objects (func: eq (objtype, $type)) @cascade {
             uid
     		name
 			resourceid
-    		cluster @filter (eq(name, "` + cluster + `")) {
+    		cluster @filter (eq(name, $cluster)) {
       			name
 			}
   		}
 	}`
-	resp, err := s.dc.NewTxn().Query(context.Background(), q)
+	resp, err := s.dc.NewTxn().QueryWithVars(context.Background(), q, map[string]string{"$type": meta, "$cluster": cluster})
 	if err != nil {
 		metrics.DgraphNumQueriesErr.Inc()
 		log.Errorf("Query[%v] Error [%v]\n", q, err)

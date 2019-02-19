@@ -66,7 +66,10 @@ func (s ServerResource) MetaGetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if obj != nil {
-		ret, _ := json.Marshal(obj)
+		ret := []byte(fmt.Sprintf("{\"status\": \"%v\", \"objects\": [", http.StatusOK))
+		meta, _ := json.Marshal(obj)
+		ret = append(ret, meta...)
+		ret = append(ret, []byte("]}")...)
 		w.Write(ret)
 		return
 	}
@@ -214,7 +217,7 @@ func (s ServerResource) EntitySyncHandler(w http.ResponseWriter, r *http.Request
 	//even if an error is returned (otherwise the error also causes a CORS
 	//exception in the browser/client)
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-
+	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
 	meta := vars[util.Metadata]
 	clusterName := r.Header.Get(util.ClusterName)
@@ -235,7 +238,6 @@ func (s ServerResource) EntitySyncHandler(w http.ResponseWriter, r *http.Request
 		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(fmt.Sprintf("{\"synced\": \"done\", \"type\": \"%s\"}", meta)))
 }
 
