@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/intuit/katlas/service/apis"
 	"github.com/intuit/katlas/service/db"
+	metrics "github.com/intuit/katlas/service/metrics"
 	"github.com/intuit/katlas/service/util"
 	"github.com/mitchellh/mapstructure"
 	appsv1 "k8s.io/api/apps/v1"
@@ -173,18 +174,34 @@ func (s ServerResource) QueryHandler(w http.ResponseWriter, r *http.Request) {
 
 	queryMap := r.URL.Query()
 
+	metrics.KatlasNumReqCount.Inc()
+
+	code := http.StatusOK
+	start := time.Now()
+	defer func() {
+		metrics.KatlasQueryLatencyHistogram.WithLabelValues(fmt.Sprintf("%d", code)).Observe(time.Since(start).Seconds())
+	}()
+
 	obj, err := s.QuerySvc.GetQueryResult(queryMap)
 	if err != nil {
+		code = http.StatusInternalServerError
+		metrics.KatlasNumReqErr5xx.Inc()
+		metrics.KatlasNumReqErr.Inc()
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	ret, err := json.Marshal(obj)
 	if err != nil {
+		code = http.StatusInternalServerError
+		metrics.KatlasNumReqErr5xx.Inc()
+		metrics.KatlasNumReqErr.Inc()
 		http.Error(w, "Failed to convert to JSON output", http.StatusInternalServerError)
 		return
 	}
 	w.Write(ret)
+
+	metrics.KatlasNumReq2xx.Inc()
 }
 
 // MetaCreateHandler REST API for create Metadata
@@ -679,19 +696,26 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	vars := mux.Vars(r)
 
+	metrics.KatlasNumReqCount.Inc()
+
 	// get query for count only
 	query, err := s.QSLSvc.CreateDgraphQuery(vars[util.Query], true)
 	if err != nil {
+		metrics.KatlasNumReqErr.Inc()
 		if err.Error() == "Failed to connect to dgraph to get metadata" {
+			metrics.KatlasNumReqErr5xx.Inc()
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		metrics.KatlasNumReqErr4xx.Inc()
 		http.Error(w, err.Error(), http.StatusBadRequest) // code: 400
 		return
 	}
 
 	response, err := s.QSLSvc.DBclient.ExecuteDgraphQuery(query)
 	if err != nil {
+		metrics.KatlasNumReqErr.Inc()
+		metrics.KatlasNumReqErr5xx.Inc()
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -700,9 +724,18 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
 	// get query with pagination
 	query, err = s.QSLSvc.CreateDgraphQuery(vars[util.Query], false)
 	log.Infof("dgraph query for %#v:\n %s", vars[util.Query], query)
+
 	start := time.Now()
+	code := http.StatusOK
+	defer func() {
+		metrics.KatlasQueryLatencyHistogram.WithLabelValues(fmt.Sprintf("%d", code)).Observe(time.Since(start).Seconds())
+	}()
+
 	response, err = s.QSLSvc.DBclient.ExecuteDgraphQuery(query)
 	if err != nil {
+		code = http.StatusInternalServerError
+		metrics.KatlasNumReqErr.Inc()
+		metrics.KatlasNumReqErr5xx.Inc()
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -710,11 +743,16 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
 	response[util.Count] = total
 	ret, err := json.Marshal(response)
 	if err != nil {
+		code = http.StatusInternalServerError
+		metrics.KatlasNumReqErr.Inc()
+		metrics.KatlasNumReqErr5xx.Inc()
 		http.Error(w, "Failed to convert to JSON output", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(ret)
+
+	metrics.KatlasNumReq2xx.Inc()
 }
 
 // TODO:
