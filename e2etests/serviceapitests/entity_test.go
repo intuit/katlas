@@ -32,8 +32,8 @@ func TestCreateEntity(t *testing.T) {
 	}`
 
 	tests := []TestStruct{
-		{"TestCreateNode01", testURL1, node11, 200, "", 0},
-		{"TestCreateNode02", testURL2, node12, 200, "", 0},
+		{"TestCreateNode11", testURL1, node11, 200, "", 0},
+		{"TestCreateNode12", testURL2, node12, 200, "", 0},
 	}
 
 	for i, testCase := range tests {
