@@ -4,7 +4,7 @@ import * as notifyActions from './notifyActions';
 //which are otherwise not wrappable withRouter
 import history from '../history';
 import ApiService from '../services/ApiService';
-import { QUERY_LEN_ERR } from '../utils/errors';
+import { QUERY_LEN_ERR, FETCH_METADATA_ERR } from '../utils/errors';
 import { validateQslQuery, getQSLObjTypes } from '../utils/validate';
 import { encodeQueryData } from '../utils/url';
 
@@ -94,8 +94,12 @@ export function fetchMetadata(objType) {
       return;
     }
     dispatch(requestMetadata(objType));
-    ApiService.getMetadata(objType).then(json =>
-      dispatch(receiveMetadata(objType, json))
-    );
+    ApiService.getMetadata(objType).then(json => {
+      if(json.objects === undefined || json.objects.length !== 1) {
+        dispatch(notifyActions.showNotify(FETCH_METADATA_ERR));
+        return;
+      };
+      dispatch(receiveMetadata(objType, json.objects[0]));
+    });
   };
 }
