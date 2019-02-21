@@ -5,6 +5,7 @@ import (
 	dto "github.com/prometheus/client_model/go"
 )
 
+//RegisterHistogramMetrics ...Register histogram with prometheus
 func RegisterHistogramMetrics() {
 	prometheus.MustRegister(KatlasQueryLatencyHistogram)
 }
