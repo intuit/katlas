@@ -42,12 +42,12 @@ func (s ServerResource) EntityGetHandler(w http.ResponseWriter, r *http.Request)
 	uid := vars[util.UID]
 	obj, err := s.EntitySvc.GetEntity(uid)
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
 	// object not found
 	if len(obj) == 0 {
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"entity with id %s not found\"}", http.StatusNotFound, uid)))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"entity with id %s not found\"}", http.StatusNotFound, uid)))
 		return
 	}
 	obj["status"] = http.StatusOK
@@ -66,18 +66,18 @@ func (s ServerResource) MetaGetHandler(w http.ResponseWriter, r *http.Request) {
 	name := strings.ToLower(vars[util.Name])
 	obj, err := s.MetaSvc.GetMetadata(name)
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
 	if obj != nil {
-		ret := []byte(fmt.Sprintf("{\"status\": \"%v\", \"objects\": [", http.StatusOK))
+		ret := []byte(fmt.Sprintf("{\"status\": %v, \"objects\": [", http.StatusOK))
 		meta, _ := json.Marshal(obj)
 		ret = append(ret, meta...)
 		ret = append(ret, []byte("]}")...)
 		w.Write(ret)
 		return
 	}
-	w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"metadata %s not found\"}", http.StatusNotFound, name)))
+	w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"metadata %s not found\"}", http.StatusNotFound, name)))
 }
 
 // MetaDeleteHandler REST API for delete metadata
@@ -88,7 +88,7 @@ func (s ServerResource) MetaDeleteHandler(w http.ResponseWriter, r *http.Request
 	name := vars[util.Name]
 	err := s.MetaSvc.DeleteMetadata(name)
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusConflict, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusConflict, trim(err.Error()))))
 		return
 	}
 	msg := map[string]interface{}{
@@ -116,7 +116,7 @@ func (s ServerResource) EntityDeleteHandler(w http.ResponseWriter, r *http.Reque
 	rid := vars[util.ResourceID]
 	err := s.EntitySvc.DeleteEntityByResourceID(meta, rid)
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
 	msg := map[string]interface{}{
@@ -150,13 +150,13 @@ func (s ServerResource) EntityCreateHandler(w http.ResponseWriter, r *http.Reque
 	payload, err := buildEntityData(clusterName, meta, body, false)
 	if err != nil {
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
 		return
 	}
 	uid, err := s.EntitySvc.CreateEntity(meta, payload.(map[string]interface{}))
 	if err != nil {
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
 	msg := map[string]interface{}{
@@ -192,14 +192,14 @@ func (s ServerResource) EntityUpdateHandler(w http.ResponseWriter, r *http.Reque
 	err = json.Unmarshal(body, &payload)
 	if err != nil {
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
 		return
 	}
 
 	err = s.EntitySvc.UpdateEntity(uuid, payload)
 	if err != nil {
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
 	msg := map[string]interface{}{
@@ -233,13 +233,13 @@ func (s ServerResource) EntitySyncHandler(w http.ResponseWriter, r *http.Request
 	payload, err := buildEntityData(clusterName, meta, body, true)
 	if err != nil {
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
 		return
 	}
 	err = s.EntitySvc.SyncEntities(meta, payload.([]map[string]interface{}))
 	if err != nil {
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
 	w.Write([]byte(fmt.Sprintf("{\"synced\": \"done\", \"type\": \"%s\"}", meta)))
@@ -256,7 +256,7 @@ func (s ServerResource) QueryHandler(w http.ResponseWriter, r *http.Request) {
 
 	obj, err := s.QuerySvc.GetQueryResult(queryMap)
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
 	obj["status"] = http.StatusOK
@@ -276,7 +276,7 @@ func (s ServerResource) MetaCreateHandler(w http.ResponseWriter, r *http.Request
 	err = json.Unmarshal(body, &payload)
 	if err != nil {
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
 		return
 	}
 	var msg map[string]interface{}
@@ -286,7 +286,7 @@ func (s ServerResource) MetaCreateHandler(w http.ResponseWriter, r *http.Request
 			uid, err := s.MetaSvc.CreateMetadata(p.(map[string]interface{}))
 			if err != nil {
 				log.Error(err)
-				w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+				w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 				return
 			}
 
@@ -303,7 +303,7 @@ func (s ServerResource) MetaCreateHandler(w http.ResponseWriter, r *http.Request
 		uid, err := s.MetaSvc.CreateMetadata(payload.(map[string]interface{}))
 		if err != nil {
 			log.Error(err)
-			w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+			w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 			return
 		}
 		msg = map[string]interface{}{
@@ -334,13 +334,13 @@ func (s ServerResource) MetaUpdateHandler(w http.ResponseWriter, r *http.Request
 	err = json.Unmarshal(body, &payload)
 	if err != nil {
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
 		return
 	}
 	err = s.MetaSvc.UpdateMetadata(name, payload.(map[string]interface{}))
 	if err != nil {
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
 	msg := map[string]interface{}{
@@ -370,7 +370,7 @@ func (s ServerResource) SchemaUpsertHandler(w http.ResponseWriter, r *http.Reque
 	err = json.Unmarshal(body, &payload)
 	if err != nil {
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
 		return
 	}
 	var msg map[string]interface{}
@@ -379,7 +379,7 @@ func (s ServerResource) SchemaUpsertHandler(w http.ResponseWriter, r *http.Reque
 		err := mapstructure.Decode(payload, &predicates)
 		if err != nil {
 			log.Error(err)
-			w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
+			w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
 			return
 		}
 		names := make([]string, 0)
@@ -387,7 +387,7 @@ func (s ServerResource) SchemaUpsertHandler(w http.ResponseWriter, r *http.Reque
 			err := s.MetaSvc.CreateSchema(p)
 			if err != nil {
 				log.Error(err)
-				w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+				w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 				return
 			}
 			names = append(names, p.Predicate)
@@ -401,13 +401,13 @@ func (s ServerResource) SchemaUpsertHandler(w http.ResponseWriter, r *http.Reque
 		err := mapstructure.Decode(payload, &predicate)
 		if err != nil {
 			log.Error(err)
-			w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
+			w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
 			return
 		}
 		err = s.MetaSvc.CreateSchema(predicate)
 		if err != nil {
 			log.Error(err)
-			w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+			w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 			return
 		}
 		msg = map[string]interface{}{
@@ -431,7 +431,7 @@ func (s ServerResource) SchemaDropHandler(w http.ResponseWriter, r *http.Request
 	err := s.MetaSvc.DropSchema(predicate)
 	if err != nil {
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
 	msg := map[string]interface{}{
@@ -853,17 +853,17 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
 	query, err := s.QSLSvc.CreateDgraphQuery(vars[util.Query], true)
 	if err != nil {
 		if err.Error() == "Failed to connect to dgraph to get metadata" {
-			w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+			w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 			return
 		}
 		// code: 400
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
 		return
 	}
 
 	response, err := s.QSLSvc.DBclient.ExecuteDgraphQuery(query)
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
 	total := apis.GetTotalCnt(response)
@@ -872,13 +872,13 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
 	query, err = s.QSLSvc.CreateDgraphQuery(vars[util.Query], false)
 	log.Infof("dgraph query for %#v:\n %s", vars[util.Query], query)
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
 		return
 	}
 	start := time.Now()
 	response, err = s.QSLSvc.DBclient.ExecuteDgraphQuery(query)
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
 	log.Infof("[elaps	edtime: %s]response for query %#v", time.Since(start), vars[util.Query])
@@ -886,7 +886,7 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
 	response["status"] = http.StatusOK
 	ret, err := json.Marshal(response)
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
 	w.Write(ret)

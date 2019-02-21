@@ -21,12 +21,12 @@ func (s ServerResource) EntityGetHandlerV1_1(w http.ResponseWriter, r *http.Requ
 	uid := vars[util.UID]
 	obj, err := s.EntitySvc.GetEntity(uid)
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
 	// object not found
 	if len(obj) == 0 {
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"entity with id %s not found\"}", http.StatusNotFound, uid)))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"entity with id %s not found\"}", http.StatusNotFound, uid)))
 		return
 	}
 	obj["status"] = http.StatusOK
@@ -55,7 +55,7 @@ func (s ServerResource) EntityDeleteHandlerV1_1(w http.ResponseWriter, r *http.R
 	uid := vars[util.UID]
 	err := s.EntitySvc.DeleteEntity(uid)
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
 	msg := map[string]interface{}{
@@ -80,7 +80,7 @@ func (s ServerResource) EntityCreateHandlerV1_1(w http.ResponseWriter, r *http.R
 	clusterName := r.Header.Get(util.ClusterName)
 	metas, ok := r.URL.Query()[util.ObjType]
 	if !ok || len(metas[0]) < 1 {
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"metadata not found from parameters\"}", http.StatusBadRequest)))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"metadata not found from parameters\"}", http.StatusBadRequest)))
 		return
 	}
 	meta := metas[0]
@@ -91,13 +91,13 @@ func (s ServerResource) EntityCreateHandlerV1_1(w http.ResponseWriter, r *http.R
 	payload, err := buildEntityData(clusterName, meta, body, false)
 	if err != nil {
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
 		return
 	}
 	uid, err := s.EntitySvc.CreateEntity(meta, payload.(map[string]interface{}))
 	if err != nil {
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
 	msg := map[string]interface{}{
@@ -132,14 +132,14 @@ func (s ServerResource) EntityUpdateHandlerV1_1(w http.ResponseWriter, r *http.R
 	err = json.Unmarshal(body, &payload)
 	if err != nil {
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
 		return
 	}
 
 	err = s.EntitySvc.UpdateEntity(uuid, payload)
 	if err != nil {
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
 	msg := map[string]interface{}{
