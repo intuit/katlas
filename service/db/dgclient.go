@@ -9,8 +9,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/dgraph-io/dgo"
 	"github.com/dgraph-io/dgo/protos/api"
-	lru "github.com/hashicorp/golang-lru"
-	metrics "github.com/intuit/katlas/service/metrics"
+	"github.com/hashicorp/golang-lru"
+	"github.com/intuit/katlas/service/metrics"
 	"github.com/intuit/katlas/service/util"
 	"google.golang.org/grpc"
 )
@@ -59,13 +59,13 @@ type IDGClient interface {
 	GetSchemaFromDB() ([]*api.SchemaNode, error)
 	CreateSchema(sm Schema) error
 	DropSchema(name string) error
-	GetEntity(meta string, uuid string) (map[string]interface{}, error)
+	GetEntity(uuid string) (map[string]interface{}, error)
 	GetAllByClusterAndType(meta string, cluster string) (map[string]interface{}, error)
 	DeleteEntity(uuid string) error
-	CreateEntity(meta string, data map[string]interface{}) (map[string]string, error)
+	CreateEntity(meta string, data map[string]interface{}) (string, error)
 	CreateOrDeleteEdge(fromType string, fromUID string, toType string, toUID string, rel string, op Action) error
 	SetFieldToNull(delMap map[string]interface{}) error
-	UpdateEntity(meta string, uuid string, data map[string]interface{}) error
+	UpdateEntity(uuid string, data map[string]interface{}) error
 	GetQueryResult(query string) (map[string]interface{}, error)
 	Close() error
 	ExecuteDgraphQuery(query string) (map[string]interface{}, error)
@@ -90,19 +90,19 @@ func NewDGClient(dgraphHost string) *DGClient {
 }
 
 // GetEntity - get entity by uid
-func (s DGClient) GetEntity(meta string, uuid string) (map[string]interface{}, error) {
+func (s DGClient) GetEntity(uuid string) (map[string]interface{}, error) {
 	q := `
-		{
-			objects(func: uid(` + uuid + `)) {
-                uid
+		query qry($uuid: string) {
+			objects(func: uid($uuid)) {
+				uid
 				expand(_all_) {
-                    uid
-                    expand(_all_)
-                }
+					uid
+					expand(_all_)
+				}
 			}
 		}
 	`
-	resp, err := s.dc.NewTxn().Query(context.Background(), q)
+	resp, err := s.dc.NewTxn().QueryWithVars(context.Background(), q, map[string]string{"$uuid": uuid})
 	if err != nil {
 		metrics.DgraphNumQueriesErr.Inc()
 		return nil, err
@@ -113,6 +113,13 @@ func (s DGClient) GetEntity(meta string, uuid string) (map[string]interface{}, e
 	err = json.Unmarshal(resp.Json, &m)
 	if err != nil {
 		return nil, err
+	}
+	if len(m[util.Objects].([]interface{})) > 0 {
+		// only uid return, means no record found
+		data := m[util.Objects].([]interface{})[0].(map[string]interface{})
+		if _, ok := data[util.UID]; ok && len(data) == 1 {
+			return map[string]interface{}{}, nil
+		}
 	}
 	return m, nil
 }
@@ -142,7 +149,7 @@ func (s DGClient) DeleteEntity(uuid string) error {
 }
 
 // CreateEntity - create entity
-func (s DGClient) CreateEntity(meta string, data map[string]interface{}) (map[string]string, error) {
+func (s DGClient) CreateEntity(meta string, data map[string]interface{}) (string, error) {
 	ctx := context.Background()
 	txn := s.dc.NewTxn()
 	defer txn.Discard(ctx)
@@ -155,15 +162,19 @@ func (s DGClient) CreateEntity(meta string, data map[string]interface{}) (map[st
 	if err != nil {
 		metrics.DgraphNumMutationsErr.Inc()
 		log.Error(err, data)
-		return nil, err
+		return "", err
 	}
 	metrics.DgraphNumMutations.Inc()
 
 	log.Infof("%s %s created/updated successfully", meta, data["name"])
-	if uid, ok := data["uid"]; ok {
-		return map[string]string{data["name"].(string): uid.(string)}, nil
+	// return created blank node uid
+	if uid, ok := resp.Uids["A"]; ok {
+		return uid, nil
 	}
-	return resp.Uids, nil
+	if uid, ok := resp.Uids["blank-0"]; ok {
+		return uid, nil
+	}
+	return data[util.UID].(string), nil
 }
 
 // SetFieldToNull - remove list or edges from nodes
@@ -223,7 +234,7 @@ func (s DGClient) CreateOrDeleteEdge(fromType string, fromUID string, toType str
 }
 
 // UpdateEntity - update entity
-func (s DGClient) UpdateEntity(meta string, uuid string, data map[string]interface{}) error {
+func (s DGClient) UpdateEntity(uuid string, data map[string]interface{}) error {
 	ctx := context.Background()
 	txn := s.dc.NewTxn()
 	defer txn.Discard(ctx)
@@ -243,6 +254,7 @@ func (s DGClient) UpdateEntity(meta string, uuid string, data map[string]interfa
 		log.Debug(err)
 		return err
 	}
+	log.Infof("%s updated successfully", data["name"])
 	metrics.DgraphNumMutations.Inc()
 	return nil
 }
@@ -269,17 +281,18 @@ func (s DGClient) GetQueryResult(query string) (map[string]interface{}, error) {
 // GetAllByClusterAndType - query to get result by filter edge
 func (s DGClient) GetAllByClusterAndType(meta string, cluster string) (map[string]interface{}, error) {
 	q := `
+	query qry($type: string, $cluster: string) 
 	{
-  		objects (func: eq (objtype, "` + meta + `")) @cascade {
-            uid
-    		name
+  		objects (func: eq (objtype, $type)) @cascade {
+			uid
+			name
 			resourceid
-    		cluster @filter (eq(name, "` + cluster + `")) {
-      			name
+			cluster @filter (eq(name, $cluster)) {
+				name
 			}
-  		}
+		}
 	}`
-	resp, err := s.dc.NewTxn().Query(context.Background(), q)
+	resp, err := s.dc.NewTxn().QueryWithVars(context.Background(), q, map[string]string{"$type": meta, "$cluster": cluster})
 	if err != nil {
 		metrics.DgraphNumQueriesErr.Inc()
 		log.Errorf("Query[%v] Error [%v]\n", q, err)

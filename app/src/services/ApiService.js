@@ -4,14 +4,14 @@ import * as notifyActions from '../actions/notifyActions';
 import { QSLRegEx } from '../utils/validate';
 import store from '../store.js';
 
-const ALL_SERVICE_CONTEXT = '/v1';
+const ALL_SERVICE_CONTEXT = '/v1.1';
 
 const QUERY_KEYWORD_SERVICE_PATH = '/query';
 const QUERY_KEYWORD_PARAM_NAME = 'keyword';
 const QUERY_QSL_SERVICE_PATH = '/qsl/';
 const QUERY_METADATA_SERVICE_PATH = '/metadata/';
 
-const ENTITY_SERVICE_PATH = '/entity/uid/';
+const ENTITY_SERVICE_PATH = '/entity/';
 
 export default class ApiService {
   static getQueryResult(query, page, rowsPerPage) {

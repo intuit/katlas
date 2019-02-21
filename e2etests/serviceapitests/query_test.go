@@ -29,14 +29,16 @@ func TestKeywordSearch(t *testing.T) {
 	testURL2 := TestBaseURL + "/v1/query?keyword=node02"
 
 	tests := []TestStruct{
-		{testURL1, "", 200, "", 0},
-		{testURL2, "", 200, "", 0},
+		{"TestKeywordSearchNode01", testURL1, "", 200, "", 0},
+		{"TestKeywordSearchNode02", testURL2, "", 200, "", 0},
 	}
 
 	for i, testCase := range tests {
-		resCode, resBody, _ := KeywordSearch(t, testCase.testURL)
-		tests[i].observedStatusCode = resCode
-		tests[i].responseBody = string(resBody)
+		t.Run(testCase.testCaseName, func(t *testing.T) {
+			resCode, resBody, _ := KeywordSearch(t, testCase.testURL)
+			tests[i].observedStatusCode = resCode
+			tests[i].responseBody = string(resBody)
+		})
 	}
 	DisplayTestCaseResults("TestKeywordSearch", tests, t, "uid")
 }
@@ -50,14 +52,16 @@ func TestQslSearch(t *testing.T) {
 	testURL2 := TestBaseURL + "/v1/qsl/node[@name=\"node01\"]{@labels}"
 
 	tests := []TestStruct{
-		{testURL1, "", 200, "", 0},
-		{testURL2, "", 200, "", 0},
+		{"TestSearchNode01All", testURL1, "", 200, "", 0},
+		{"TestSearchNode01@labels", testURL2, "", 200, "", 0},
 	}
 
 	for i, testCase := range tests {
-		resCode, resBody, _ := QslSearch(t, testCase.testURL)
-		tests[i].observedStatusCode = resCode
-		tests[i].responseBody = string(resBody)
+		t.Run(testCase.testCaseName, func(t *testing.T) {
+			resCode, resBody, _ := QslSearch(t, testCase.testURL)
+			tests[i].observedStatusCode = resCode
+			tests[i].responseBody = string(resBody)
+		})
 	}
 	DisplayTestCaseResults("TestQslSearch", tests, t, "uid")
 }

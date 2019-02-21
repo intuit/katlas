@@ -60,7 +60,7 @@ func (t *IngressHandler) ObjectCreated(obj interface{}) error {
 	// assert the type to a Ingress object to pull out relevant data
 	ingress := obj.(*ext_v1beta1.Ingress)
 	log.Infof("    ingressmeta: %+v", ingress)
-	SendJSONQueryWithRetries(ingress, RestSvcEndpoint+"v1/entity/ingress")
+	SendJSONQueryWithRetries(ingress, RestSvcEndpoint+"v1.1/entity?objtype=ingress")
 	return nil
 }
 

@@ -77,7 +77,7 @@ func (t *ReplicaSetHandler) ObjectCreated(obj interface{}) error {
 	if !ValidateReplicaSet(replicaset) {
 		return errors.New("Could not validate replicaset object " + replicaset.ObjectMeta.Name)
 	}
-	SendJSONQueryWithRetries(replicaset, RestSvcEndpoint+"v1/entity/replicaset")
+	SendJSONQueryWithRetries(replicaset, RestSvcEndpoint+"v1.1/entity?objtype=replicaset")
 	return nil
 }
 
