@@ -104,6 +104,7 @@ func (s DGClient) GetEntity(meta string, uuid string) (map[string]interface{}, e
 	`
 	resp, err := s.dc.NewTxn().Query(context.Background(), q)
 	if err != nil {
+		metrics.DgraphNumGetEntityErr.Inc()
 		metrics.DgraphNumQueriesErr.Inc()
 		return nil, err
 	}
@@ -133,6 +134,7 @@ func (s DGClient) DeleteEntity(uuid string) error {
 	}
 	_, err := txn.Mutate(ctx, mu)
 	if err != nil {
+		metrics.DgraphNumDeleteEntityErr.Inc()
 		metrics.DgraphNumMutationsErr.Inc()
 		log.Debug(err)
 		return err
@@ -153,6 +155,7 @@ func (s DGClient) CreateEntity(meta string, data map[string]interface{}) (map[st
 	mu.SetJson = jsonData
 	resp, err := txn.Mutate(ctx, mu)
 	if err != nil {
+		metrics.DgraphNumCreateEntityErr.Inc()
 		metrics.DgraphNumMutationsErr.Inc()
 		log.Error(err, data)
 		return nil, err
@@ -239,6 +242,7 @@ func (s DGClient) UpdateEntity(meta string, uuid string, data map[string]interfa
 	mu.SetJson = jdata
 	_, err = txn.Mutate(ctx, mu)
 	if err != nil {
+		metrics.DgraphNumUpdateEntityErr.Inc()
 		metrics.DgraphNumMutationsErr.Inc()
 		log.Debug(err)
 		return err
