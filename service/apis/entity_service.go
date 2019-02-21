@@ -30,7 +30,7 @@ type IEntityService interface {
 	// save new entity to the storage
 	CreateEntity(meta string, data map[string]interface{}) (string, error)
 	// update entity with given ID in the storage
-	UpdateEntity(meta string, uuid string, data map[string]interface{}, option ...map[string]interface{})
+	UpdateEntity(uuid string, data map[string]interface{}, option ...map[string]interface{})
 	// create or remove relationship between entities by given IDs
 	CreateOrDeleteEdge(fromUID string, toUID string, rel string, op db.Action) error
 	// sync data between source and underlying database
@@ -48,9 +48,9 @@ func NewEntityService(dc db.IDGClient) *EntityService {
 }
 
 // GetEntity get entity return the object with specified ID
-func (s EntityService) GetEntity(meta string, uuid string) (map[string]interface{}, error) {
+func (s EntityService) GetEntity(uuid string) (map[string]interface{}, error) {
 	metrics.DgraphNumGetEntity.Inc()
-	return s.dbclient.GetEntity(meta, uuid)
+	return s.dbclient.GetEntity(uuid)
 }
 
 // DeleteEntity remove object with given ID
@@ -238,8 +238,8 @@ func (s EntityService) CreateOrDeleteEdge(fromType string, fromUID string, toTyp
 }
 
 // UpdateEntity update entity
-func (s EntityService) UpdateEntity(meta string, uuid string, data map[string]interface{}, option ...map[string]interface{}) error {
-	node, err := s.GetEntity(meta, uuid)
+func (s EntityService) UpdateEntity(uuid string, data map[string]interface{}, option ...map[string]interface{}) error {
+	node, err := s.GetEntity(uuid)
 	if err != nil {
 		log.Error(err)
 		return err
@@ -251,7 +251,7 @@ func (s EntityService) UpdateEntity(meta string, uuid string, data map[string]in
 			defer mutex.Unlock(rid)
 			valid := validateResourceVersion(node, data)
 			if !valid {
-				return fmt.Errorf("Resource %s %s version has conflict", meta, uuid)
+				return fmt.Errorf("Resource %s version has conflict", uuid)
 			}
 		}
 		replace := true
@@ -272,9 +272,9 @@ func (s EntityService) UpdateEntity(meta string, uuid string, data map[string]in
 			}
 		}
 		metrics.DgraphNumUpdateEntity.Inc()
-		return s.dbclient.UpdateEntity(meta, uuid, data)
+		return s.dbclient.UpdateEntity(uuid, data)
 	}
-	return fmt.Errorf("Resource %s %s not found for update", meta, uuid)
+	return fmt.Errorf("Resource %s not found for update", uuid)
 }
 
 // check resource version

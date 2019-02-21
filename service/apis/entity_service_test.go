@@ -27,7 +27,7 @@ func TestCreateEntity(t *testing.T) {
 	dc.CreateSchema(db.Schema{Predicate: "objtype", Type: "string", Index: true, Tokenizer: []string{"term"}})
 	nid, _ := s.CreateEntity("k8snode", node)
 	defer s.DeleteEntity(nid)
-	n, _ := s.GetEntity("k8snode", nid)
+	n, _ := s.GetEntity(nid)
 	o := n["objects"].([]interface{})[0].(map[string]interface{})
 	if val, ok := o["labels"]; ok {
 		assert.Equal(t, val, "testingnode02", "node label not equals to testnode02")
@@ -349,7 +349,7 @@ func TestSyncEntities(t *testing.T) {
 	podMap["namespace"] = "default01"
 	s.SyncEntities("pod", []map[string]interface{}{podMap})
 
-	pods, _ := s.GetEntity("pod", uid)
+	pods, _ := s.GetEntity(uid)
 	o := pods["objects"].([]interface{})[0].(map[string]interface{})
 	assert.Equal(t, "131", o["resourceversion"].(string), "pod got unexpected update")
 
@@ -359,7 +359,7 @@ func TestSyncEntities(t *testing.T) {
 	podMap["namespace"] = "default01"
 	s.SyncEntities("pod", []map[string]interface{}{podMap})
 
-	pod2, _ := s.GetEntity("pod", uid)
+	pod2, _ := s.GetEntity(uid)
 	o = pod2["objects"].([]interface{})[0].(map[string]interface{})
 	assert.Equal(t, "132", o["resourceversion"].(string), "pod got unexpected update")
 
@@ -402,7 +402,7 @@ func TestSyncEntities(t *testing.T) {
 	assert.Equal(t, "default02", o5["name"].(string), "namespace got unexpected creation")
 	s.dbclient.DeleteEntity(o5["uid"].(string))
 
-	pod3, err := s.GetEntity("pod", uid)
+	pod3, err := s.GetEntity(uid)
 	if err != nil {
 		assert.Fail(t, "Failed to get created pod")
 	}
@@ -617,7 +617,7 @@ func TestCreateRelByUid(t *testing.T) {
 		panic(err)
 	}
 
-	pods, err := s.GetEntity("pod", uid2)
+	pods, err := s.GetEntity(uid2)
 	if err != nil {
 		assert.Fail(t, "Failed to get created pod")
 	}
@@ -640,13 +640,13 @@ func TestEntityUpdate(t *testing.T) {
 		"objtype":    "pod",
 	}
 	pid, _ := s.CreateEntity("pod", pod)
-	s.UpdateEntity("pod", pid, map[string]interface{}{"name": "pod04"})
-	pods, _ := s.GetEntity("pod", pid)
+	s.UpdateEntity(pid, map[string]interface{}{"name": "pod04"})
+	pods, _ := s.GetEntity(pid)
 	o := pods["objects"].([]interface{})[0].(map[string]interface{})
 	assert.Equal(t, "pod04", o["name"], "pod name should be updated")
 	// try update with lower resource version
-	s.UpdateEntity("pod", pid, map[string]interface{}{"name": "pod05", "resourceversion": "0"})
-	pods, _ = s.GetEntity("pod", pid)
+	s.UpdateEntity(pid, map[string]interface{}{"name": "pod05", "resourceversion": "0"})
+	pods, _ = s.GetEntity(pid)
 	o = pods["objects"].([]interface{})[0].(map[string]interface{})
 	assert.Equal(t, "pod04", o["name"], "pod should not be updated due to version conflict")
 	ns := map[string]interface{}{
@@ -656,8 +656,8 @@ func TestEntityUpdate(t *testing.T) {
 	}
 	nid, _ := s.CreateEntity("namespace", ns)
 	// update with relationship
-	s.UpdateEntity("pod", pid, map[string]interface{}{"ns": map[string]string{"uid": nid}})
-	pods, _ = s.GetEntity("pod", pid)
+	s.UpdateEntity(pid, map[string]interface{}{"ns": map[string]string{"uid": nid}})
+	pods, _ = s.GetEntity(pid)
 	o = pods["objects"].([]interface{})[0].(map[string]interface{})
 	assert.Equal(t, nid, o["ns"].([]interface{})[0].(map[string]interface{})["uid"], "pod name should be updated with edge")
 	ns2 := map[string]interface{}{
@@ -666,8 +666,8 @@ func TestEntityUpdate(t *testing.T) {
 		"objtype":    "namespace",
 	}
 	nid2, _ := s.CreateEntity("namespace", ns2)
-	s.UpdateEntity("pod", pid, map[string]interface{}{"ns": map[string]string{"uid": nid2}})
-	pods, _ = s.GetEntity("pod", pid)
+	s.UpdateEntity(pid, map[string]interface{}{"ns": map[string]string{"uid": nid2}})
+	pods, _ = s.GetEntity(pid)
 	o = pods["objects"].([]interface{})[0].(map[string]interface{})
 	assert.Equal(t, nid2, o["ns"].([]interface{})[0].(map[string]interface{})["uid"], "pod name should be updated with edge")
 	defer s.DeleteEntity(pid)

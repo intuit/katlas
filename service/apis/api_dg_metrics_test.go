@@ -107,7 +107,7 @@ func TestMetricsDgraphGetEntity(t *testing.T) {
 	}
 	nid, _ := s.CreateEntity("k8snode", node)
 	defer s.DeleteEntity(nid)
-	_, _ = s.GetEntity("k8snode", nid)
+	_, _ = s.GetEntity(nid)
 
 	expectedDgraphNumGetEntity := 1.0
 	nextCounter := metrics.ReadCounter(metrics.DgraphNumGetEntity)
@@ -128,7 +128,7 @@ func TestMetricsDgraphUpdateEntity(t *testing.T) {
 	nid, _ := s.CreateEntity("k8snode", node)
 	defer s.DeleteEntity(nid)
 	update := make(map[string]interface{})
-	s.UpdateEntity("k8snode", nid, update)
+	s.UpdateEntity(nid, update)
 
 	expectedDgraphNumUpdateEntity := 1.0
 	nextCounter := metrics.ReadCounter(metrics.DgraphNumUpdateEntity)

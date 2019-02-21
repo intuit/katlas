@@ -28,7 +28,7 @@ func TestMetricsDgraphNumQueries(t *testing.T) {
 	//GetEntity
 	prevCounter = metrics.ReadCounter(metrics.DgraphNumQueries)
 	nid := "0x01"
-	_, _ = client.GetEntity("k8snode", nid)
+	_, _ = client.GetEntity(nid)
 	expectedDgraphNumQueries = 1.0
 	nextCounter = metrics.ReadCounter(metrics.DgraphNumQueries)
 	assert.Equal(t, expectedDgraphNumQueries, nextCounter-prevCounter, "DgraphNumQueries is not equal to expected.")
@@ -71,7 +71,7 @@ func TestMetricsDgraphNumQueriesErr(t *testing.T) {
 	client = NewDGClient("127.0.0.1:9080")
 	client.Close()
 	var nid = "nid"
-	_, _ = client.GetEntity("k8snode", nid)
+	_, _ = client.GetEntity(nid)
 	expectedDgraphNumQueriesErr = 1.0
 	nextCounter = metrics.ReadCounter(metrics.DgraphNumQueriesErr)
 	assert.Equal(t, expectedDgraphNumQueriesErr, nextCounter-prevCounter, "DgraphNumQueriesErr is not equal to expected.")
@@ -148,7 +148,7 @@ func TestMetricsDgraphNumMutations(t *testing.T) {
 	defer client.DeleteEntity(nid2)
 	prevCounter = metrics.ReadCounter(metrics.DgraphNumMutations)
 	update := make(map[string]interface{})
-	client.UpdateEntity("k8snode", nid2, update)
+	client.UpdateEntity(nid2, update)
 	expectedDgraphNumMutations = 1.0
 	nextCounter = metrics.ReadCounter(metrics.DgraphNumMutations)
 	assert.Equal(t, expectedDgraphNumMutations, nextCounter-prevCounter, "DgraphNumMutations is not equal to expected.")
@@ -215,7 +215,7 @@ func TestMetricsDgraphNumMutationsErr(t *testing.T) {
 	client = NewDGClient("127.0.0.1:9080")
 	client.Close()
 	update := make(map[string]interface{})
-	client.UpdateEntity("k8snode", nid2, update)
+	client.UpdateEntity(nid2, update)
 	expectedDgraphNumMutationsErr = 1.0
 	nextCounter = metrics.ReadCounter(metrics.DgraphNumMutationsErr)
 	assert.Equal(t, expectedDgraphNumMutationsErr, nextCounter-prevCounter, "DgraphNumMutationsErr is not equal to expected.")

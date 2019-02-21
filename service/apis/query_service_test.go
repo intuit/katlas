@@ -119,7 +119,7 @@ func createPod(dc *db.DGClient, ms *MetaService) (uid string) {
 
 	pid, _ := s.CreateEntity("K8sPod", pod)
 
-	p, _ := s.GetEntity("Pod", pid)
+	p, _ := s.GetEntity(pid)
 	o := p["objects"].([]interface{})[0].(map[string]interface{})
 	if val, ok := o["name"]; ok {
 		log.Infof("name: [%v]\n", val)

@@ -9,8 +9,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/dgraph-io/dgo"
 	"github.com/dgraph-io/dgo/protos/api"
-	lru "github.com/hashicorp/golang-lru"
-	metrics "github.com/intuit/katlas/service/metrics"
+	"github.com/hashicorp/golang-lru"
+	"github.com/intuit/katlas/service/metrics"
 	"github.com/intuit/katlas/service/util"
 	"google.golang.org/grpc"
 )
@@ -59,13 +59,13 @@ type IDGClient interface {
 	GetSchemaFromDB() ([]*api.SchemaNode, error)
 	CreateSchema(sm Schema) error
 	DropSchema(name string) error
-	GetEntity(meta string, uuid string) (map[string]interface{}, error)
+	GetEntity(uuid string) (map[string]interface{}, error)
 	GetAllByClusterAndType(meta string, cluster string) (map[string]interface{}, error)
 	DeleteEntity(uuid string) error
 	CreateEntity(meta string, data map[string]interface{}) (string, error)
 	CreateOrDeleteEdge(fromType string, fromUID string, toType string, toUID string, rel string, op Action) error
 	SetFieldToNull(delMap map[string]interface{}) error
-	UpdateEntity(meta string, uuid string, data map[string]interface{}) error
+	UpdateEntity(uuid string, data map[string]interface{}) error
 	GetQueryResult(query string) (map[string]interface{}, error)
 	Close() error
 	ExecuteDgraphQuery(query string) (map[string]interface{}, error)
@@ -90,10 +90,10 @@ func NewDGClient(dgraphHost string) *DGClient {
 }
 
 // GetEntity - get entity by uid
-func (s DGClient) GetEntity(meta string, uuid string) (map[string]interface{}, error) {
+func (s DGClient) GetEntity(uuid string) (map[string]interface{}, error) {
 	q := `
-		query qry($uuid: string, $type: string) {
-			objects(func: uid($uuid)) @filter(eq(objtype, $type)) {
+		query qry($uuid: string) {
+			objects(func: uid($uuid)) {
 				uid
 				expand(_all_) {
 					uid
@@ -102,7 +102,7 @@ func (s DGClient) GetEntity(meta string, uuid string) (map[string]interface{}, e
 			}
 		}
 	`
-	resp, err := s.dc.NewTxn().QueryWithVars(context.Background(), q, map[string]string{"$uuid": uuid, "$type": meta})
+	resp, err := s.dc.NewTxn().QueryWithVars(context.Background(), q, map[string]string{"$uuid": uuid})
 	if err != nil {
 		metrics.DgraphNumQueriesErr.Inc()
 		return nil, err
@@ -113,6 +113,13 @@ func (s DGClient) GetEntity(meta string, uuid string) (map[string]interface{}, e
 	err = json.Unmarshal(resp.Json, &m)
 	if err != nil {
 		return nil, err
+	}
+	if len(m[util.Objects].([]interface{})) > 0 {
+		// only uid return, means no record found
+		data := m[util.Objects].([]interface{})[0].(map[string]interface{})
+		if _, ok := data[util.UID]; ok && len(data) == 1 {
+			return map[string]interface{}{}, nil
+		}
 	}
 	return m, nil
 }
@@ -227,7 +234,7 @@ func (s DGClient) CreateOrDeleteEdge(fromType string, fromUID string, toType str
 }
 
 // UpdateEntity - update entity
-func (s DGClient) UpdateEntity(meta string, uuid string, data map[string]interface{}) error {
+func (s DGClient) UpdateEntity(uuid string, data map[string]interface{}) error {
 	ctx := context.Background()
 	txn := s.dc.NewTxn()
 	defer txn.Discard(ctx)
@@ -247,7 +254,7 @@ func (s DGClient) UpdateEntity(meta string, uuid string, data map[string]interfa
 		log.Debug(err)
 		return err
 	}
-	log.Infof("%s %s updated successfully", meta, data["name"])
+	log.Infof("%s updated successfully", data["name"])
 	metrics.DgraphNumMutations.Inc()
 	return nil
 }

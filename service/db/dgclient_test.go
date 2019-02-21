@@ -39,7 +39,7 @@ func TestDGClient(t *testing.T) {
 	defer client.DeleteEntity(v)
 
 	// get pod01 by uid
-	pod01, err := client.GetEntity("K8sPod", v)
+	pod01, err := client.GetEntity(v)
 	if err != nil {
 		log.Fatalf("failed to get pod01 entity %v", err)
 	}
@@ -49,7 +49,7 @@ func TestDGClient(t *testing.T) {
 	// create relationship
 	client.CreateOrDeleteEdge("K8sPod", v, "K8sNode", nid, "runsOn", create)
 	// get pod again to check rel
-	pod01, _ = client.GetEntity("K8sPod", v)
+	pod01, _ = client.GetEntity(v)
 	o3 := pod01["objects"].([]interface{})[0].(map[string]interface{})
 	if val, ok := o3["runsOn"]; ok {
 		rel := val.([]interface{})[0].(map[string]interface{})
@@ -59,13 +59,13 @@ func TestDGClient(t *testing.T) {
 	// update pod01 status to Failed
 	update := make(map[string]interface{})
 	update["status"] = "Failed"
-	client.UpdateEntity("K8sPod", v, update)
-	pod01, _ = client.GetEntity("K8sPod", v)
+	client.UpdateEntity(v, update)
+	pod01, _ = client.GetEntity(v)
 	o4 := pod01["objects"].([]interface{})[0].(map[string]interface{})
 	assert.Equal(t, o4["status"], "Failed", "pod01 status not update to Failed")
 	// remove edges from pod01 to node01
 	client.CreateOrDeleteEdge("K8sPod", v, "K8sNode", nid, "runsOn", delete)
-	pod01, _ = client.GetEntity("K8sPod", v)
+	pod01, _ = client.GetEntity(v)
 	o5 := pod01["objects"].([]interface{})[0].(map[string]interface{})
 	val := o5["runsOn"]
 	if val != nil {
@@ -73,7 +73,7 @@ func TestDGClient(t *testing.T) {
 	}
 	client.CreateOrDeleteEdge("K8sPod", v, "K8sNode", nid, "runsOn", create)
 	client.SetFieldToNull(map[string]interface{}{"runsOn": nil, "uid": v})
-	pod01, _ = client.GetEntity("K8sPod", v)
+	pod01, _ = client.GetEntity(v)
 	o6 := pod01["objects"].([]interface{})[0].(map[string]interface{})
 	_, ok := o6["runsOn"]
 	if ok {

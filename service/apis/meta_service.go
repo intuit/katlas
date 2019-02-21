@@ -251,7 +251,7 @@ func (s MetaService) UpdateMetadata(name string, data map[string]interface{}) er
 			}
 		}
 		e := NewEntityService(s.dbclient)
-		return e.UpdateEntity(util.Metadata, metadata.UID, data, map[string]interface{}{"replace": false})
+		return e.UpdateEntity(metadata.UID, data, map[string]interface{}{"replace": false})
 	}
 	return fmt.Errorf("metadata %s not found", name)
 }

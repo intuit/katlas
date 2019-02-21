@@ -43,10 +43,10 @@ func serve() {
 	querySvc := apis.NewQueryService(dc)
 	qslSvc := apis.NewQSLService(dc)
 	res := resources.ServerResource{EntitySvc: entitySvc, QuerySvc: querySvc, MetaSvc: metaSvc, QSLSvc: qslSvc}
-	// Entity APIs
+	// Entity APIs v1
 	router.HandleFunc("/v1/entity/{metadata}/{uid}", res.EntityGetHandler).Methods("GET")
 	router.HandleFunc("/v1/entity/{metadata}", res.EntityCreateHandler).Methods("POST")
-	router.HandleFunc("/v1/entity/{metadata}/{uuid}", res.EntityUpdateHandler).Methods("POST")
+	router.HandleFunc("/v1/entity/{metadata}/{uid}", res.EntityUpdateHandler).Methods("POST")
 	router.HandleFunc("/v1/entity/{metadata}/{resourceid}", res.EntityDeleteHandler).Methods("DELETE")
 	router.HandleFunc("/v1/sync/{metadata}", res.EntitySyncHandler).Methods("POST")
 	// Query APIs
@@ -59,6 +59,24 @@ func serve() {
 	router.HandleFunc("/v1/metadata/{name}", res.MetaUpdateHandler).Methods("POST")
 	router.HandleFunc("/v1/schema", res.SchemaUpsertHandler).Methods("POST")
 	router.HandleFunc("/v1/schema/{name}", res.SchemaDropHandler).Methods("DELETE")
+
+	// Entity APIs v1.1
+	router.HandleFunc("/v1.1/entity/{uid}", res.EntityGetHandlerV1_1).Methods("GET")
+	router.HandleFunc("/v1.1/entity", res.EntityCreateHandlerV1_1).Methods("POST")
+	router.HandleFunc("/v1.1/entity/{uid}", res.EntityUpdateHandlerV1_1).Methods("POST")
+	router.HandleFunc("/v1.1/entity/{uid}", res.EntityDeleteHandlerV1_1).Methods("DELETE")
+	router.HandleFunc("/v1.1/sync/{metadata}", res.EntitySyncHandlerV1_1).Methods("POST")
+	// Query APIs v1.1
+	router.HandleFunc("/v1.1/query", res.QueryHandlerV1_1).Methods("GET")
+	router.HandleFunc("/v1.1/qsl/{query}", res.QSLHandlerV1_1).Methods("GET")
+	//Metadata v1.1
+	router.HandleFunc("/v1.1/metadata/{name}", res.MetaGetHandlerV1_1).Methods("GET")
+	router.HandleFunc("/v1.1/metadata/{name}", res.MetaDeleteHandlerV1_1).Methods("DELETE")
+	router.HandleFunc("/v1.1/metadata", res.MetaCreateHandlerV1_1).Methods("POST")
+	router.HandleFunc("/v1.1/metadata/{name}", res.MetaUpdateHandlerV1_1).Methods("POST")
+	router.HandleFunc("/v1.1/schema", res.SchemaUpsertHandlerV1_1).Methods("POST")
+	router.HandleFunc("/v1.1/schema/{name}", res.SchemaDropHandlerV1_1).Methods("DELETE")
+
 	// Status
 	router.HandleFunc("/health", Health).Methods("GET")
 	router.HandleFunc("/", Up).Methods("GET", "POST")

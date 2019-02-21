@@ -78,7 +78,7 @@ func (t *StatefulSetHandler) ObjectCreated(obj interface{}) error {
 	if !ValidateStatefulSet(statefulset) {
 		return errors.New("Could not validate statefulset object " + statefulset.ObjectMeta.Name)
 	}
-	SendJSONQueryWithRetries(statefulset, RestSvcEndpoint+"v1/entity/statefulset")
+	SendJSONQueryWithRetries(statefulset, RestSvcEndpoint+"v1.1/entity?objtype=statefulset")
 	return nil
 }
 

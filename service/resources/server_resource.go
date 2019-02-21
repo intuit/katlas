@@ -39,11 +39,15 @@ func (s ServerResource) EntityGetHandler(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
-	meta := vars[util.Metadata]
 	uid := vars[util.UID]
-	obj, err := s.EntitySvc.GetEntity(meta, uid)
+	obj, err := s.EntitySvc.GetEntity(uid)
 	if err != nil {
 		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		return
+	}
+	// object not found
+	if len(obj) == 0 {
+		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"entity with id %s not found\"}", http.StatusNotFound, uid)))
 		return
 	}
 	obj["status"] = http.StatusOK
@@ -73,7 +77,7 @@ func (s ServerResource) MetaGetHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(ret)
 		return
 	}
-	w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"objects\": []}", http.StatusOK)))
+	w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"metadata %s not found\"}", http.StatusNotFound, name)))
 }
 
 // MetaDeleteHandler REST API for delete metadata
@@ -178,7 +182,7 @@ func (s ServerResource) EntityUpdateHandler(w http.ResponseWriter, r *http.Reque
 
 	vars := mux.Vars(r)
 	meta := vars[util.Metadata]
-	uuid := vars["uuid"]
+	uuid := vars[util.UID]
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -192,7 +196,7 @@ func (s ServerResource) EntityUpdateHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err = s.EntitySvc.UpdateEntity(meta, uuid, payload)
+	err = s.EntitySvc.UpdateEntity(uuid, payload)
 	if err != nil {
 		log.Error(err)
 		w.Write([]byte(fmt.Sprintf("{\"status\": \"%v\", \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
