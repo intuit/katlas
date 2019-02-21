@@ -73,7 +73,7 @@ func (t *NamespaceHandler) ObjectCreated(obj interface{}) error {
 	if !ValidateNamespace(namespace) {
 		return errors.New("Could not validate namespace object " + namespace.ObjectMeta.Name)
 	}
-	SendJSONQueryWithRetries(namespace, RestSvcEndpoint+"v1/entity/namespace")
+	SendJSONQueryWithRetries(namespace, RestSvcEndpoint+"v1.1/entity?objtype=namespace")
 	return nil
 }
 

@@ -83,7 +83,7 @@ func (t *DeploymentHandler) ObjectCreated(obj interface{}) error {
 		log.Error(err)
 	}
 	log.Debugf("    Deployment: %s, \n", j)
-	SendJSONQueryWithRetries(deployment, RestSvcEndpoint+"v1/entity/deployment")
+	SendJSONQueryWithRetries(deployment, RestSvcEndpoint+"v1.1/entity?objtype=deployment")
 	return nil
 }
 
