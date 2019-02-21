@@ -116,7 +116,7 @@ describe('asynch query actions', () => {
     setTimeout(() => {
       expect(store.getActions()).toHaveLength(2);
       expect(store.getActions()[1].objType).toEqual('application');
-      expect(store.getActions()[1].metadata).toEqual(APP_METADATA);
+      expect(store.getActions()[1].metadata).toEqual(APP_METADATA.objects[0]);
       done();
     }, 3);
   });
@@ -175,8 +175,7 @@ const MOCK_RESP_DUPE = {
             '{"foobar.com/owner":"iksm","foobar.com/prune-label":"foo-controller-use2","name":"foo-controller-use2"}',
           name: 'foo-controller-use2',
           objtype: 'namespace',
-          resourceid:
-            'namespace:a.cluster.k8s.local:foo-controller-use2',
+          resourceid: 'namespace:a.cluster.k8s.local:foo-controller-use2',
           resourceversion: '38812781',
           uid: '0x1e5e81'
         }
@@ -240,8 +239,7 @@ const MOCK_RESP_DUPE = {
             '{"foobar.com/owner":"iksm","foobar.com/prune-label":"foo-api-usw2-ns","name":"foo-api-usw2-ns"}',
           name: 'foo-api-usw2-ns',
           objtype: 'namespace',
-          resourceid:
-            'namespace:a-west2.cluster.k8s.local:foo-api-usw2-ns',
+          resourceid: 'namespace:a-west2.cluster.k8s.local:foo-api-usw2-ns',
           resourceversion: '29971588',
           uid: '0x116621'
         }
@@ -268,54 +266,69 @@ const MOCK_RESP_DUPE = {
         'replicaset:a-west2.cluster.k8s.local:foo-api-usw2-ns:cutlass-ui-deployment-b6cc479',
       resourceversion: '84921498'
     }
-  ]
+  ],
+  status: 200
 };
 
 const APP_METADATA = {
-  uid: '0xfb7eb',
-  name: 'application',
-  fields: [
+  status: 200,
+  objects: [
     {
-      fieldname: 'k8sobj',
-      fieldtype: 'string',
-      mandatory: true,
-      cardinality: 'one'
-    },
-    {
-      fieldname: 'objtype',
-      fieldtype: 'string',
-      mandatory: true,
-      cardinality: 'one'
-    },
-    {
-      fieldname: 'name',
-      fieldtype: 'string',
-      mandatory: true,
-      cardinality: 'one'
-    },
-    {
-      fieldname: 'resourceid',
-      fieldtype: 'string',
-      mandatory: false,
-      cardinality: 'one'
-    },
-    {
-      fieldname: 'labels',
-      fieldtype: 'json',
-      mandatory: false,
-      cardinality: 'one'
-    },
-    {
-      fieldname: 'resourceversion',
-      fieldtype: 'string',
-      mandatory: true,
-      cardinality: 'one'
-    },
-    {
-      fieldname: 'creationtime',
-      fieldtype: 'string',
-      mandatory: true,
-      cardinality: 'one'
+      uid: '0x1f47d1',
+      name: 'application',
+      objtype: 'metadata',
+      fields: [
+        {
+          uid: '0x2ed85c',
+          fieldname: 'name',
+          fieldtype: 'string',
+          mandatory: true,
+          cardinality: 'one'
+        },
+        {
+          uid: '0x2ed85d',
+          fieldname: 'resourceid',
+          fieldtype: 'string',
+          mandatory: false,
+          cardinality: 'one'
+        },
+        {
+          uid: '0x2ed85e',
+          fieldname: 'labels',
+          fieldtype: 'json',
+          mandatory: false,
+          cardinality: 'one'
+        },
+        {
+          uid: '0x2ed85f',
+          fieldname: 'resourceversion',
+          fieldtype: 'string',
+          mandatory: true,
+          cardinality: 'one'
+        },
+        {
+          uid: '0x2ed860',
+          fieldname: 'creationtime',
+          fieldtype: 'string',
+          mandatory: true,
+          cardinality: 'one'
+        },
+        {
+          uid: '0x2ed861',
+          fieldname: 'k8sobj',
+          fieldtype: 'string',
+          mandatory: true,
+          cardinality: 'one'
+        },
+        {
+          uid: '0x2ed862',
+          fieldname: 'objtype',
+          fieldtype: 'string',
+          mandatory: true,
+          cardinality: 'one'
+        }
+      ],
+      resourceversion: '6'
     }
   ]
 };
