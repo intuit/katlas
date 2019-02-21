@@ -19,27 +19,29 @@ func TestCreateEntity(t *testing.T) {
 	testURL1 := TestBaseURL + "/v1/entity/node"
 	testURL2 := TestBaseURL + "/v1/entity/node"
 
-	node01 := `{
+	node11 := `{
 		"objtype": "node",
-		"name": "node01",
-		"labels": "testingnode01"
+		"name": "node11",
+		"labels": "testingnode11"
 	  }`
 
-	node02 := `{
+	node12 := `{
 	"objtype": "node",
-	"name": "node02",
-	"labels": "testingnode02"
+	"name": "node12",
+	"labels": "testingnode12"
 	}`
 
 	tests := []TestStruct{
-		{testURL1, node01, 200, "", 0},
-		{testURL2, node02, 200, "", 0},
+		{"TestCreateNode11", testURL1, node11, 200, "", 0},
+		{"TestCreateNode12", testURL2, node12, 200, "", 0},
 	}
 
 	for i, testCase := range tests {
-		resCode, resBody, _ := CreateEntity(t, testCase.testURL, testCase.requestBody)
-		tests[i].observedStatusCode = resCode
-		tests[i].responseBody = string(resBody)
+		t.Run(testCase.testCaseName, func(t *testing.T) {
+			resCode, resBody, _ := CreateEntity(t, testCase.testURL, testCase.requestBody)
+			tests[i].observedStatusCode = resCode
+			tests[i].responseBody = string(resBody)
+		})
 	}
 	DisplayTestCaseResults("TestCreateEntity", tests, t, "blank-0|node")
 }

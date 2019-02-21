@@ -14,6 +14,7 @@ import (
 	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/metrics"
 	"github.com/intuit/katlas/service/resources"
+	"github.com/intuit/katlas/service/util"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"io/ioutil"
 )
@@ -43,21 +44,44 @@ func serve() {
 	querySvc := apis.NewQueryService(dc)
 	qslSvc := apis.NewQSLService(dc)
 	res := resources.ServerResource{EntitySvc: entitySvc, QuerySvc: querySvc, MetaSvc: metaSvc, QSLSvc: qslSvc}
+	// Entity APIs v1
 	router.HandleFunc("/v1/entity/{metadata}/{uid}", res.EntityGetHandler).Methods("GET")
-	// TODO: wire up more resource APIs here
 	router.HandleFunc("/v1/entity/{metadata}", res.EntityCreateHandler).Methods("POST")
-	router.HandleFunc("/v1/sync/{metadata}", res.EntitySyncHandler).Methods("POST")
+	router.HandleFunc("/v1/entity/{metadata}/{uid}", res.EntityUpdateHandler).Methods("POST")
 	router.HandleFunc("/v1/entity/{metadata}/{resourceid}", res.EntityDeleteHandler).Methods("DELETE")
+	router.HandleFunc("/v1/sync/{metadata}", res.EntitySyncHandler).Methods("POST")
+	// Query APIs
 	router.HandleFunc("/v1/query", res.QueryHandler).Methods("GET")
 	router.HandleFunc("/v1/qsl/{query}", res.QSLHandler).Methods("GET")
 	//Metadata
 	router.HandleFunc("/v1/metadata/{name}", res.MetaGetHandler).Methods("GET")
+	router.HandleFunc("/v1/metadata/{name}", res.MetaDeleteHandler).Methods("DELETE")
 	router.HandleFunc("/v1/metadata", res.MetaCreateHandler).Methods("POST")
-	router.HandleFunc("/v1/metadata/schema", res.SchemaCreateHandler).Methods("POST")
+	router.HandleFunc("/v1/metadata/{name}", res.MetaUpdateHandler).Methods("POST")
+	router.HandleFunc("/v1/schema", res.SchemaUpsertHandler).Methods("POST")
+	router.HandleFunc("/v1/schema/{name}", res.SchemaDropHandler).Methods("DELETE")
 
+	// Entity APIs v1.1
+	router.HandleFunc("/v1.1/entity/{uid}", res.EntityGetHandlerV1_1).Methods("GET")
+	router.HandleFunc("/v1.1/entity", res.EntityCreateHandlerV1_1).Methods("POST")
+	router.HandleFunc("/v1.1/entity/{uid}", res.EntityUpdateHandlerV1_1).Methods("POST")
+	router.HandleFunc("/v1.1/entity/{uid}", res.EntityDeleteHandlerV1_1).Methods("DELETE")
+	router.HandleFunc("/v1.1/sync/{metadata}", res.EntitySyncHandlerV1_1).Methods("POST")
+	// Query APIs v1.1
+	router.HandleFunc("/v1.1/query", res.QueryHandlerV1_1).Methods("GET")
+	router.HandleFunc("/v1.1/qsl/{query}", res.QSLHandlerV1_1).Methods("GET")
+	//Metadata v1.1
+	router.HandleFunc("/v1.1/metadata/{name}", res.MetaGetHandlerV1_1).Methods("GET")
+	router.HandleFunc("/v1.1/metadata/{name}", res.MetaDeleteHandlerV1_1).Methods("DELETE")
+	router.HandleFunc("/v1.1/metadata", res.MetaCreateHandlerV1_1).Methods("POST")
+	router.HandleFunc("/v1.1/metadata/{name}", res.MetaUpdateHandlerV1_1).Methods("POST")
+	router.HandleFunc("/v1.1/schema", res.SchemaUpsertHandlerV1_1).Methods("POST")
+	router.HandleFunc("/v1.1/schema/{name}", res.SchemaDropHandlerV1_1).Methods("DELETE")
+
+	// Status
 	router.HandleFunc("/health", Health).Methods("GET")
 	router.HandleFunc("/", Up).Methods("GET", "POST")
-
+	// Monitoring
 	router.Handle("/prometheus_metrics", promhttp.Handler()).Methods("GET")
 	metrics.RegisterHistogramMetrics()
 
@@ -87,7 +111,13 @@ func serve() {
 	var jsonData []map[string]interface{}
 	json.Unmarshal(meta, &jsonData)
 	for _, data := range jsonData {
-		metaSvc.CreateMetadata(data)
+		qm := map[string][]string{util.Name: {data[util.Name].(string)}, util.ObjType: {util.Metadata}}
+		metas, _ := querySvc.GetQueryResult(qm)
+		if len(metas[util.Objects].([]interface{})) > 0 {
+			metaSvc.UpdateMetadata(data[util.Name].(string), data)
+		} else {
+			metaSvc.CreateMetadata(data)
+		}
 	}
 	log.Infof("Service started on port:8011, mode:%s", cfg.ServerCfg.ServerType)
 	if strings.EqualFold(cfg.ServerCfg.ServerType, "https") {
