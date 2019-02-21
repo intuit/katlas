@@ -234,12 +234,7 @@ func TestMetricsDgraphNumCreateEntityErr(t *testing.T) {
 		"objtype": "k8snode",
 		"name":    "test-node-metrics",
 	}
-	nids1, _ := client.CreateEntity("k8snode", node1)
-	var nid1 string
-	for _, v := range nids1 {
-		nid1 = v
-		break
-	}
+	nid1, _ := client.CreateEntity("k8snode", node1)
 	defer client.DeleteEntity(nid1)
 
 	expectedDgraphNumCreateEntityErr = 1.0
@@ -258,19 +253,14 @@ func TestMetricsDgraphNumGetEntityErr(t *testing.T) {
 		"objtype": "k8snode",
 		"name":    "test-node-metrics",
 	}
-	nids1, _ := client.CreateEntity("k8snode", node1)
-	var nid1 string
-	for _, v := range nids1 {
-		nid1 = v
-		break
-	}
+	nid1, _ := client.CreateEntity("k8snode", node1)
 	defer client.DeleteEntity(nid1)
 
 	//Get Entity
 	prevCounter = metrics.ReadCounter(metrics.DgraphNumGetEntityErr)
 	var nid string
 	client.Close()
-	_, _ = client.GetEntity("k8snode", nid)
+	_, _ = client.GetEntity(nid)
 	expectedDgraphNumGetEntityErr = 1.0
 	nextCounter = metrics.ReadCounter(metrics.DgraphNumGetEntityErr)
 	assert.Equal(t, expectedDgraphNumGetEntityErr, nextCounter-prevCounter, "DgraphNumGetEntityErr is not equal to expected.")
@@ -286,19 +276,14 @@ func TestMetricsDgraphNumUpdateEntityErr(t *testing.T) {
 		"objtype": "k8snode",
 		"name":    "test-node-metrics",
 	}
-	nids1, _ := client.CreateEntity("k8snode", node1)
-	var nid1 string
-	for _, v := range nids1 {
-		nid1 = v
-		break
-	}
+	nid1, _ := client.CreateEntity("k8snode", node1)
 	defer client.DeleteEntity(nid1)
 
 	//Update Entity
 	prevCounter = metrics.ReadCounter(metrics.DgraphNumUpdateEntityErr)
 	update := make(map[string]interface{})
 	client.Close()
-	client.UpdateEntity("k8snode", nid1, update)
+	client.UpdateEntity(nid1, update)
 	expectedDgraphNumUpdateEntityErr = 1.0
 	nextCounter = metrics.ReadCounter(metrics.DgraphNumUpdateEntityErr)
 	assert.Equal(t, expectedDgraphNumUpdateEntityErr, nextCounter-prevCounter, "DgraphNumUpdateEntityErr is not equal to expected.")
@@ -314,12 +299,7 @@ func TestMetricsDgraphNumDeleteEntityErr(t *testing.T) {
 		"objtype": "k8snode",
 		"name":    "test-node-metrics",
 	}
-	nids1, _ := client.CreateEntity("k8snode", node1)
-	var nid1 string
-	for _, v := range nids1 {
-		nid1 = v
-		break
-	}
+	nid1, _ := client.CreateEntity("k8snode", node1)
 
 	prevCounter = metrics.ReadCounter(metrics.DgraphNumDeleteEntityErr)
 	client.Close()
