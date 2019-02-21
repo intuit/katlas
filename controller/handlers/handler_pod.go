@@ -78,7 +78,7 @@ func (t *PodHandler) ObjectCreated(obj interface{}) error {
 		return errors.New("Could not validate pod object " + pod.ObjectMeta.Name)
 	}
 	// send the object to the rest service
-	SendJSONQueryWithRetries(pod, RestSvcEndpoint+"v1/entity/pod")
+	SendJSONQueryWithRetries(pod, RestSvcEndpoint+"v1.1/entity?objtype=pod")
 	return nil
 }
 

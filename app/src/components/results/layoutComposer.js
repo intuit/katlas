@@ -21,7 +21,7 @@ export const getQueryLayout = (queryStr, metadata) => {
     const objProjection = queryProjection[objType];
     let fieldLayout = {};
     const objMeta = metadata[objType];
-    if(objMeta.fields && _.isArray(objMeta.fields)){
+    if(objMeta && objMeta.fields && _.isArray(objMeta.fields)){
       objMeta.fields.forEach(field => {
         const [shown, projection] = getFieldProjector(objType, field);
         if (

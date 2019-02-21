@@ -78,7 +78,7 @@ func (t *ServiceHandler) ObjectCreated(obj interface{}) error {
 	if !ValidateService(service) {
 		return errors.New("Could not validate service object " + service.ObjectMeta.Name)
 	}
-	SendJSONQueryWithRetries(service, RestSvcEndpoint+"v1/entity/service")
+	SendJSONQueryWithRetries(service, RestSvcEndpoint+"v1.1/entity?objtype=service")
 	return nil
 }
 
