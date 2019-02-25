@@ -8,6 +8,10 @@ import (
 //RegisterHistogramMetrics ...Register histogram with prometheus
 func RegisterHistogramMetrics() {
 	prometheus.MustRegister(KatlasQueryLatencyHistogram)
+	prometheus.MustRegister(DgraphCreateEntityLatencyHistogram)
+	prometheus.MustRegister(DgraphGetEntityLatencyHistogram)
+	prometheus.MustRegister(DgraphUpdateEntityLatencyHistogram)
+	prometheus.MustRegister(DgraphDeleteEntityLatencyHistogram)
 }
 
 //ReadCounter ...Extract float64 Value from the prometheus Counter metric

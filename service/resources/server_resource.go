@@ -44,6 +44,7 @@ func (s ServerResource) EntityGetHandler(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
 	uid := vars[util.UID]
+
 	obj, err := s.EntitySvc.GetEntity(uid)
 	if err != nil {
 		metrics.KatlasNumReqErr.Inc()
@@ -55,6 +56,7 @@ func (s ServerResource) EntityGetHandler(w http.ResponseWriter, r *http.Request)
 	if len(obj) == 0 {
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr4xx.Inc()
+		code = http.StatusNotFound
 		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"entity with id %s not found\"}", http.StatusNotFound, uid)))
 		return
 	}
@@ -100,10 +102,10 @@ func (s ServerResource) MetaGetHandler(w http.ResponseWriter, r *http.Request) {
 
 // MetaDeleteHandler REST API for delete metadata
 func (s ServerResource) MetaDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	
-        metrics.KatlasNumReqCount.Inc()
-	
-        w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	metrics.KatlasNumReqCount.Inc()
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
 	name := vars[util.Name]
@@ -142,10 +144,18 @@ func (s ServerResource) EntityDeleteHandler(w http.ResponseWriter, r *http.Reque
 	vars := mux.Vars(r)
 	meta := vars[util.Metadata]
 	rid := vars[util.ResourceID]
+
+	start := time.Now()
+	code := http.StatusOK
+	defer func() {
+		metrics.DgraphDeleteEntityLatencyHistogram.WithLabelValues(fmt.Sprintf("%d", code)).Observe(time.Since(start).Seconds())
+	}()
+
 	err := s.EntitySvc.DeleteEntityByResourceID(meta, rid)
 	if err != nil {
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr5xx.Inc()
+		code = http.StatusInternalServerError
 		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
@@ -190,10 +200,18 @@ func (s ServerResource) EntityCreateHandler(w http.ResponseWriter, r *http.Reque
 		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
 		return
 	}
+
+	start := time.Now()
+	code := http.StatusOK
+	defer func() {
+		metrics.DgraphCreateEntityLatencyHistogram.WithLabelValues(fmt.Sprintf("%d", code)).Observe(time.Since(start).Seconds())
+	}()
+
 	uid, err := s.EntitySvc.CreateEntity(meta, payload.(map[string]interface{}))
 	if err != nil {
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr5xx.Inc()
+		code = http.StatusInternalServerError
 		log.Error(err)
 		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
@@ -209,16 +227,16 @@ func (s ServerResource) EntityCreateHandler(w http.ResponseWriter, r *http.Reque
 	}
 	ret, _ := json.Marshal(msg)
 	w.Write(ret)
-	
-        metrics.KatlasNumReq2xx.Inc()
+
+	metrics.KatlasNumReq2xx.Inc()
 }
 
 // EntityUpdateHandler REST API for update Entity
 func (s ServerResource) EntityUpdateHandler(w http.ResponseWriter, r *http.Request) {
-	
+
 	metrics.KatlasNumReqCount.Inc()
-	
-        //Set Access-Control-Allow-Origin header now so that it will be present
+
+	//Set Access-Control-Allow-Origin header now so that it will be present
 	//even if an error is returned (otherwise the error also causes a CORS
 	//exception in the browser/client)
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -242,10 +260,17 @@ func (s ServerResource) EntityUpdateHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	start := time.Now()
+	code := http.StatusOK
+	defer func() {
+		metrics.DgraphUpdateEntityLatencyHistogram.WithLabelValues(fmt.Sprintf("%d", code)).Observe(time.Since(start).Seconds())
+	}()
+
 	err = s.EntitySvc.UpdateEntity(uuid, payload)
 	if err != nil {
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr5xx.Inc()
+		code = http.StatusInternalServerError
 		log.Error(err)
 		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
@@ -379,7 +404,7 @@ func (s ServerResource) MetaCreateHandler(w http.ResponseWriter, r *http.Request
 			"status":  http.StatusOK,
 			"objects": rets,
 		}
-	        metrics.KatlasNumReq2xx.Inc()
+		metrics.KatlasNumReq2xx.Inc()
 	} else {
 		uid, err := s.MetaSvc.CreateMetadata(payload.(map[string]interface{}))
 		if err != nil {
@@ -398,7 +423,7 @@ func (s ServerResource) MetaCreateHandler(w http.ResponseWriter, r *http.Request
 				},
 			},
 		}
-	        metrics.KatlasNumReq2xx.Inc()
+		metrics.KatlasNumReq2xx.Inc()
 	}
 	ret, _ := json.Marshal(msg)
 	w.Write(ret)
@@ -406,10 +431,10 @@ func (s ServerResource) MetaCreateHandler(w http.ResponseWriter, r *http.Request
 
 // MetaUpdateHandler REST API for update Metadata
 func (s ServerResource) MetaUpdateHandler(w http.ResponseWriter, r *http.Request) {
-	
-        metrics.KatlasNumReqCount.Inc()
-	
-        w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	metrics.KatlasNumReqCount.Inc()
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
 	name := vars[util.Name]
@@ -498,7 +523,7 @@ func (s ServerResource) SchemaUpsertHandler(w http.ResponseWriter, r *http.Reque
 			"status":  http.StatusOK,
 			"message": fmt.Sprintf("%v upsert successfully", names),
 		}
-	        metrics.KatlasNumReq2xx.Inc()
+		metrics.KatlasNumReq2xx.Inc()
 	} else {
 		var predicate db.Schema
 		err := mapstructure.Decode(payload, &predicate)
@@ -521,7 +546,7 @@ func (s ServerResource) SchemaUpsertHandler(w http.ResponseWriter, r *http.Reque
 			"status":  http.StatusOK,
 			"message": fmt.Sprintf("%s upsert successfully", predicate.Predicate),
 		}
-	        metrics.KatlasNumReq2xx.Inc()
+		metrics.KatlasNumReq2xx.Inc()
 	}
 	ret, _ := json.Marshal(msg)
 	w.Write(ret)
@@ -529,10 +554,10 @@ func (s ServerResource) SchemaUpsertHandler(w http.ResponseWriter, r *http.Reque
 
 // SchemaDropHandler remove db schema
 func (s ServerResource) SchemaDropHandler(w http.ResponseWriter, r *http.Request) {
-	
-        metrics.KatlasNumReqCount.Inc()
-	
-        defer s.MetaSvc.RemoveSchemaCache(db.LruCache)
+
+	metrics.KatlasNumReqCount.Inc()
+
+	defer s.MetaSvc.RemoveSchemaCache(db.LruCache)
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
