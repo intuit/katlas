@@ -56,7 +56,6 @@ func (s ServerResource) EntityGetHandler(w http.ResponseWriter, r *http.Request)
 	if len(obj) == 0 {
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr4xx.Inc()
-		code = http.StatusNotFound
 		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"entity with id %s not found\"}", http.StatusNotFound, uid)))
 		return
 	}
