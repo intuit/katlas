@@ -9,7 +9,6 @@ import (
 func RegisterHistogramMetrics() {
 	prometheus.MustRegister(KatlasQueryLatencyHistogram)
 	prometheus.MustRegister(DgraphCreateEntityLatencyHistogram)
-	prometheus.MustRegister(DgraphGetEntityLatencyHistogram)
 	prometheus.MustRegister(DgraphUpdateEntityLatencyHistogram)
 	prometheus.MustRegister(DgraphDeleteEntityLatencyHistogram)
 }
