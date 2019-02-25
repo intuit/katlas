@@ -220,3 +220,96 @@ func TestMetricsDgraphNumMutationsErr(t *testing.T) {
 	nextCounter = metrics.ReadCounter(metrics.DgraphNumMutationsErr)
 	assert.Equal(t, expectedDgraphNumMutationsErr, nextCounter-prevCounter, "DgraphNumMutationsErr is not equal to expected.")
 }
+
+func TestMetricsDgraphNumCreateEntityErr(t *testing.T) {
+
+	var prevCounter, nextCounter, expectedDgraphNumCreateEntityErr float64
+	var client *DGClient
+
+	//CreateEntity
+	prevCounter = metrics.ReadCounter(metrics.DgraphNumCreateEntityErr)
+	client = NewDGClient("127.0.0.1:9080")
+	client.Close()
+	node1 := map[string]interface{}{
+		"objtype": "k8snode",
+		"name":    "test-node-metrics",
+	}
+	nid1, _ := client.CreateEntity("k8snode", node1)
+	defer client.DeleteEntity(nid1)
+
+	expectedDgraphNumCreateEntityErr = 1.0
+	nextCounter = metrics.ReadCounter(metrics.DgraphNumCreateEntityErr)
+	assert.Equal(t, expectedDgraphNumCreateEntityErr, nextCounter-prevCounter, "DgraphNumCreateEntityErr is not equal to expected.")
+}
+
+func TestMetricsDgraphNumGetEntityErr(t *testing.T) {
+
+	var prevCounter, nextCounter, expectedDgraphNumGetEntityErr float64
+	var client *DGClient
+
+	//CreateEntity
+	client = NewDGClient("127.0.0.1:9080")
+	node1 := map[string]interface{}{
+		"objtype": "k8snode",
+		"name":    "test-node-metrics",
+	}
+	nid1, _ := client.CreateEntity("k8snode", node1)
+	defer client.DeleteEntity(nid1)
+
+	//Get Entity
+	prevCounter = metrics.ReadCounter(metrics.DgraphNumGetEntityErr)
+	var nid string
+	client.Close()
+	_, _ = client.GetEntity(nid)
+	expectedDgraphNumGetEntityErr = 1.0
+	nextCounter = metrics.ReadCounter(metrics.DgraphNumGetEntityErr)
+	assert.Equal(t, expectedDgraphNumGetEntityErr, nextCounter-prevCounter, "DgraphNumGetEntityErr is not equal to expected.")
+}
+
+func TestMetricsDgraphNumUpdateEntityErr(t *testing.T) {
+
+	var prevCounter, nextCounter, expectedDgraphNumUpdateEntityErr float64
+	var client *DGClient
+
+	client = NewDGClient("127.0.0.1:9080")
+	node1 := map[string]interface{}{
+		"objtype": "k8snode",
+		"name":    "test-node-metrics",
+	}
+	nid1, _ := client.CreateEntity("k8snode", node1)
+	defer client.DeleteEntity(nid1)
+
+	//Update Entity
+	prevCounter = metrics.ReadCounter(metrics.DgraphNumUpdateEntityErr)
+	update := make(map[string]interface{})
+	client.Close()
+	client.UpdateEntity(nid1, update)
+	expectedDgraphNumUpdateEntityErr = 1.0
+	nextCounter = metrics.ReadCounter(metrics.DgraphNumUpdateEntityErr)
+	assert.Equal(t, expectedDgraphNumUpdateEntityErr, nextCounter-prevCounter, "DgraphNumUpdateEntityErr is not equal to expected.")
+}
+
+func TestMetricsDgraphNumDeleteEntityErr(t *testing.T) {
+
+	var prevCounter, nextCounter, expectedDgraphNumDeleteEntityErr float64
+	var client *DGClient
+
+	client = NewDGClient("127.0.0.1:9080")
+	node1 := map[string]interface{}{
+		"objtype": "k8snode",
+		"name":    "test-node-metrics",
+	}
+	nid1, _ := client.CreateEntity("k8snode", node1)
+
+	prevCounter = metrics.ReadCounter(metrics.DgraphNumDeleteEntityErr)
+	client.Close()
+	client.DeleteEntity(nid1)
+	expectedDgraphNumDeleteEntityErr = 1.0
+	nextCounter = metrics.ReadCounter(metrics.DgraphNumDeleteEntityErr)
+	assert.Equal(t, expectedDgraphNumDeleteEntityErr, nextCounter-prevCounter, "DgraphNumDeleteEntityErr is not equal to expected.")
+}
+
+func cleanup(nid string) {
+	client := NewDGClient("127.0.0.1:9080")
+	client.DeleteEntity(nid)
+}
