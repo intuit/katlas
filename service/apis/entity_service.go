@@ -2,22 +2,22 @@ package apis
 
 import (
 	"encoding/json"
-	"errors"
 	"strconv"
 	"strings"
 	"time"
 
 	"fmt"
 	log "github.com/Sirupsen/logrus"
+	"github.com/intuit/katlas/service/cfg"
 	"github.com/intuit/katlas/service/db"
-	metrics "github.com/intuit/katlas/service/metrics"
+	"github.com/intuit/katlas/service/metrics"
 	"github.com/intuit/katlas/service/util"
 	"reflect"
 )
 
 // KeyMutex lock single object by resourceid
 // It will retry to get lock and expire after certain time
-var mutex = util.NewKeyMutex(time.Minute, 100)
+var mutex = util.NewKeyMutex(time.Minute, 1000)
 
 // IEntityService define interfaces to manipulate data
 type IEntityService interface {
@@ -30,7 +30,7 @@ type IEntityService interface {
 	// save new entity to the storage
 	CreateEntity(meta string, data map[string]interface{}) (string, error)
 	// update entity with given ID in the storage
-	UpdateEntity(uuid string, data map[string]interface{}, option ...map[string]interface{})
+	UpdateEntity(uuid string, data map[string]interface{}, option ...cfg.OptionContext)
 	// create or remove relationship between entities by given IDs
 	CreateOrDeleteEdge(fromUID string, toUID string, rel string, op db.Action) error
 	// sync data between source and underlying database
@@ -149,42 +149,14 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (s
 			}
 		}
 	}
-	// lock by specified key to ensure only one thread can modify object
+	if _, ok := data[util.UID]; !ok {
+		data[util.UID] = "_:A"
+	}
 	if mutex.TryLock(data[util.ResourceID]) {
 		defer mutex.Unlock(data[util.ResourceID])
-		// check if entity already exist
-		qm := map[string][]string{util.ResourceID: {data[util.ResourceID].(string)},
-			util.ObjType: {meta},
-			util.Print:   {util.ResourceVersion}}
-		queryService := NewQueryService(s.dbclient)
-		node, err := queryService.GetQueryResult(qm)
-		if err != nil {
-			log.Error(err)
-			return "", err
-		}
-		if len(node[util.Objects].([]interface{})) > 0 {
-			// got existing object id
-			uid := node[util.Objects].([]interface{})[0].(map[string]interface{})[util.UID].(string)
-			data[util.UID] = uid
-			valid := validateResourceVersion(node, data)
-			if !valid {
-				return uid, nil
-			}
-			if len(delMap) > 0 {
-				delMap[util.UID] = uid
-				s.dbclient.SetFieldToNull(delMap)
-			}
-		} else {
-			if _, ok := data[util.ResourceVersion]; !ok {
-				data[util.ResourceVersion] = "0"
-			}
-		}
-		if _, ok := data[util.UID]; !ok {
-			data[util.UID] = "_:A"
-		}
 		return s.dbclient.CreateEntity(meta, data)
 	}
-	return "", errors.New("can't get resource lock, ignore after timeout reached")
+	return "", fmt.Errorf("can't get resource lock, ignore after timeout reached")
 }
 
 // SyncEntities ...
@@ -238,43 +210,17 @@ func (s EntityService) CreateOrDeleteEdge(fromType string, fromUID string, toTyp
 }
 
 // UpdateEntity update entity
-func (s EntityService) UpdateEntity(uuid string, data map[string]interface{}, option ...map[string]interface{}) error {
-	node, err := s.GetEntity(uuid)
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-	if len(node[util.Objects].([]interface{})) > 0 {
-		rid := node[util.Objects].([]interface{})[0].(map[string]interface{})[util.ResourceID].(string)
-		// lock by specified key to ensure only one thread can modify object
-		if mutex.TryLock(rid) {
-			defer mutex.Unlock(rid)
-			valid := validateResourceVersion(node, data)
-			if !valid {
-				return fmt.Errorf("Resource %s version has conflict", uuid)
-			}
-		}
-		replace := true
-		if len(option) > 0 {
-			replace = option[0]["replace"].(bool)
-		}
-		if replace {
-			// delete predicate if data type is list or edge
-			delMap := make(map[string]interface{})
-			for k, v := range data {
-				if reflect.TypeOf(v).Kind() == reflect.Map || reflect.TypeOf(v).Kind() == reflect.Slice {
-					delMap[k] = nil
-				}
-			}
-			if len(delMap) > 0 {
-				delMap[util.UID] = uuid
-				s.dbclient.SetFieldToNull(delMap)
-			}
+func (s EntityService) UpdateEntity(uuid string, data map[string]interface{}, option ...cfg.OptionContext) error {
+	if mutex.TryLock(uuid) {
+		defer mutex.Unlock(uuid)
+		err := s.dbclient.UpdateEntity(uuid, data, option...)
+		if err != nil {
+			return err
 		}
 		metrics.DgraphNumUpdateEntity.Inc()
-		return s.dbclient.UpdateEntity(uuid, data)
+		return nil
 	}
-	return fmt.Errorf("Resource %s not found for update", uuid)
+	return fmt.Errorf("can't get resource lock to update %s, ignore after timeout reached", uuid)
 }
 
 // check resource version

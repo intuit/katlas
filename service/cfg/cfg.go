@@ -16,6 +16,12 @@ var (
 	ServerCfg serverCfg
 )
 
+// OptionContext to define options when CRUD entities
+type OptionContext struct {
+	// is replace field when update
+	ReplaceListOrEdge bool
+}
+
 func init() {
 
 	flag.StringVar(&ServerCfg.EnvNamespace, "envNamespace", "", "EnvNamespace for the cluster service is deployed in")
