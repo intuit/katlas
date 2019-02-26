@@ -121,4 +121,10 @@ var (
 		Help:    "Time take to handle delete entity queries by the Katlas Entity Service",
 		Buckets: prometheus.ExponentialBuckets(0.0010, 2, 15),
 	}, []string{"code"})
+	//DgraphGetEntityLatencyHistogram ...latency metric for Get Entity
+	DgraphGetEntityLatencyHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Name:    "katlas_dgraph_get_entity_latency",
+		Help:    "Time take to handle get entity queries by the Katlas Entity Service",
+		Buckets: prometheus.ExponentialBuckets(0.0010, 2, 15),
+	}, []string{"code"})
 )

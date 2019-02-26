@@ -11,6 +11,7 @@ func RegisterHistogramMetrics() {
 	prometheus.MustRegister(DgraphCreateEntityLatencyHistogram)
 	prometheus.MustRegister(DgraphUpdateEntityLatencyHistogram)
 	prometheus.MustRegister(DgraphDeleteEntityLatencyHistogram)
+	prometheus.MustRegister(DgraphGetEntityLatencyHistogram)
 }
 
 //ReadCounter ...Extract float64 Value from the prometheus Counter metric

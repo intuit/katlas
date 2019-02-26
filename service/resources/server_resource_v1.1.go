@@ -25,10 +25,17 @@ func (s ServerResource) EntityGetHandlerV1_1(w http.ResponseWriter, r *http.Requ
 	vars := mux.Vars(r)
 	uid := vars[util.UID]
 
+	start := time.Now()
+	code := http.StatusOK
+	defer func() {
+		metrics.DgraphGetEntityLatencyHistogram.WithLabelValues(fmt.Sprintf("%d", code)).Observe(time.Since(start).Seconds())
+	}()
+
 	obj, err := s.EntitySvc.GetEntity(uid)
 	if err != nil {
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr5xx.Inc()
+		code = http.StatusInternalServerError
 		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
@@ -36,6 +43,7 @@ func (s ServerResource) EntityGetHandlerV1_1(w http.ResponseWriter, r *http.Requ
 	if len(obj) == 0 {
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr4xx.Inc()
+		code = http.StatusNotFound
 		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"entity with id %s not found\"}", http.StatusNotFound, uid)))
 		return
 	}
