@@ -8,7 +8,6 @@ import (
 //Track Service level Metrics aggregated across all Request Types.
 
 var (
-
 	//KatlasNumReqErr4xx ...The total number of 4xx Requests processed by Katlas Service
 	KatlasNumReqErr4xx = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "katlas_service_requests_error_4xx",
@@ -41,8 +40,8 @@ var (
 
 	//KatlasQueryLatencyHistogram ...latency metric for external Query Requests(keyword, QSL queries)
 	KatlasQueryLatencyHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:    "katlas_service_requests_latency",
+		Name:    "http_server_requests_seconds",
 		Help:    "Time take to handle external queries by the Katlas Service",
 		Buckets: prometheus.ExponentialBuckets(0.0010, 2, 15),
-	}, []string{"code"})
+	}, []string{"app", "caller", "exception", "l1", "l2", "method", "status", "uri"})
 )

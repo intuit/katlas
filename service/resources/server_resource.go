@@ -351,7 +351,7 @@ func (s ServerResource) QueryHandler(w http.ResponseWriter, r *http.Request) {
 	code := http.StatusOK
 	start := time.Now()
 	defer func() {
-		metrics.KatlasQueryLatencyHistogram.WithLabelValues(fmt.Sprintf("%d", code)).Observe(time.Since(start).Seconds())
+		metrics.KatlasQueryLatencyHistogram.WithLabelValues("katlas", "*", "None", "dev", "containers", "GET", fmt.Sprintf("%d", code), "/**").Observe(time.Since(start).Seconds())
 	}()
 
 	obj, err := s.QuerySvc.GetQueryResult(queryMap)
@@ -1034,7 +1034,8 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	code := http.StatusOK
 	defer func() {
-		metrics.KatlasQueryLatencyHistogram.WithLabelValues(fmt.Sprintf("%d", code)).Observe(time.Since(start).Seconds())
+		//metrics.KatlasQueryLatencyHistogram.WithLabelValues(fmt.Sprintf("%d", code)).Observe(time.Since(start).Seconds())
+		metrics.KatlasQueryLatencyHistogram.WithLabelValues("katlas", "*", "None", "dev", "containers", "GET", fmt.Sprintf("%d", code), "/**").Observe(time.Since(start).Seconds())
 	}()
 
 	response, err = s.QSLSvc.DBclient.ExecuteDgraphQuery(query)
