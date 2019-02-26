@@ -2,7 +2,6 @@ package db
 
 import (
 	"github.com/intuit/katlas/service/metrics"
-	"github.com/intuit/katlas/service/util"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -122,15 +121,6 @@ func TestMetricsDgraphNumMutations(t *testing.T) {
 	nextCounter = metrics.ReadCounter(metrics.DgraphNumMutations)
 	assert.Equal(t, expectedDgraphNumMutations, nextCounter-prevCounter, "DgraphNumMutations is not equal to expected.")
 
-	//SetFieldToNull
-	prevCounter = metrics.ReadCounter(metrics.DgraphNumMutations)
-	delMap := make(map[string]interface{})
-	delMap[util.UID] = "0x12345"
-	_ = client.SetFieldToNull(delMap)
-	expectedDgraphNumMutations = 1.0
-	nextCounter = metrics.ReadCounter(metrics.DgraphNumMutations)
-	assert.Equal(t, expectedDgraphNumMutations, nextCounter-prevCounter, "DgraphNumMutations is not equal to expected.")
-
 	//CreateOrDeleteEdge
 	prevCounter = metrics.ReadCounter(metrics.DgraphNumMutations)
 	var pid, nodeid string
@@ -179,17 +169,6 @@ func TestMetricsDgraphNumMutationsErr(t *testing.T) {
 	}
 	nid1, _ := client.CreateEntity("k8snode", node1)
 	defer client.DeleteEntity(nid1)
-	expectedDgraphNumMutationsErr = 1.0
-	nextCounter = metrics.ReadCounter(metrics.DgraphNumMutationsErr)
-	assert.Equal(t, expectedDgraphNumMutationsErr, nextCounter-prevCounter, "DgraphNumMutationsErr is not equal to expected.")
-
-	//SetFieldToNull
-	prevCounter = metrics.ReadCounter(metrics.DgraphNumMutationsErr)
-	client = NewDGClient("127.0.0.1:9080")
-	client.Close()
-	delMap := make(map[string]interface{})
-	delMap[util.UID] = "0x12345"
-	_ = client.SetFieldToNull(delMap)
 	expectedDgraphNumMutationsErr = 1.0
 	nextCounter = metrics.ReadCounter(metrics.DgraphNumMutationsErr)
 	assert.Equal(t, expectedDgraphNumMutationsErr, nextCounter-prevCounter, "DgraphNumMutationsErr is not equal to expected.")

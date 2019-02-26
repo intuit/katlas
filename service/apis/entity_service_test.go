@@ -198,8 +198,8 @@ func TestCreateEntityWithMeta(t *testing.T) {
 	podMap["cluster"] = "cluster01"
 	s.CreateEntity("pod", podMap)
 
-	s.DeleteEntityByResourceID("namespace", "default")
-	s.DeleteEntityByResourceID("cluster", "cluster01")
+	s.DeleteEntityByResourceID("namespace", "namespace:cluster01:default")
+	s.DeleteEntityByResourceID("cluster", "cluster:cluster01")
 	s.dbclient.DeleteEntity(uid)
 }
 
@@ -425,7 +425,7 @@ func TestMultiCreateEntity(t *testing.T) {
 	q := NewQueryService(dc)
 	defer dc.Close()
 	dc.CreateSchema(db.Schema{Predicate: "name", Type: "string", Index: true, Tokenizer: []string{"term"}})
-	dc.CreateSchema(db.Schema{Predicate: "resourceid", Type: "string", Index: true, Tokenizer: []string{"term"}})
+	dc.CreateSchema(db.Schema{Predicate: "resourceid", Type: "string", Index: true, Upsert: true, Tokenizer: []string{"term"}})
 	dc.CreateSchema(db.Schema{Predicate: "objtype", Type: "string", Index: true, Tokenizer: []string{"term"}})
 	s := NewEntityService(dc)
 	var wg sync.WaitGroup
