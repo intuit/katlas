@@ -31,6 +31,10 @@ func NewBackOff() *backoff.ExponentialBackOff {
 //RegisterHistogramMetrics ...Register histogram with prometheus
 func RegisterHistogramMetrics() {
 	prometheus.MustRegister(metrics.KatlasQueryLatencyHistogram)
+	prometheus.MustRegister(metrics.DgraphCreateEntityLatencyHistogram)
+	prometheus.MustRegister(metrics.DgraphUpdateEntityLatencyHistogram)
+	prometheus.MustRegister(metrics.DgraphDeleteEntityLatencyHistogram)
+	prometheus.MustRegister(metrics.DgraphGetEntityLatencyHistogram)
 }
 
 //ReadCounter ...Extract float64 Value from the prometheus Counter metric
