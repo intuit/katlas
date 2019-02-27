@@ -169,7 +169,6 @@ func (s MetaService) CreateMetadata(data map[string]interface{}) (string, error)
 		log.Error(err)
 		return "", fmt.Errorf("can't create metadata %v", err)
 	}
-	log.Infof("metadata created: %v", uid)
 	return uid, nil
 }
 
@@ -254,7 +253,6 @@ func (s MetaService) UpdateMetadata(name string, data map[string]interface{}) er
 		}
 		e := NewEntityService(s.dbclient)
 		err := e.UpdateEntity(metadata.UID, data, util.OptionContext{ReplaceListOrEdge: false})
-		log.Infof("metadata %s updated", name)
 		return err
 	}
 	return fmt.Errorf("metadata %s not found", name)

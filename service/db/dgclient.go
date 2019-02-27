@@ -217,6 +217,7 @@ func (s DGClient) CreateEntity(meta string, data map[string]interface{}) (string
 		return "", e
 	}
 	metrics.DgraphNumMutations.Inc()
+	log.Debugf("%s %s upsert with version %s successfully", meta, data[util.Name], data[util.ResourceVersion])
 	// return created blank node uid
 	if uid, ok := resp.Uids["A"]; ok {
 		return uid, nil
@@ -346,9 +347,10 @@ func (s DGClient) UpdateEntity(uuid string, data map[string]interface{}, option 
 			return e
 		}
 		metrics.DgraphNumMutations.Inc()
+		log.Debugf("%s %s updated to version %s successfully", data[util.Name], uuid, data[util.ResourceVersion])
 		return nil
 	}
-	return backoff.Permanent(fmt.Errorf("update failed, resource with id %s not found", uuid))
+	return backoff.Permanent(fmt.Errorf("update failed, resource %s not found", uuid))
 }
 
 // GetQueryResult - get Query Results
