@@ -2,13 +2,12 @@ package apis
 
 import (
 	"encoding/json"
-	"strconv"
 	"strings"
 	"time"
 
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"github.com/intuit/katlas/service/cfg"
+	"github.com/cenkalti/backoff"
 	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/metrics"
 	"github.com/intuit/katlas/service/util"
@@ -30,7 +29,7 @@ type IEntityService interface {
 	// save new entity to the storage
 	CreateEntity(meta string, data map[string]interface{}) (string, error)
 	// update entity with given ID in the storage
-	UpdateEntity(uuid string, data map[string]interface{}, option ...cfg.OptionContext)
+	UpdateEntity(uuid string, data map[string]interface{}, option ...util.OptionContext)
 	// create or remove relationship between entities by given IDs
 	CreateOrDeleteEdge(fromUID string, toUID string, rel string, op db.Action) error
 	// sync data between source and underlying database
@@ -154,7 +153,16 @@ func (s EntityService) CreateEntity(meta string, data map[string]interface{}) (s
 	}
 	if mutex.TryLock(data[util.ResourceID]) {
 		defer mutex.Unlock(data[util.ResourceID])
-		return s.dbclient.CreateEntity(meta, data)
+		var uuid string
+		operation := func() error {
+			uuid, err = s.dbclient.CreateEntity(meta, data)
+			return err
+		}
+		err := backoff.Retry(operation, backoff.WithMaxRetries(util.NewBackOff(), util.RetryCount))
+		if err != nil {
+			return "", err
+		}
+		return uuid, nil
 	}
 	return "", fmt.Errorf("can't get resource lock, ignore after timeout reached")
 }
@@ -210,10 +218,13 @@ func (s EntityService) CreateOrDeleteEdge(fromType string, fromUID string, toTyp
 }
 
 // UpdateEntity update entity
-func (s EntityService) UpdateEntity(uuid string, data map[string]interface{}, option ...cfg.OptionContext) error {
+func (s EntityService) UpdateEntity(uuid string, data map[string]interface{}, option ...util.OptionContext) error {
 	if mutex.TryLock(uuid) {
 		defer mutex.Unlock(uuid)
-		err := s.dbclient.UpdateEntity(uuid, data, option...)
+		operation := func() error {
+			return s.dbclient.UpdateEntity(uuid, data, option...)
+		}
+		err := backoff.Retry(operation, backoff.WithMaxRetries(util.NewBackOff(), util.RetryCount))
 		if err != nil {
 			return err
 		}
@@ -221,29 +232,6 @@ func (s EntityService) UpdateEntity(uuid string, data map[string]interface{}, op
 		return nil
 	}
 	return fmt.Errorf("can't get resource lock to update %s, ignore after timeout reached", uuid)
-}
-
-// check resource version
-func validateResourceVersion(node, data map[string]interface{}) bool {
-	cv, hasVersion := node[util.Objects].([]interface{})[0].(map[string]interface{})[util.ResourceVersion]
-	var currentVersion int64
-	if hasVersion {
-		currentVersion, _ = strconv.ParseInt(cv.(string), 10, 64)
-	}
-	// check resourceversion
-	if version, ok := data[util.ResourceVersion]; ok {
-		inputVersion, _ := strconv.ParseInt(version.(string), 10, 64)
-		// input version less than or equal current version, ignore
-		if inputVersion <= currentVersion {
-			return false
-		}
-	} else {
-		// increase version
-		if hasVersion {
-			data[util.ResourceVersion] = strconv.FormatInt(currentVersion+1, 10)
-		}
-	}
-	return true
 }
 
 // build resourceid

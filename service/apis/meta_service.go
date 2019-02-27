@@ -4,8 +4,7 @@ import (
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
-	lru "github.com/hashicorp/golang-lru"
-	"github.com/intuit/katlas/service/cfg"
+	"github.com/hashicorp/golang-lru"
 	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/util"
 	"github.com/mitchellh/mapstructure"
@@ -254,7 +253,7 @@ func (s MetaService) UpdateMetadata(name string, data map[string]interface{}) er
 			}
 		}
 		e := NewEntityService(s.dbclient)
-		err := e.UpdateEntity(metadata.UID, data, cfg.OptionContext{ReplaceListOrEdge: false})
+		err := e.UpdateEntity(metadata.UID, data, util.OptionContext{ReplaceListOrEdge: false})
 		log.Infof("metadata %s updated", name)
 		return err
 	}

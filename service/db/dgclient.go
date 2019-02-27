@@ -8,17 +8,15 @@ import (
 
 	"fmt"
 	log "github.com/Sirupsen/logrus"
+	"github.com/cenkalti/backoff"
 	"github.com/dgraph-io/dgo"
 	"github.com/dgraph-io/dgo/protos/api"
 	"github.com/hashicorp/golang-lru"
-	"github.com/intuit/katlas/service/cfg"
 	"github.com/intuit/katlas/service/metrics"
 	"github.com/intuit/katlas/service/util"
 	"google.golang.org/grpc"
-	"math/rand"
 	"reflect"
 	"strconv"
-	"time"
 )
 
 // Action as oper
@@ -70,7 +68,7 @@ type IDGClient interface {
 	DeleteEntity(uuid string) error
 	CreateEntity(meta string, data map[string]interface{}) (string, error)
 	CreateOrDeleteEdge(fromType string, fromUID string, toType string, toUID string, rel string, op Action) error
-	UpdateEntity(uuid string, data map[string]interface{}, option ...cfg.OptionContext) error
+	UpdateEntity(uuid string, data map[string]interface{}, option ...util.OptionContext) error
 	GetQueryResult(query string) (map[string]interface{}, error)
 	Close() error
 	ExecuteDgraphQuery(query string) (map[string]interface{}, error)
@@ -173,68 +171,60 @@ func (s DGClient) CreateEntity(meta string, data map[string]interface{}) (string
 		}
 	`, data[util.ResourceID])
 	ctx := context.Background()
-	cnt := 0
-	for {
-		txn := s.dc.NewTxn()
-		defer txn.Discard(ctx)
-		current, ex := s.ExecuteDgraphQuery(q)
-		if ex != nil {
-			metrics.DgraphNumCreateEntityErr.Inc()
-			metrics.DgraphNumMutationsErr.Inc()
-			return "", ex
+
+	txn := s.dc.NewTxn()
+	defer txn.Discard(ctx)
+	current, ex := s.ExecuteDgraphQuery(q)
+	if ex != nil {
+		metrics.DgraphNumCreateEntityErr.Inc()
+		metrics.DgraphNumMutationsErr.Inc()
+		return "", ex
+	}
+	// check if object exist
+	if len(current[util.Objects].([]interface{})) > 0 {
+		// new version has to larger than old
+		valid := validateResourceVersion(current, data)
+		if !valid {
+			return current[util.Objects].([]interface{})[0].(map[string]interface{})[util.UID].(string), nil
 		}
-		// check if object exist
-		if len(current[util.Objects].([]interface{})) > 0 {
-			// new version has to larger than old
-			valid := validateResourceVersion(current, data)
-			if !valid {
-				return current[util.Objects].([]interface{})[0].(map[string]interface{})[util.UID].(string), nil
-			}
-			uid := current[util.Objects].([]interface{})[0].(map[string]interface{})[util.UID].(string)
-			err := cleanListOrEdgesFields(ctx, uid, data, mu, txn)
-			if err != nil {
-				metrics.DgraphNumCreateEntityErr.Inc()
-				metrics.DgraphNumMutationsErr.Inc()
-				log.Error(err, data)
-				return "", err
-			}
-			data[util.UID] = uid
-		}
-		if _, ok := data[util.ResourceVersion]; !ok {
-			data[util.ResourceVersion] = "0"
-		}
-		jsonData, _ := json.Marshal(data)
-		mu.SetJson = jsonData
-		resp, err := txn.Mutate(ctx, mu)
+		uid := current[util.Objects].([]interface{})[0].(map[string]interface{})[util.UID].(string)
+		err := cleanListOrEdgesFields(ctx, uid, data, mu, txn)
 		if err != nil {
 			metrics.DgraphNumCreateEntityErr.Inc()
 			metrics.DgraphNumMutationsErr.Inc()
 			log.Error(err, data)
 			return "", err
 		}
-		e := txn.Commit(ctx)
-		if e != nil {
-			log.Errorf("%s, %v", e.Error(), data)
-			cnt++
-			if cnt >= util.RetryCount {
-				metrics.DgraphNumCreateEntityErr.Inc()
-				metrics.DgraphNumMutationsErr.Inc()
-				log.Errorf("creation failed, exceed maximum retry count %d", cnt)
-				return "", e
-			}
-			time.Sleep(time.Duration(rand.Intn(100)) * time.Microsecond)
-			continue
-		}
-		metrics.DgraphNumMutations.Inc()
-		// return created blank node uid
-		if uid, ok := resp.Uids["A"]; ok {
-			return uid, nil
-		}
-		if uid, ok := resp.Uids["blank-0"]; ok {
-			return uid, nil
-		}
-		return data[util.UID].(string), nil
+		data[util.UID] = uid
 	}
+	if _, ok := data[util.ResourceVersion]; !ok {
+		data[util.ResourceVersion] = "0"
+	}
+	jsonData, _ := json.Marshal(data)
+	mu.SetJson = jsonData
+	resp, err := txn.Mutate(ctx, mu)
+	if err != nil {
+		metrics.DgraphNumCreateEntityErr.Inc()
+		metrics.DgraphNumMutationsErr.Inc()
+		log.Error(err, data)
+		return "", err
+	}
+	e := txn.Commit(ctx)
+	if e != nil {
+		log.Errorf("%s, %v", e.Error(), data)
+		metrics.DgraphNumCreateEntityErr.Inc()
+		metrics.DgraphNumMutationsErr.Inc()
+		return "", e
+	}
+	metrics.DgraphNumMutations.Inc()
+	// return created blank node uid
+	if uid, ok := resp.Uids["A"]; ok {
+		return uid, nil
+	}
+	if uid, ok := resp.Uids["blank-0"]; ok {
+		return uid, nil
+	}
+	return data[util.UID].(string), nil
 }
 
 // cleanFields - remove fields from nodes
@@ -298,7 +288,7 @@ func (s DGClient) CreateOrDeleteEdge(fromType string, fromUID string, toType str
 }
 
 // UpdateEntity - update entity
-func (s DGClient) UpdateEntity(uuid string, data map[string]interface{}, option ...cfg.OptionContext) error {
+func (s DGClient) UpdateEntity(uuid string, data map[string]interface{}, option ...util.OptionContext) error {
 	data[util.UID] = uuid
 	mu := &api.Mutation{
 		CommitNow: false,
@@ -314,59 +304,51 @@ func (s DGClient) UpdateEntity(uuid string, data map[string]interface{}, option 
 			}
 		}
 	`, uuid)
-	cnt := 0
-	for {
-		txn := s.dc.NewTxn()
-		defer txn.Discard(ctx)
-		current, ex := s.ExecuteDgraphQuery(q)
-		if ex != nil {
-			metrics.DgraphNumUpdateEntityErr.Inc()
-			metrics.DgraphNumMutationsErr.Inc()
-			return ex
+
+	txn := s.dc.NewTxn()
+	defer txn.Discard(ctx)
+	current, ex := s.ExecuteDgraphQuery(q)
+	if ex != nil {
+		metrics.DgraphNumUpdateEntityErr.Inc()
+		metrics.DgraphNumMutationsErr.Inc()
+		return ex
+	}
+	// check if object exist
+	if len(current[util.Objects].([]interface{})) > 0 {
+		// new version has to larger than old
+		valid := validateResourceVersion(current, data)
+		if !valid {
+			return backoff.Permanent(fmt.Errorf("resource %s updated by others with higher version, ignore this change", uuid))
 		}
-		// check if object exist
-		if len(current[util.Objects].([]interface{})) > 0 {
-			// new version has to larger than old
-			valid := validateResourceVersion(current, data)
-			if !valid {
-				return fmt.Errorf("resource %s updated by others with higher version, ignore this change", uuid)
-			}
-			if len(option) == 0 || option[0].ReplaceListOrEdge {
-				err := cleanListOrEdgesFields(ctx, uuid, data, mu, txn)
-				if err != nil {
-					metrics.DgraphNumUpdateEntityErr.Inc()
-					metrics.DgraphNumMutationsErr.Inc()
-					log.Error(err, data)
-					return err
-				}
-			}
-			jsonData, _ := json.Marshal(data)
-			mu.SetJson = jsonData
-			_, err := txn.Mutate(ctx, mu)
+		if len(option) == 0 || option[0].ReplaceListOrEdge {
+			err := cleanListOrEdgesFields(ctx, uuid, data, mu, txn)
 			if err != nil {
 				metrics.DgraphNumUpdateEntityErr.Inc()
 				metrics.DgraphNumMutationsErr.Inc()
 				log.Error(err, data)
 				return err
 			}
-			e := txn.Commit(ctx)
-			if e != nil {
-				log.Errorf("%s, %v", e.Error(), data)
-				cnt++
-				if cnt >= util.RetryCount {
-					metrics.DgraphNumUpdateEntityErr.Inc()
-					metrics.DgraphNumMutationsErr.Inc()
-					log.Errorf("update failed, exceed maximum retry count %d", cnt)
-					return e
-				}
-				time.Sleep(time.Duration(rand.Intn(100)) * time.Microsecond)
-				continue
-			}
-			metrics.DgraphNumMutations.Inc()
-			return nil
 		}
-		return fmt.Errorf("update failed, resource with id %s not found", uuid)
+		jsonData, _ := json.Marshal(data)
+		mu.SetJson = jsonData
+		_, err := txn.Mutate(ctx, mu)
+		if err != nil {
+			metrics.DgraphNumUpdateEntityErr.Inc()
+			metrics.DgraphNumMutationsErr.Inc()
+			log.Error(err, data)
+			return err
+		}
+		e := txn.Commit(ctx)
+		if e != nil {
+			log.Errorf("%s, %v", e.Error(), data)
+			metrics.DgraphNumUpdateEntityErr.Inc()
+			metrics.DgraphNumMutationsErr.Inc()
+			return e
+		}
+		metrics.DgraphNumMutations.Inc()
+		return nil
 	}
+	return backoff.Permanent(fmt.Errorf("update failed, resource with id %s not found", uuid))
 }
 
 // GetQueryResult - get Query Results

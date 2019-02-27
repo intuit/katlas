@@ -2,7 +2,6 @@ package util
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"math/rand"
 	"sync"
 	"time"
 )
@@ -29,6 +28,7 @@ func NewKeyMutex(maxDuration time.Duration, delayFactor int) *KeyMutex {
 // TryLock try lock by key
 func (k KeyMutex) TryLock(key interface{}) bool {
 	timeout := time.NewTimer(k.maxDuration)
+	bf := NewBackOff()
 	for {
 		select {
 		case <-timeout.C:
@@ -39,7 +39,8 @@ func (k KeyMutex) TryLock(key interface{}) bool {
 			// if key already locked by others, sleep random time then retry
 			if _, ok := k.keys[key]; ok {
 				k.mutex.Unlock()
-				time.Sleep(time.Duration(rand.Intn(k.delayFactor)) * time.Microsecond)
+				//time.Sleep(time.Duration(rand.Intn(k.delayFactor)) * time.Microsecond)
+				time.Sleep(bf.NextBackOff())
 			} else {
 				k.keys[key] = struct{}{}
 				k.mutex.Unlock()
