@@ -44,10 +44,18 @@ func (s ServerResource) EntityGetHandler(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
 	uid := vars[util.UID]
+
+	start := time.Now()
+	code := http.StatusOK
+	defer func() {
+		metrics.DgraphGetEntityLatencyHistogram.WithLabelValues(fmt.Sprintf("%d", code)).Observe(time.Since(start).Seconds())
+	}()
+
 	obj, err := s.EntitySvc.GetEntity(uid)
 	if err != nil {
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr5xx.Inc()
+		code = http.StatusInternalServerError
 		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
@@ -55,6 +63,7 @@ func (s ServerResource) EntityGetHandler(w http.ResponseWriter, r *http.Request)
 	if len(obj) == 0 {
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr4xx.Inc()
+		code = http.StatusNotFound
 		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"entity with id %s not found\"}", http.StatusNotFound, uid)))
 		return
 	}
@@ -142,10 +151,18 @@ func (s ServerResource) EntityDeleteHandler(w http.ResponseWriter, r *http.Reque
 	vars := mux.Vars(r)
 	meta := vars[util.Metadata]
 	rid := vars[util.ResourceID]
+
+	start := time.Now()
+	code := http.StatusOK
+	defer func() {
+		metrics.DgraphDeleteEntityLatencyHistogram.WithLabelValues(fmt.Sprintf("%d", code)).Observe(time.Since(start).Seconds())
+	}()
+
 	err := s.EntitySvc.DeleteEntityByResourceID(meta, rid)
 	if err != nil {
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr5xx.Inc()
+		code = http.StatusInternalServerError
 		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
@@ -190,10 +207,18 @@ func (s ServerResource) EntityCreateHandler(w http.ResponseWriter, r *http.Reque
 		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
 		return
 	}
+
+	start := time.Now()
+	code := http.StatusOK
+	defer func() {
+		metrics.DgraphCreateEntityLatencyHistogram.WithLabelValues(fmt.Sprintf("%d", code)).Observe(time.Since(start).Seconds())
+	}()
+
 	uid, err := s.EntitySvc.CreateEntity(meta, payload.(map[string]interface{}))
 	if err != nil {
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr5xx.Inc()
+		code = http.StatusInternalServerError
 		log.Error(err)
 		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
@@ -242,10 +267,17 @@ func (s ServerResource) EntityUpdateHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	start := time.Now()
+	code := http.StatusOK
+	defer func() {
+		metrics.DgraphUpdateEntityLatencyHistogram.WithLabelValues(fmt.Sprintf("%d", code)).Observe(time.Since(start).Seconds())
+	}()
+
 	err = s.EntitySvc.UpdateEntity(uuid, payload)
 	if err != nil {
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr5xx.Inc()
+		code = http.StatusInternalServerError
 		log.Error(err)
 		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
@@ -319,7 +351,7 @@ func (s ServerResource) QueryHandler(w http.ResponseWriter, r *http.Request) {
 	code := http.StatusOK
 	start := time.Now()
 	defer func() {
-		metrics.KatlasQueryLatencyHistogram.WithLabelValues(fmt.Sprintf("%d", code)).Observe(time.Since(start).Seconds())
+		metrics.KatlasQueryLatencyHistogram.WithLabelValues("katlas", "*", "None", "dev", "containers", "GET", fmt.Sprintf("%d", code), "/**").Observe(time.Since(start).Seconds())
 	}()
 
 	obj, err := s.QuerySvc.GetQueryResult(queryMap)
@@ -1002,7 +1034,8 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	code := http.StatusOK
 	defer func() {
-		metrics.KatlasQueryLatencyHistogram.WithLabelValues(fmt.Sprintf("%d", code)).Observe(time.Since(start).Seconds())
+		//metrics.KatlasQueryLatencyHistogram.WithLabelValues(fmt.Sprintf("%d", code)).Observe(time.Since(start).Seconds())
+		metrics.KatlasQueryLatencyHistogram.WithLabelValues("katlas", "*", "None", "dev", "containers", "GET", fmt.Sprintf("%d", code), "/**").Observe(time.Since(start).Seconds())
 	}()
 
 	response, err = s.QSLSvc.DBclient.ExecuteDgraphQuery(query)
