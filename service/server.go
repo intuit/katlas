@@ -82,6 +82,7 @@ func serve() {
 	router.HandleFunc("/", Up).Methods("GET", "POST")
 	// Monitoring
 	router.Handle("/prometheus_metrics", promhttp.Handler()).Methods("GET")
+	util.RegisterHistogramMetrics()
 
 	//Creates an LRU cache of the given size
 	var err error

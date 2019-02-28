@@ -59,6 +59,7 @@ func (s QueryService) GetQueryResult(queryMap map[string][]string) (map[string]i
 		q, cntQry, err := s.getQueryResultByKeyword(val[0], limit, offset)
 		metrics.DgraphNumKeywordQueries.Inc()
 		if err != nil {
+			metrics.DgraphNumKeywordQueriesErr.Inc()
 			log.Debug(err)
 			return nil, err
 		}
@@ -86,6 +87,7 @@ func (s QueryService) GetQueryResult(queryMap map[string][]string) (map[string]i
 	metrics.DgraphNumKeyValueQueries.Inc()
 	ret, err := s.dbclient.GetQueryResult(cntQry)
 	if err != nil {
+		metrics.DgraphNumKeyValueQueriesErr.Inc()
 		log.Debug(err)
 		return nil, err
 	}

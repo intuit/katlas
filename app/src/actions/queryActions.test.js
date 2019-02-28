@@ -146,7 +146,7 @@ describe('asynch query actions', () => {
 });
 
 //MOCK_RESP contains 2 duplicate objects, this will exercise code to filter out dupes and should leave us with resulting length of 1
-const MOCK_RESP_EMPTY = { objects: [] };
+const MOCK_RESP_EMPTY = { count: 0, objects: [], status: 200 };
 const MOCK_RESP_DUPE_LEN = 2;
 const MOCK_RESP_DUPE = {
   count: 2,

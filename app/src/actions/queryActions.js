@@ -63,9 +63,10 @@ export function fetchQuery(
     }
 
     return requestPromise.then(json => {
-      if (json != null) {
-        dispatch(receiveQuery(json.objects, json.count));
+      if (json.status !== 200) {
+        return dispatch(notifyActions.showNotify(json.error));
       }
+      dispatch(receiveQuery(json.objects, json.count));
     });
   };
 }
@@ -95,10 +96,10 @@ export function fetchMetadata(objType) {
     }
     dispatch(requestMetadata(objType));
     ApiService.getMetadata(objType).then(json => {
-      if(json.objects === undefined || json.objects.length !== 1) {
+      if (json.objects === undefined || json.objects.length !== 1) {
         dispatch(notifyActions.showNotify(FETCH_METADATA_ERR));
         return;
-      };
+      }
       dispatch(receiveMetadata(objType, json.objects[0]));
     });
   };

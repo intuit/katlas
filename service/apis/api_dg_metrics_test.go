@@ -8,6 +8,7 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/metrics"
+	"github.com/intuit/katlas/service/util"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,7 +21,7 @@ func init() {
 
 func TestMetricsDgraphNumKeywordQueries(t *testing.T) {
 
-	prevCounter := metrics.ReadCounter(metrics.DgraphNumKeywordQueries)
+	prevCounter := util.ReadCounter(metrics.DgraphNumKeywordQueries)
 
 	dc := db.NewDGClient("127.0.0.1:9080")
 	defer dc.Close()
@@ -37,13 +38,13 @@ func TestMetricsDgraphNumKeywordQueries(t *testing.T) {
 	_, _ = s.GetQueryResult(m)
 
 	expectedDgraphNumKeywordQueries := 1.0
-	nextCounter := metrics.ReadCounter(metrics.DgraphNumKeywordQueries)
+	nextCounter := util.ReadCounter(metrics.DgraphNumKeywordQueries)
 	assert.Equal(t, expectedDgraphNumKeywordQueries, nextCounter-prevCounter, "DgraphNumKeywordQueries is not equal to expected.")
 }
 
 func TestMetricsDgraphNumKeyValueQueries(t *testing.T) {
 
-	prevCounter := metrics.ReadCounter(metrics.DgraphNumKeyValueQueries)
+	prevCounter := util.ReadCounter(metrics.DgraphNumKeyValueQueries)
 
 	dc := db.NewDGClient("127.0.0.1:9080")
 	defer dc.Close()
@@ -55,13 +56,13 @@ func TestMetricsDgraphNumKeyValueQueries(t *testing.T) {
 	_, _ = s.GetQueryResult(m)
 
 	expectedDgraphNumKeyValueQueries := 1.0
-	nextCounter := metrics.ReadCounter(metrics.DgraphNumKeyValueQueries)
+	nextCounter := util.ReadCounter(metrics.DgraphNumKeyValueQueries)
 	assert.Equal(t, expectedDgraphNumKeyValueQueries, nextCounter-prevCounter, "DgraphNumKeyValueQueries is not equal to expected.")
 }
 
 func TestMetricsDgraphNumQSL(t *testing.T) {
 
-	prevCounter := metrics.ReadCounter(metrics.DgraphNumQSL)
+	prevCounter := util.ReadCounter(metrics.DgraphNumQSL)
 
 	dc := db.NewDGClient("127.0.0.1:9080")
 	defer dc.Close()
@@ -72,13 +73,13 @@ func TestMetricsDgraphNumQSL(t *testing.T) {
 	_, _ = qslSvc.CreateDgraphQuery(q, false)
 
 	expectedDgraphNumQSL := 1.0
-	nextCounter := metrics.ReadCounter(metrics.DgraphNumQSL)
+	nextCounter := util.ReadCounter(metrics.DgraphNumQSL)
 	assert.Equal(t, expectedDgraphNumQSL, nextCounter-prevCounter, "DgraphNumQSL is not equal to expected.")
 }
 
 func TestMetricsDgraphCreateEntity(t *testing.T) {
 
-	prevCounter := metrics.ReadCounter(metrics.DgraphNumCreateEntity)
+	prevCounter := util.ReadCounter(metrics.DgraphNumCreateEntity)
 
 	dc := db.NewDGClient("127.0.0.1:9080")
 	defer dc.Close()
@@ -90,13 +91,13 @@ func TestMetricsDgraphCreateEntity(t *testing.T) {
 	nid, _ := s.CreateEntity("k8snode", node)
 	defer s.DeleteEntity(nid)
 	expectedDgraphNumCreateEntity := 1.0
-	nextCounter := metrics.ReadCounter(metrics.DgraphNumCreateEntity)
+	nextCounter := util.ReadCounter(metrics.DgraphNumCreateEntity)
 	assert.Equal(t, expectedDgraphNumCreateEntity, nextCounter-prevCounter, "DgraphNumCreateEntity is not equal to expected.")
 }
 
 func TestMetricsDgraphGetEntity(t *testing.T) {
 
-	prevCounter := metrics.ReadCounter(metrics.DgraphNumGetEntity)
+	prevCounter := util.ReadCounter(metrics.DgraphNumGetEntity)
 
 	dc := db.NewDGClient("127.0.0.1:9080")
 	defer dc.Close()
@@ -110,13 +111,13 @@ func TestMetricsDgraphGetEntity(t *testing.T) {
 	_, _ = s.GetEntity(nid)
 
 	expectedDgraphNumGetEntity := 1.0
-	nextCounter := metrics.ReadCounter(metrics.DgraphNumGetEntity)
+	nextCounter := util.ReadCounter(metrics.DgraphNumGetEntity)
 	assert.Equal(t, expectedDgraphNumGetEntity, nextCounter-prevCounter, "DgraphNumGetEntity is not equal to expected.")
 }
 
 func TestMetricsDgraphUpdateEntity(t *testing.T) {
 
-	prevCounter := metrics.ReadCounter(metrics.DgraphNumUpdateEntity)
+	prevCounter := util.ReadCounter(metrics.DgraphNumUpdateEntity)
 
 	dc := db.NewDGClient("127.0.0.1:9080")
 	defer dc.Close()
@@ -131,7 +132,7 @@ func TestMetricsDgraphUpdateEntity(t *testing.T) {
 	s.UpdateEntity(nid, update)
 
 	expectedDgraphNumUpdateEntity := 1.0
-	nextCounter := metrics.ReadCounter(metrics.DgraphNumUpdateEntity)
+	nextCounter := util.ReadCounter(metrics.DgraphNumUpdateEntity)
 	assert.Equal(t, expectedDgraphNumUpdateEntity, nextCounter-prevCounter, "DgraphNumUpdateEntity is not equal to expected.")
 }
 
@@ -144,7 +145,7 @@ func TestMetricsDgraphDeleteEntity(t *testing.T) {
 	s := NewEntityService(dc)
 
 	//DeleteEntity
-	prevCounter = metrics.ReadCounter(metrics.DgraphNumDeleteEntity)
+	prevCounter = util.ReadCounter(metrics.DgraphNumDeleteEntity)
 	node := map[string]interface{}{
 		"objtype": "k8snode",
 		"name":    "test-node-metrics",
@@ -152,11 +153,11 @@ func TestMetricsDgraphDeleteEntity(t *testing.T) {
 	nid, _ := s.CreateEntity("k8snode", node)
 	s.DeleteEntity(nid)
 	expectedDgraphNumDeleteEntity = 1.0
-	nextCounter = metrics.ReadCounter(metrics.DgraphNumDeleteEntity)
+	nextCounter = util.ReadCounter(metrics.DgraphNumDeleteEntity)
 	assert.Equal(t, expectedDgraphNumDeleteEntity, nextCounter-prevCounter, "DgraphNumDeleteEntity is not equal to expected.")
 
 	//DeleteEntityByResourceID
-	prevCounter = metrics.ReadCounter(metrics.DgraphNumDeleteEntity)
+	prevCounter = util.ReadCounter(metrics.DgraphNumDeleteEntity)
 	// create node
 	nodenew := map[string]interface{}{
 		"objtype":    "k8snode",
@@ -166,13 +167,13 @@ func TestMetricsDgraphDeleteEntity(t *testing.T) {
 	s.CreateEntity("k8snode", nodenew)
 	_ = s.DeleteEntityByResourceID("k8snode", "noderid")
 	expectedDgraphNumDeleteEntity = 1.0
-	nextCounter = metrics.ReadCounter(metrics.DgraphNumDeleteEntity)
+	nextCounter = util.ReadCounter(metrics.DgraphNumDeleteEntity)
 	assert.Equal(t, expectedDgraphNumDeleteEntity, nextCounter-prevCounter, "DgraphNumDeleteEntity is not equal to expected.")
 }
 
 func TestMetricsDgraphUpdateEdge(t *testing.T) {
 
-	prevCounter := metrics.ReadCounter(metrics.DgraphNumUpdateEdge)
+	prevCounter := util.ReadCounter(metrics.DgraphNumUpdateEdge)
 
 	dc := db.NewDGClient("127.0.0.1:9080")
 	defer dc.Close()
@@ -181,6 +182,6 @@ func TestMetricsDgraphUpdateEdge(t *testing.T) {
 	s.CreateOrDeleteEdge("k8spod", pid, "k8snode", nid, "runsOn", 0)
 
 	expectedDgraphNumUpdateEdge := 1.0
-	nextCounter := metrics.ReadCounter(metrics.DgraphNumUpdateEdge)
+	nextCounter := util.ReadCounter(metrics.DgraphNumUpdateEdge)
 	assert.Equal(t, expectedDgraphNumUpdateEdge, nextCounter-prevCounter, "DgraphNumUpdateEdge is not equal to expected.")
 }

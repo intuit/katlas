@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
-	lru "github.com/hashicorp/golang-lru"
+	"github.com/hashicorp/golang-lru"
 	"github.com/intuit/katlas/service/db"
 	"github.com/intuit/katlas/service/util"
 	"github.com/mitchellh/mapstructure"
@@ -169,7 +169,6 @@ func (s MetaService) CreateMetadata(data map[string]interface{}) (string, error)
 		log.Error(err)
 		return "", fmt.Errorf("can't create metadata %v", err)
 	}
-	log.Infof("metadata created/updated: %v", uid)
 	return uid, nil
 }
 
@@ -244,6 +243,8 @@ func (s MetaService) UpdateMetadata(name string, data map[string]interface{}) er
 				name := fs.(map[string]interface{})[util.FieldName]
 				for _, currentField := range metadata.Fields {
 					if currentField.FieldName == name {
+						// set field uid with existing one
+						// this will enable single metadata filed can be updated
 						fs.(map[string]interface{})[util.UID] = currentField.UID
 						break
 					}
@@ -251,7 +252,8 @@ func (s MetaService) UpdateMetadata(name string, data map[string]interface{}) er
 			}
 		}
 		e := NewEntityService(s.dbclient)
-		return e.UpdateEntity(metadata.UID, data, map[string]interface{}{"replace": false})
+		err := e.UpdateEntity(metadata.UID, data, util.OptionContext{ReplaceListOrEdge: false})
+		return err
 	}
 	return fmt.Errorf("metadata %s not found", name)
 }
