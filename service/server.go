@@ -12,7 +12,6 @@ import (
 	"github.com/intuit/katlas/service/apis"
 	"github.com/intuit/katlas/service/cfg"
 	"github.com/intuit/katlas/service/db"
-	"github.com/intuit/katlas/service/metrics"
 	"github.com/intuit/katlas/service/resources"
 	"github.com/intuit/katlas/service/util"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -83,7 +82,7 @@ func serve() {
 	router.HandleFunc("/", Up).Methods("GET", "POST")
 	// Monitoring
 	router.Handle("/prometheus_metrics", promhttp.Handler()).Methods("GET")
-	metrics.RegisterHistogramMetrics()
+	util.RegisterHistogramMetrics()
 
 	//Creates an LRU cache of the given size
 	var err error

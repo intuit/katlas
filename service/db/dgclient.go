@@ -6,13 +6,17 @@ import (
 	"encoding/json"
 	"errors"
 
+	"fmt"
 	log "github.com/Sirupsen/logrus"
+	"github.com/cenkalti/backoff"
 	"github.com/dgraph-io/dgo"
 	"github.com/dgraph-io/dgo/protos/api"
 	"github.com/hashicorp/golang-lru"
 	"github.com/intuit/katlas/service/metrics"
 	"github.com/intuit/katlas/service/util"
 	"google.golang.org/grpc"
+	"reflect"
+	"strconv"
 )
 
 // Action as oper
@@ -64,8 +68,7 @@ type IDGClient interface {
 	DeleteEntity(uuid string) error
 	CreateEntity(meta string, data map[string]interface{}) (string, error)
 	CreateOrDeleteEdge(fromType string, fromUID string, toType string, toUID string, rel string, op Action) error
-	SetFieldToNull(delMap map[string]interface{}) error
-	UpdateEntity(uuid string, data map[string]interface{}) error
+	UpdateEntity(uuid string, data map[string]interface{}, option ...util.OptionContext) error
 	GetQueryResult(query string) (map[string]interface{}, error)
 	Close() error
 	ExecuteDgraphQuery(query string) (map[string]interface{}, error)
@@ -152,11 +155,50 @@ func (s DGClient) DeleteEntity(uuid string) error {
 
 // CreateEntity - create entity
 func (s DGClient) CreateEntity(meta string, data map[string]interface{}) (string, error) {
+	mu := &api.Mutation{
+		CommitNow: false,
+	}
+	// query for check existing resource
+	q := fmt.Sprintf(`
+		{
+			objects(func: eq(resourceid, "%s")) {
+				uid
+				resourceid
+				name
+				objtype
+				resourceversion
+			}
+		}
+	`, data[util.ResourceID])
 	ctx := context.Background()
+
 	txn := s.dc.NewTxn()
 	defer txn.Discard(ctx)
-	mu := &api.Mutation{
-		CommitNow: true,
+	current, ex := s.ExecuteDgraphQuery(q)
+	if ex != nil {
+		metrics.DgraphNumCreateEntityErr.Inc()
+		metrics.DgraphNumMutationsErr.Inc()
+		return "", ex
+	}
+	// check if object exist
+	if len(current[util.Objects].([]interface{})) > 0 {
+		// new version has to larger than old
+		valid := validateResourceVersion(current, data)
+		if !valid {
+			return current[util.Objects].([]interface{})[0].(map[string]interface{})[util.UID].(string), nil
+		}
+		uid := current[util.Objects].([]interface{})[0].(map[string]interface{})[util.UID].(string)
+		err := cleanListOrEdgesFields(ctx, uid, data, mu, txn)
+		if err != nil {
+			metrics.DgraphNumCreateEntityErr.Inc()
+			metrics.DgraphNumMutationsErr.Inc()
+			log.Error(err, data)
+			return "", err
+		}
+		data[util.UID] = uid
+	}
+	if _, ok := data[util.ResourceVersion]; !ok {
+		data[util.ResourceVersion] = "0"
 	}
 	jsonData, _ := json.Marshal(data)
 	mu.SetJson = jsonData
@@ -167,9 +209,15 @@ func (s DGClient) CreateEntity(meta string, data map[string]interface{}) (string
 		log.Error(err, data)
 		return "", err
 	}
+	e := txn.Commit(ctx)
+	if e != nil {
+		log.Errorf("%s, %v", e.Error(), data)
+		metrics.DgraphNumCreateEntityErr.Inc()
+		metrics.DgraphNumMutationsErr.Inc()
+		return "", e
+	}
 	metrics.DgraphNumMutations.Inc()
-
-	log.Infof("%s %s created/updated successfully", meta, data["name"])
+	log.Debugf("%s %s upsert with version %s successfully", meta, data[util.Name], data[util.ResourceVersion])
 	// return created blank node uid
 	if uid, ok := resp.Uids["A"]; ok {
 		return uid, nil
@@ -180,23 +228,27 @@ func (s DGClient) CreateEntity(meta string, data map[string]interface{}) (string
 	return data[util.UID].(string), nil
 }
 
-// SetFieldToNull - remove list or edges from nodes
-func (s DGClient) SetFieldToNull(delMap map[string]interface{}) error {
-	ctx := context.Background()
-	txn := s.dc.NewTxn()
-	defer txn.Discard(ctx)
-	mu := &api.Mutation{
-		CommitNow: true,
+// cleanFields - remove fields from nodes
+func cleanListOrEdgesFields(ctx context.Context, uuid string, data map[string]interface{}, mu *api.Mutation, txn *dgo.Txn) error {
+	// array and edges not able to replace, have to set them to nil and create it again
+	delMap := make(map[string]interface{})
+	for k, v := range data {
+		if reflect.TypeOf(v).Kind() == reflect.Map || reflect.TypeOf(v).Kind() == reflect.Slice {
+			delMap[k] = nil
+		}
 	}
-	delJSON, _ := json.Marshal(delMap)
-	mu.DeleteJson = delJSON
-	_, err := txn.Mutate(ctx, mu)
-	if err != nil {
-		metrics.DgraphNumMutationsErr.Inc()
-		log.Info(err)
-		return err
+	if len(delMap) > 0 {
+		delMap[util.UID] = uuid
+		delJSON, _ := json.Marshal(delMap)
+		mu.DeleteJson = delJSON
+		_, err := txn.Mutate(ctx, mu)
+		if err != nil {
+			metrics.DgraphNumMutationsErr.Inc()
+			log.Error(err, data)
+			return err
+		}
+		mu.DeleteJson = nil
 	}
-	metrics.DgraphNumMutations.Inc()
 	return nil
 }
 
@@ -237,30 +289,68 @@ func (s DGClient) CreateOrDeleteEdge(fromType string, fromUID string, toType str
 }
 
 // UpdateEntity - update entity
-func (s DGClient) UpdateEntity(uuid string, data map[string]interface{}) error {
+func (s DGClient) UpdateEntity(uuid string, data map[string]interface{}, option ...util.OptionContext) error {
+	data[util.UID] = uuid
+	mu := &api.Mutation{
+		CommitNow: false,
+	}
 	ctx := context.Background()
+	// query for check existing resource
+	q := fmt.Sprintf(`
+		{
+			objects(func: uid(%s)) {
+				uid
+				objtype
+				resourceversion
+			}
+		}
+	`, uuid)
+
 	txn := s.dc.NewTxn()
 	defer txn.Discard(ctx)
-	mu := &api.Mutation{
-		CommitNow: true,
-	}
-	data["uid"] = uuid
-	jdata, err := json.Marshal(data)
-	if err != nil {
-		log.Debug(err)
-		return err
-	}
-	mu.SetJson = jdata
-	_, err = txn.Mutate(ctx, mu)
-	if err != nil {
+	current, ex := s.ExecuteDgraphQuery(q)
+	if ex != nil {
 		metrics.DgraphNumUpdateEntityErr.Inc()
 		metrics.DgraphNumMutationsErr.Inc()
-		log.Debug(err)
-		return err
+		return ex
 	}
-	log.Infof("%s updated successfully", data["name"])
-	metrics.DgraphNumMutations.Inc()
-	return nil
+	// check if object exist
+	if len(current[util.Objects].([]interface{})) > 0 {
+		// new version has to larger than old
+		valid := validateResourceVersion(current, data)
+		if !valid {
+			return backoff.Permanent(fmt.Errorf("resource %s updated by others with higher version, ignore this change", uuid))
+		}
+		if len(option) == 0 || option[0].ReplaceListOrEdge {
+			err := cleanListOrEdgesFields(ctx, uuid, data, mu, txn)
+			if err != nil {
+				metrics.DgraphNumUpdateEntityErr.Inc()
+				metrics.DgraphNumMutationsErr.Inc()
+				log.Error(err, data)
+				return err
+			}
+		}
+		jsonData, _ := json.Marshal(data)
+		mu.SetJson = jsonData
+		_, err := txn.Mutate(ctx, mu)
+		if err != nil {
+			metrics.DgraphNumUpdateEntityErr.Inc()
+			metrics.DgraphNumMutationsErr.Inc()
+			log.Error(err, data)
+			return err
+		}
+		e := txn.Commit(ctx)
+		if e != nil {
+			log.Errorf("%s, %v", e.Error(), data)
+			metrics.DgraphNumUpdateEntityErr.Inc()
+			metrics.DgraphNumMutationsErr.Inc()
+			return e
+		}
+		metrics.DgraphNumMutations.Inc()
+		log.Debugf("%s %s updated to version %s successfully", data[util.Name], uuid, data[util.ResourceVersion])
+		return nil
+	}
+	return backoff.Permanent(fmt.Errorf("update failed, resource %s not found", uuid))
 }
 
 // GetQueryResult - get Query Results
@@ -467,4 +557,27 @@ func (s DGClient) ExecuteDgraphQuery(query string) (map[string]interface{}, erro
 	// log.Infof("response from executing dgraph query: %#v\n", respjson)
 	return respjson, nil
 
+}
+
+// check resource version
+func validateResourceVersion(node, data map[string]interface{}) bool {
+	cv, hasVersion := node[util.Objects].([]interface{})[0].(map[string]interface{})[util.ResourceVersion]
+	var currentVersion int64
+	if hasVersion {
+		currentVersion, _ = strconv.ParseInt(cv.(string), 10, 64)
+	}
+	// check resourceversion
+	if version, ok := data[util.ResourceVersion]; ok {
+		inputVersion, _ := strconv.ParseInt(version.(string), 10, 64)
+		// input version less than or equal current version, ignore
+		if inputVersion <= currentVersion {
+			return false
+		}
+	} else {
+		// increase version
+		if hasVersion {
+			data[util.ResourceVersion] = strconv.FormatInt(currentVersion+1, 10)
+		}
+	}
+	return true
 }

@@ -478,7 +478,6 @@ func (qa *QSLService) getRelationName(objType string, parent string) (string, er
 	// and we will find the pods relation to cluster is called ~cluster
 	for _, item := range metafieldslist {
 		if item.FieldType == "relationship" {
-			log.Debugf("1 found relationship for %s-%s->%s", objType, item.FieldName, item.RefDataType)
 			for _, dtype := range strings.Split(item.RefDataType, ",") {
 				if dtype == parent {
 					relation = "~" + strings.ToLower(item.FieldName)
@@ -497,10 +496,8 @@ func (qa *QSLService) getRelationName(objType string, parent string) (string, er
 			log.Error(err)
 			return "", errors.New("Failed to connect to dgraph to get metadata")
 		}
-		log.Debugf("couldn't find relation for %s->%s,", parent, objType)
 		for _, item := range metafieldslist2 {
 			if item.FieldType == "relationship" {
-				log.Debugf("2 found relationship for %s-%s->%s", parent, item.FieldName, item.RefDataType)
 				for _, dtype := range strings.Split(item.RefDataType, ",") {
 					if dtype == objType {
 						relation = strings.ToLower(item.FieldName)
