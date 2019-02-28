@@ -17,7 +17,7 @@ const styles = theme => ({
   container: {
     display: 'flex',
     flexWrap: 'wrap',
-    width: '30%'
+    width: '80%'
   },
   title: {
     textAlign: 'center'
