@@ -38,6 +38,6 @@ spec:
           value: default
         - name: KATLAS_API_URL
           value: http://minikube-ip:30415
-        image: katlas/katlas-browser:latest
+        image: katlas/katlas-browser:368a0f8
         imagePullPolicy: Always
         name: katlas-browser

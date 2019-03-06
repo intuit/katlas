@@ -26,6 +26,10 @@ kube-public   Active   11m
 kube-system   Active   11m
 ```
 
+3. Find the version of docker image which will be used to put in the deployment spec:
+
+https://hub.docker.com/u/katlas/
+
 Then move onto installing K-Atlas. 
 
 ## Install K-Atlas
@@ -47,17 +51,6 @@ dgraph-public   LoadBalancer   10.109.53.229   <pending>     5080:30766/TCP,6080
 $ kubectl get pods
 NAME                                 READY   STATUS    RESTARTS   AGE
 dgraph-0                             3/3     Running   0          1d
-```
-
-Setup Dgraph with the Schema and Metadata-
-
-```text
-cd deploy/
-go run create_db_schema.go -dbhost=<> -port=<>
-go run create_k8smeta.go -dbhost=<> -port=<>
-
-where dbhost = minikube-ip
-where port = NodePort corresponding to Port 9080, in the output of 'kubectl get service dgraph-public' .
 ```
 
 Install K-Atlas Service
