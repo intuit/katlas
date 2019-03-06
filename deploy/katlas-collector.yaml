@@ -45,7 +45,7 @@ spec:
       serviceAccountName: katlas-controller
       containers:
       - name: katlas-controller
-        image: katlas/katlas-collector:latest
+        image: katlas/katlas-collector:368a0f8
         imagePullPolicy: Always
         env:
           - name: CLUSTER_NAME

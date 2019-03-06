@@ -39,7 +39,7 @@ spec:
         - name: SERVER_TYPE
           value: http
         - name: DGRAPH_HOST
-          value: "dgraph-public.default.svc.cluster.local:9080"
-        image: katlas/katlas-service:latest
+          value: "dgraph-public:9080"
+        image: katlas/katlas-service:368a0f8
         imagePullPolicy: Always
         name: katlas-service
