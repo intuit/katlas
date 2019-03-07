@@ -44,6 +44,7 @@ func serve() {
 	qslSvc := apis.NewQSLService(dc)
 	res := resources.ServerResource{EntitySvc: entitySvc, QuerySvc: querySvc, MetaSvc: metaSvc, QSLSvc: qslSvc}
 	// Entity APIs v1
+
 	router.HandleFunc("/v1/entity/{metadata}/{uid}", res.EntityGetHandler).Methods("GET")
 	router.HandleFunc("/v1/entity/{metadata}", res.EntityCreateHandler).Methods("POST")
 	router.HandleFunc("/v1/entity/{metadata}/{uid}", res.EntityUpdateHandler).Methods("POST")
@@ -51,7 +52,7 @@ func serve() {
 	router.HandleFunc("/v1/sync/{metadata}", res.EntitySyncHandler).Methods("POST")
 	// Query APIs
 	router.HandleFunc("/v1/query", res.QueryHandler).Methods("GET")
-	router.HandleFunc("/v1/qsl/{query}", res.QSLHandler).Methods("GET")
+	router.HandleFunc("/v1/qsl/{query:.*}", res.QSLHandler).Methods("GET")
 	//Metadata
 	router.HandleFunc("/v1/metadata/{name}", res.MetaGetHandler).Methods("GET")
 	router.HandleFunc("/v1/metadata/{name}", res.MetaDeleteHandler).Methods("DELETE")
@@ -68,7 +69,8 @@ func serve() {
 	router.HandleFunc("/v1.1/sync/{metadata}", res.EntitySyncHandlerV1_1).Methods("POST")
 	// Query APIs v1.1
 	router.HandleFunc("/v1.1/query", res.QueryHandlerV1_1).Methods("GET")
-	router.HandleFunc("/v1.1/qsl/{query}", res.QSLHandlerV1_1).Methods("GET")
+	// add .* to support url that contains special characters like pod[@name="abc/bcd"]{}
+	router.HandleFunc("/v1.1/qsl/{query:.*}", res.QSLHandlerV1_1).Methods("GET")
 	//Metadata v1.1
 	router.HandleFunc("/v1.1/metadata/{name}", res.MetaGetHandlerV1_1).Methods("GET")
 	router.HandleFunc("/v1.1/metadata/{name}", res.MetaDeleteHandlerV1_1).Methods("DELETE")

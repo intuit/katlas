@@ -194,6 +194,7 @@ func (s EntityService) SyncEntities(meta string, data []map[string]interface{}) 
 				}
 				if !found {
 					s.dbclient.DeleteEntity(uid)
+					log.Debugf("entity %s deleted by sync", rid)
 				}
 			}
 		}

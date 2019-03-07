@@ -14,9 +14,7 @@ import (
 
 // EntityGetHandlerV1_1 REST API for get Entity
 func (s ServerResource) EntityGetHandlerV1_1(w http.ResponseWriter, r *http.Request) {
-
 	metrics.KatlasNumReqCount.Inc()
-
 	//Set Access-Control-Allow-Origin header now so that it will be present
 	//even if an error is returned (otherwise the error also causes a CORS
 	//exception in the browser/client)
@@ -36,7 +34,8 @@ func (s ServerResource) EntityGetHandlerV1_1(w http.ResponseWriter, r *http.Requ
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr5xx.Inc()
 		code = http.StatusInternalServerError
-		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		w.WriteHeader(code)
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", code, trim(err.Error()))))
 		return
 	}
 	// object not found
@@ -44,10 +43,11 @@ func (s ServerResource) EntityGetHandlerV1_1(w http.ResponseWriter, r *http.Requ
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr4xx.Inc()
 		code = http.StatusNotFound
-		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"entity with id %s not found\"}", http.StatusNotFound, uid)))
+		w.WriteHeader(code)
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"entity with id %s not found\"}", code, uid)))
 		return
 	}
-	obj["status"] = http.StatusOK
+	obj["status"] = code
 	ret, _ := json.Marshal(obj)
 	w.Write(ret)
 
@@ -88,11 +88,12 @@ func (s ServerResource) EntityDeleteHandlerV1_1(w http.ResponseWriter, r *http.R
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr5xx.Inc()
 		code = http.StatusInternalServerError
-		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		w.WriteHeader(code)
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", code, trim(err.Error()))))
 		return
 	}
 	msg := map[string]interface{}{
-		"status": http.StatusOK,
+		"status": code,
 		"objects": []map[string]interface{}{
 			{
 				"uid": uid,
@@ -117,26 +118,34 @@ func (s ServerResource) EntityCreateHandlerV1_1(w http.ResponseWriter, r *http.R
 	w.Header().Set("Content-Type", "application/json")
 	clusterName := r.Header.Get(util.ClusterName)
 	metas, ok := r.URL.Query()[util.ObjType]
+	code := http.StatusOK
 	if !ok || len(metas[0]) < 1 {
-		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"metadata not found from parameters\"}", http.StatusBadRequest)))
+		code = http.StatusBadRequest
+		w.WriteHeader(code)
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"metadata not found from parameters\"}", code)))
 		return
 	}
 	meta := metas[0]
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
+		code = http.StatusBadRequest
+		w.WriteHeader(code)
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", code, trim(err.Error()))))
+		return
 	}
 	payload, err := buildEntityData(clusterName, meta, body, false)
 	if err != nil {
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr4xx.Inc()
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
+		code = http.StatusBadRequest
+		w.WriteHeader(code)
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", code, trim(err.Error()))))
 		return
 	}
 
 	start := time.Now()
-	code := http.StatusOK
 	defer func() {
 		metrics.DgraphCreateEntityLatencyHistogram.WithLabelValues(fmt.Sprintf("%d", code)).Observe(time.Since(start).Seconds())
 	}()
@@ -145,13 +154,14 @@ func (s ServerResource) EntityCreateHandlerV1_1(w http.ResponseWriter, r *http.R
 	if err != nil {
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr5xx.Inc()
-		code = http.StatusInternalServerError
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		code = http.StatusInternalServerError
+		w.WriteHeader(code)
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", code, trim(err.Error()))))
 		return
 	}
 	msg := map[string]interface{}{
-		"status": http.StatusOK,
+		"status": code,
 		"objects": []map[string]interface{}{
 			{
 				"uid":     uid,
@@ -178,10 +188,14 @@ func (s ServerResource) EntityUpdateHandlerV1_1(w http.ResponseWriter, r *http.R
 
 	vars := mux.Vars(r)
 	uuid := vars[util.UID]
-
+	code := http.StatusOK
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err)
+		code = http.StatusBadRequest
+		w.WriteHeader(code)
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"metadata not found from parameters\"}", code)))
+		return
 	}
 	payload := make(map[string]interface{}, 0)
 	err = json.Unmarshal(body, &payload)
@@ -189,12 +203,13 @@ func (s ServerResource) EntityUpdateHandlerV1_1(w http.ResponseWriter, r *http.R
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr4xx.Inc()
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusBadRequest, trim(err.Error()))))
+		code = http.StatusBadRequest
+		w.WriteHeader(code)
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", code, trim(err.Error()))))
 		return
 	}
 
 	start := time.Now()
-	code := http.StatusOK
 	defer func() {
 		metrics.DgraphUpdateEntityLatencyHistogram.WithLabelValues(fmt.Sprintf("%d", code)).Observe(time.Since(start).Seconds())
 	}()
@@ -203,13 +218,14 @@ func (s ServerResource) EntityUpdateHandlerV1_1(w http.ResponseWriter, r *http.R
 	if err != nil {
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr5xx.Inc()
-		code = http.StatusInternalServerError
 		log.Error(err)
-		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
+		code = http.StatusInternalServerError
+		w.WriteHeader(code)
+		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", code, trim(err.Error()))))
 		return
 	}
 	msg := map[string]interface{}{
-		"status": http.StatusOK,
+		"status": code,
 		"objects": []map[string]interface{}{
 			{
 				"uid": uuid,
