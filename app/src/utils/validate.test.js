@@ -3,7 +3,8 @@ import {
   validateQslQuery,
   validateHexId,
   getQSLObjTypes,
-  getQSLObjTypesAndProjection
+  getQSLObjTypesAndProjection,
+  addResourceIdFilterQSL
 } from './validate';
 
 describe('validation util', () => {
@@ -64,5 +65,12 @@ describe('validation util', () => {
     expect(queryProjection.deployment).toContain('name');
     expect(queryProjection.deployment).toContain('availablereplicas');
     expect(queryProjection.node).toContain('name');
+  });
+
+  it('should add resourceId filter to QSL query', () => {
+    const query = 'cluster{*}.namespace{*}';
+    const expectedUpdatedQuery = 'cluster[@resourceid="foobar"]{*}.namespace{*}';
+    const updatedQuery = addResourceIdFilterQSL(query, 'foobar');
+    expect(updatedQuery).toBe(expectedUpdatedQuery);
   });
 });
