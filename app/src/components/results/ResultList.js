@@ -157,7 +157,6 @@ class ResultList extends Component {
               onClick={event => onRowClick(event, idx)}
               selected={selectedIdx === idx}
             >
-
               <CustomTableCell component='th' scope='row'>
                 {item.objtype}
               </CustomTableCell>
