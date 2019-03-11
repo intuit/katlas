@@ -11,7 +11,6 @@ import Paper from '@material-ui/core/Paper';
 import TablePagination from '@material-ui/core/TablePagination';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 import { ResultPaginationActionsWrapped } from './ResultPaginationActions';
 import { getQueryLayout, rowCellsFromLayout } from './layoutComposer';
@@ -125,13 +124,6 @@ class ResultList extends Component {
                   </IconButton>
                 </Tooltip>
               </a>
-              <CopyToClipboard text={item.uid}>
-                <Tooltip title="Copy UID to Clipboard" aria-label="Copy UID to Clipboard">
-                  <IconButton className={classes.button} variant='contained' size='small'>
-                    {'\uf0ea'}
-                  </IconButton>
-                </Tooltip>
-              </CopyToClipboard>
             </CustomTableCell>
           );
 
