@@ -1057,7 +1057,7 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
-	log.Infof("[elaps	edtime: %s]response for query %#v", time.Since(start), vars[util.Query])
+	log.Infof("[elapsedtime: %s]response for query %#v", time.Since(start), vars[util.Query])
 	response[util.Count] = total
 	response["status"] = http.StatusOK
 	ret, err := json.Marshal(response)
