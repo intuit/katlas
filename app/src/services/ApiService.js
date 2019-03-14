@@ -1,7 +1,7 @@
 import { HttpService } from './HttpService';
 
 import * as notifyActions from '../actions/notifyActions';
-import { QSLRegEx } from '../utils/validate';
+import { addPaginationFilterQSL } from '../utils/validate';
 import store from '../store.js';
 
 const ALL_SERVICE_CONTEXT = '/v1.1';
@@ -29,28 +29,12 @@ export default class ApiService {
   }
 
   static getQSLResult(query, page = 0, rowsPerPage = 50) {
-    //load env provided URL at query time to allow conf.js to load it in time
-    //in testing
-    const querySegments = query.split('.');
-    const rootEntityQuery = querySegments[0];
-    // inject the pagination if not provided
-    if (!rootEntityQuery.includes('$$')) {
-      const matches = QSLRegEx.exec(rootEntityQuery);
-      if (matches) {
-        const objType = matches[1];
-        const filter = matches[2];
-        const fields = matches[3];
-        const pagination = `$$limit=${rowsPerPage},offset=${page *
-          rowsPerPage}`;
-        querySegments[0] = `${objType}[${filter}${pagination}]{${fields}}`;
-      }
-    }
-
+    const updatedQuery = addPaginationFilterQSL(query, page, rowsPerPage);
     return requestHelper(
       getServiceURL() +
         ALL_SERVICE_CONTEXT +
         QUERY_QSL_SERVICE_PATH +
-        querySegments.join('.')
+        updatedQuery
     );
   }
 

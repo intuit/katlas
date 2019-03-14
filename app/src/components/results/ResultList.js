@@ -9,9 +9,12 @@ import TableRow from '@material-ui/core/TableRow';
 import TableFooter from '@material-ui/core/TableFooter';
 import Paper from '@material-ui/core/Paper';
 import TablePagination from '@material-ui/core/TablePagination';
+import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
 
 import { ResultPaginationActionsWrapped } from './ResultPaginationActions';
 import { getQueryLayout, rowCellsFromLayout } from './layoutComposer';
+import { addResourceIdFilterQSL } from "../../utils/validate";
 
 // Customized table cell theme
 export const CustomTableCell = withStyles(theme => ({
@@ -23,7 +26,7 @@ export const CustomTableCell = withStyles(theme => ({
   }
 }))(TableCell);
 
-const styles = theme => ({
+const styles = () => ({
   root: {
     width: '100%',
     overflowX: 'auto'
@@ -35,6 +38,12 @@ const styles = theme => ({
     height: 36,
     whiteSpace: 'nowrap',
     overflow: 'hidden'
+  },
+  button: {
+    fontFamily: 'FontAwesome'
+  },
+  link: {
+    textDecoration: 'none'
   }
 });
 
@@ -64,7 +73,13 @@ class ResultList extends Component {
     if (query.isQSL) {
       const layout = getQueryLayout(query.current, query.metadata);
 
-      const columns = [];
+      let columns = [];
+      columns.push(
+        //header column for set of action icon buttons
+        <CustomTableCell key='action-header'>
+          <strong>Actions</strong>
+        </CustomTableCell>
+      );
       for (let objType in layout) {
         const fields = layout[objType];
         for (let fieldname in fields) {
@@ -99,7 +114,18 @@ class ResultList extends Component {
         const layout = getQueryLayout(query.current, query.metadata);
 
         tableRows = query.results.map((item, idx) => {
-          const cells = rowCellsFromLayout(item, layout);
+          let cells = rowCellsFromLayout(item, layout);
+          cells.unshift(
+            <CustomTableCell key={item.uid}>
+              <a className={classes.link} href={'/graph/' + addResourceIdFilterQSL(query.current, item.resourceid)}>
+                <Tooltip title="Response Object in Graph View" aria-label="Response in Graph">
+                  <IconButton className={classes.button} variant='contained' color='primary' size='small'>
+                    {'\uf0e8'}
+                  </IconButton>
+                </Tooltip>
+              </a>
+            </CustomTableCell>
+          );
 
           return (
             <TableRow
@@ -145,7 +171,6 @@ class ResultList extends Component {
         });
       }
     }
-
     return tableRows;
   };
 
