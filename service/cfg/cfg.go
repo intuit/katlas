@@ -5,9 +5,8 @@ import "flag"
 
 type (
 	serverCfg struct {
-		ServerType   string
-		EnvNamespace string
-		DgraphHost   string
+		ServerType string
+		DgraphHost string
 	}
 )
 
@@ -18,7 +17,6 @@ var (
 
 func init() {
 
-	flag.StringVar(&ServerCfg.EnvNamespace, "envNamespace", "", "EnvNamespace for the cluster service is deployed in")
 	flag.StringVar(&ServerCfg.ServerType, "serverType", "http", "Mode the Rest Service runs in - Secure/Insecure")
 	flag.StringVar(&ServerCfg.DgraphHost, "dgraphHost", "127.0.0.1:9080", "Mode the Rest Service runs in - Secure/Insecure")
 }

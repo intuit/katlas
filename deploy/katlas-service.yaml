@@ -34,8 +34,6 @@ spec:
     spec:
       containers:
       - env:
-        - name: ENV_NAMESPACE
-          value: default
         - name: SERVER_TYPE
           value: http
         - name: DGRAPH_HOST

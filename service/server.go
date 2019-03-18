@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 
+	"io/ioutil"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/golang-lru"
@@ -15,7 +17,6 @@ import (
 	"github.com/intuit/katlas/service/resources"
 	"github.com/intuit/katlas/service/util"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"io/ioutil"
 )
 
 const cacheSize = 10
@@ -130,7 +131,6 @@ func main() {
 	log.SetLevel(log.DebugLevel)
 	// parse and print command line flags
 	flag.Parse()
-	log.Infof("EnvNamespace=%s", cfg.ServerCfg.EnvNamespace)
 	log.Infof("ServerType=%s", cfg.ServerCfg.ServerType)
 	log.Infof("DgraphHost=%s", cfg.ServerCfg.DgraphHost)
 
