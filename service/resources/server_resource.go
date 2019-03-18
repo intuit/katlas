@@ -1027,6 +1027,8 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		metrics.KatlasNumReqErr.Inc()
 		metrics.KatlasNumReqErr5xx.Inc()
+		fmt.Println(err.Error())
+		fmt.Println(trim(err.Error()))
 		w.Write([]byte(fmt.Sprintf("{\"status\": %v, \"error\": \"%s\"}", http.StatusInternalServerError, trim(err.Error()))))
 		return
 	}
@@ -1075,7 +1077,12 @@ func (s *ServerResource) QSLHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func trim(str string) string {
-	return strings.Replace(strings.Replace(str, "\n", " ", -1), "\"", "'", -1)
+	// remove newline
+	str = strings.Replace(strings.Replace(str, "\n", " ", -1), "\\n", " ", -1)
+	// remove quotation mark
+	str = strings.Replace(str, "\"", "", -1)
+	// remove slash
+	return strings.Replace(str, "\\", "", -1)
 }
 
 // TODO:
