@@ -3,7 +3,9 @@ import {
   validateQslQuery,
   validateHexId,
   getQSLObjTypes,
-  getQSLObjTypesAndProjection
+  getQSLObjTypesAndProjection,
+  addResourceIdFilterQSL,
+  addPaginationFilterQSL
 } from './validate';
 
 describe('validation util', () => {
@@ -16,13 +18,19 @@ describe('validation util', () => {
   });
 
   it('should correctly recognize a QSL query', () => {
-    expect(validateQslQuery(
-      'Cluster[@objtype="Cluster"]{*}.Node[@objtype="Node"]{*}')).toBe(true);
+    expect(
+      validateQslQuery(
+        'Cluster[@objtype="Cluster"]{*}.Node[@objtype="Node"]{*}'
+      )
+    ).toBe(true);
   });
 
   it('should correctly recognize an invalid QSL query', () => {
-    expect(validateQslQuery(
-      '@Cluster[objtype="Cluster"]{*}.@Node[objtype="Node"]{*}')).toBe(false);
+    expect(
+      validateQslQuery(
+        '@Cluster[objtype="Cluster"]{*}.@Node[objtype="Node"]{*}'
+      )
+    ).toBe(false);
   });
 
   it('should consider null input as an invalid QSL query', () => {
@@ -64,5 +72,42 @@ describe('validation util', () => {
     expect(queryProjection.deployment).toContain('name');
     expect(queryProjection.deployment).toContain('availablereplicas');
     expect(queryProjection.node).toContain('name');
+  });
+
+  it('should add resourceId filter to QSL query', () => {
+    const query = 'cluster{*}.namespace{*}';
+    const resourceId = 'foobar';
+    const expectedUpdatedQuery = `cluster[@resourceid="${resourceId}"]{*}.namespace{*}`;
+    const updatedQuery = addResourceIdFilterQSL(query, resourceId);
+    expect(updatedQuery).toBe(expectedUpdatedQuery);
+  });
+
+  it('should not add resourceId filter to non-QSL query', () => {
+    const query = 'this sentence is NOT QSL';
+    const updatedQuery = addResourceIdFilterQSL(query, 'couldBeAnything');
+    expect(updatedQuery).toBe(query);
+  });
+
+  it('should add pagination filter to QSL query', () => {
+    const query = 'cluster{*}.namespace{*}';
+    const expectedUpdatedQuery = 'cluster[$$limit=50,offset=0]{*}.namespace{*}';
+    const updatedQuery = addPaginationFilterQSL(query);
+    expect(updatedQuery).toBe(expectedUpdatedQuery);
+  });
+
+  it('should add custom pagination filter to QSL query', () => {
+    const query = 'cluster{*}.namespace{*}';
+    const rowsPerPage = 10;
+    const pageNum = 3;
+    const expectedUpdatedQuery = `cluster[$$limit=${rowsPerPage},offset=${rowsPerPage *
+      pageNum}]{*}.namespace{*}`;
+    const updatedQuery = addPaginationFilterQSL(query, pageNum, rowsPerPage);
+    expect(updatedQuery).toBe(expectedUpdatedQuery);
+  });
+
+  it('should not add pagination filter to non-QSL query', () => {
+    const query = 'this sentence is NOT QSL';
+    const updatedQuery = addPaginationFilterQSL(query);
+    expect(updatedQuery).toBe(query);
   });
 });

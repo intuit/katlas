@@ -56,3 +56,46 @@ export function getQSLObjTypesAndProjection(query) {
   });
   return queryProjection;
 }
+
+//TODO:DM - figure out how to extract shared code between following two functions into another helper fn which both can use
+export const addResourceIdFilterQSL = (query = '', resourceId = '') => {
+  if (!validateQslQuery(query)) return query;
+  const resourceIdFilter = `@resourceid="${resourceId}"`;
+  const querySegments = query.split('.');
+  const rootEntityQuery = querySegments[0];
+  const matches = QSLRegEx.exec(rootEntityQuery);
+  if (matches) {
+    const objType = matches[1];
+    const filter = matches[2];
+    const fields = matches[3];
+    querySegments[0] = `${objType}[${filter}${resourceIdFilter}]{${fields}}`;
+  }
+  return querySegments.join('.');
+};
+
+export const addPaginationFilterQSL = (
+  query = '',
+  page = 0,
+  rowsPerPage = 50
+) => {
+  if (!validateQslQuery(query)) return query;
+  //TODO:DM - splitting based on such a simple aspect of the QSL query pattern feels fragile; could regex solidify this?
+  const splitChars = '}.';
+  const querySegments = query.split(splitChars);
+  //decode segment incase it was URI encoded thru a route navigation
+  const rootEntityQuery = decodeURIComponent(querySegments[0]);
+  //inject the pagination if not already present
+  if (!rootEntityQuery.includes('$$')) {
+    const matches = QSLRegEx.exec(rootEntityQuery);
+    if (matches) {
+      const objType = matches[1];
+      const filter = matches[2];
+      const fields = matches[3];
+      const pagination = `$$limit=${rowsPerPage},offset=${page * rowsPerPage}`;
+      querySegments[0] = `${objType}[${filter}${pagination}]{${fields}`;
+    }
+  }
+  return querySegments.length === 1
+    ? querySegments[0] + '}'
+    : querySegments.join(splitChars);
+};

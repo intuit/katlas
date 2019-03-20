@@ -20,7 +20,7 @@
     "react-json-view": "^1.19.1",
     "react-redux": "^5.1.1",
     "react-router-dom": "^4.3.1",
-    "react-scripts": "2.0.4",
+    "react-scripts": "2.1.8",
     "react-splitter-layout": "^3.0.1",
     "react-test-renderer": "^16.6.3",
     "redux": "^4.0.1",
@@ -30,7 +30,8 @@
     "webfontloader": "^1.6.28"
   },
   "devDependencies": {
-    "babel-eslint": "9.0.0"
+    "babel-eslint": "9.0.0",
+    "prettier": "1.16.4"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -43,6 +44,9 @@
   },
   "eslintConfig": {
     "extends": "react-app"
+  },
+  "prettier": {
+    "singleQuote": true
   },
   "browserslist": [
     ">0.2%",

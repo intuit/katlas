@@ -41,8 +41,9 @@ export const getQueryLayout = (queryStr, metadata) => {
 
 // list all the cells of a row based on the layout
 export const rowCellsFromLayout = (item, layout) => {
-  const cells = [];
-  let obj = item;
+  let cells = [];
+  //copy item since we'll potentially change it below
+  let obj = {...item};
   for (let objType in layout) {
     obj = navEmbeddedObject(obj, objType);
     if (obj === undefined || obj === null) {
