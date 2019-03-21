@@ -16,6 +16,8 @@ import EntityDetails from '../entityDetails/EntityDetails';
 import * as queryActions from '../../actions/queryActions';
 import { getQueryParam } from '../../utils/url';
 
+import './Results.css';
+
 const styles = theme => ({
   progress: {
     margin: theme.spacing.unit * 2
@@ -144,7 +146,7 @@ class Results extends Component {
         ) : (
           <SplitterLayout
             percentage={true}
-            secondaryInitialSize={30}
+            secondaryInitialSize={0}
             customClassName={classes.resultContainer}
           >
             <ResultList
