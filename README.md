@@ -31,7 +31,11 @@ It addresses following problems in a large scale enterprise environment of Kuber
 
 Check out more details on [Motivation and Use Cases](docs/motivation.md) that K-Atlas is addressing.
 
-It provides a Web Viewer that can be used to search the Kubernetes cluster data and view graphical results in real time. Click [here to see a demo](https://www.useloom.com/share/eb97aa1054004be197e3ed732223e689).
+It provides a Web Viewer that can be used to search the Kubernetes cluster data and view graphical results in real time.
+
+Click on the thumbnail below to see a demo video.
+
+[![KAtlas Demo Video](https://img.youtube.com/vi/jptJy4sTaGw/0.jpg)](https://www.youtube.com/watch?v=jptJy4sTaGw)
 
 ## Core Components
 
