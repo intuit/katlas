@@ -35,7 +35,7 @@ It provides a Web Viewer that can be used to search the Kubernetes cluster data 
 
 Click on the thumbnail below to see a demo video.
 
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/jptJy4sTaGw/0.jpg)](https://www.youtube.com/watch?v=jptJy4sTaGw)
+[![KAtlas Demo Video](https://img.youtube.com/vi/jptJy4sTaGw/0.jpg)](https://www.youtube.com/watch?v=jptJy4sTaGw)
 
 ## Core Components
 
