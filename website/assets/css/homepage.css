@@ -147,7 +147,6 @@ p {
     -ms-flex:0 0 41.66667%;
     flex:0 0 41.66667%;
     max-width:41.66667%;
-  }
 }
 
 .feature-box .icon {
@@ -159,7 +158,6 @@ p {
   text-align:center;
   color:#3b99e0;
 }
-
 
 .md-guide-feature .btn-lg {
   color: #03A7DD;
@@ -186,7 +184,6 @@ p {
   margin-top: -15px;
   margin-right: auto;
   margin-left: auto;
-
 }
 
 .md-guide-feature p, h1, h2, h3, h4, h5, h6 {
@@ -210,8 +207,6 @@ p {
   text-align:center;
   color:#3b99e0;
 }
-
-
 
 .lead {
   font-weight: 200;
@@ -285,7 +280,7 @@ p {
 .footer-top {
   background-color:#eeeeee;
   max-width: 100%;
-  height: ;
+  height: 60px;
   color: #000;
   margin-top: 0px;
 }

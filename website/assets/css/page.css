@@ -24,7 +24,7 @@ h1, h2, h3, h4, h5, h6 {
 
 p {
     margin-top: 0px;
-    margin-bottom: rem;
+    margin-bottom: 0px;
 }
 
 .jumbotron {
@@ -37,6 +37,10 @@ p {
   border-radius: 0!important;
 }
 
+.container {
+  height:400px;
+  min-height: 500px;
+}
 
 .jumbotron h1 {
   font-weight: 300;
@@ -57,14 +61,12 @@ p {
     font-size: 1rem;
     font-weight: 300;
     margin-bottom: 10px;
-  }
-  .jumbotron h1 {
-    font-size: 1.5rem;
-    margin-top: 0px;
-  }
 }
 
-
+.jumbotron h1 {
+    font-size: 1.5rem;
+    margin-top: 0px;
+}
 
 .page-header {
   font-weight: 600;
@@ -89,8 +91,6 @@ h3 .anchorjs-link {
 h4 .anchorjs-link {
   text-decoration: none
 }
-
-
 
 html {
   position: relative;
@@ -154,7 +154,6 @@ nav[data-toggle='toc'] .nav > .active:focus > a {
   background-color: #dbdbdb;
 }
 
-
 .footer-top {
   background-color:#eeeeee;
   max-width: 100%;
@@ -170,7 +169,6 @@ nav[data-toggle='toc'] .nav > .active:focus > a {
   height: 50px;
   color:#959595;
 }
-
 
 .footnotes {
   margin-top: 10px;
