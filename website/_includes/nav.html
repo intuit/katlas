@@ -1,17 +1,23 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mdg-nav">
-  <div class="container">
-    <a class="navbar-brand" href="{{ site.baseurl }}/" style="margin-top: 2px; margin-bottom: 3px">
-      <img src="{{ site.baseurl }}/assets/images/katlas-logo-white-300px.png" height="32" class="d-inline-block align-bottom" alt="" style="margin-top: 4px; padding-right: 10px">
+  <div class="container" style="max-width:100%">
+    <a class="navbar-brand" href="{{ site.baseurl }}/" style="margin-left: 10%; margin-right: 2%;margin-top: 2px; margin-bottom: 2px">
+      <img src="{{ site.baseurl }}/assets/images/katlas-logo-white-300px.png" height="70" class="align-center" alt="" style="margin-top: 0px; padding-right: 8px">
       K-Atlas
     </a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup" style="margin-top: 2px">
-      <div class="navbar-nav">
-        <a class="nav-item nav-link {% if page.title == 'Getting Started' %}active{% endif %}" href="{{ site.baseurl }}/getting-started">Get Started</a>
-        <a class="nav-item nav-link {% if page.title == 'About' %}active{% endif %}" href="{{ site.baseurl }}/about">About</a>
-        <a class="nav-item nav-link {% if page.title == 'Contact' %}active{% endif %}" href="{{ site.baseurl }}/contact">Contact</a>
+      <div class="navbar-nav" id="navbar-nav" style="align:right; margin-left: 60%">       
+        <a class="nav-item nav-link {% if page.title == 'About' %}active{% endif %}" href="/about">About</a>
+        <a class="nav-item nav-link {% if page.title == 'Contact' %}active{% endif %}" href="/Contact">Contact</a>     
+      </div>
+      <div class="navbar-nav" id="navbar-nav">
+      <a class="nav-item nav-link {% if page.title == 'Get Started' %}active{% endif %}"  style="width:100%; color:#1EC3FD; text-align:right" href="/getting-started">Get Started</a>
+      </div>
+
+      <div class="navbar-nav" id="navbar-nav">
+      <a class="nav-item nav-link {% if page.title == 'GitHub' %}active{% endif %}"  style="width:100%; color:#fff; text-align:right" href="https://github.com/intuit/katlas">GitHub</a>
       </div>
     </div>
     <!--

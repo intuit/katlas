@@ -8,46 +8,112 @@ title: Home
     {% include nav.html %}
 
     <!-- Main jumbotron for a primary marketing message or call to action -->
-    <div class="jumbotron">
+    <div class="jumbotron" style="max-width: 100%; height:auto">
       <div class="container">
-        <img src="{{ site.baseurl }}/assets/images/katlas-logo-white-300px.png" class="img-fluid" alt="KAtlas Logo">
-        <!-- <div class="embed-responsive embed-responsive-16by9">
-          <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0" allowfullscreen></iframe>
-        </div> -->
         <p><i>K-Atlas</i> (pronounced as "cutlass") is an open-source, distributed graph based platform to automatically collect, discover, explore and relate multi-cluster Kubernetes resources and metadata.
         </p>
-        <p><a class="btn btn-outline-inverse btn-lg" href="{{ site.baseurl }}/getting-started" role="button">Get Started</a></p>
+        <p><a class="btn btn-lg" style="background-color:#1EC3FD; padding-bottom: 5px;padding-right: 0px;padding-left: 0px;width: 300px;" href="{{ site.baseurl }}/getting-started" role="button">Get Started</a></p>
       </div>
     </div>
-    <div class="container">
+    
+    <div class="container" style="max-width: 100%; height:auto; padding-top:20px;padding-bottom:20px;background-color: #f3f3f3">
+
       <div class="md-guide-feature">
-        <h1 class="no-anchor">Learn more about K-Atlas</h1>
-        
-          <p class="lead" style="margin-bottom: 60px"><em>K-Atlas</em> provides discovery for enterprise grade Kubernetes</p>
+        <h1 class="no-anchor">What K-Atlas Does?</h1>
+        <p class="lead" style="margin-bottom: 60px">K-Atlas addresses following problems in a large scale enterprise environment of Kubernetes.</p>
         
         <div class="row">
+          <div class="col-sm-4">
+            <div class="icon1">
+            <img src="/assets/images/DiscoverabilityIcon.png" height="100px" class="" alt="Discoverability Icon" style="margin-bottom: 10px">            
+            </div>
+            <h3 class="no-anchor" style="font-size: 28px">Discoverability</h3>
+            <p>Find K8s objects across multiple distributed K8s clusters; Real-time view of discovered objects; Streaming APIs and UI for both programmatic and human interactions.</p>
+          </div>
+          <div class="col-sm-4">
+            <div class="icon1">
+              <img src="/assets/images/FederatedApplicationViewIcon.png" height="100px" class="" alt="Federated Application View Icon" style="text-align: center; margin-bottom: 10px">
+            </div>
+            <h3 class="no-anchor" style="font-size: 28px">Federated Application View</h3>
+            <p>Applications take center stage. K-Atlas provides a unique, application-centric view, with metadata from multiple clusters Single pane of glass view of the entire application - from edge to database, across all clusters, regions etc.</p>
+          </div>
+          <div class="col-sm-4">
+            <div class="icon1" >
+              <img src="/assets/images/AdvancedExplorationIcon.png" height="100px" class="" alt="Advanced Exploration Icon" style="margin-bottom: 10px">
+            </div>
+            <h3 class="no-anchor" style="font-size: 28px">Advanced Exploration</h3>
+            <p>Identify similarities and differences between objects from pods to clusters; Correlate different objects by performing advanced join operations.</p>
+          </div>
+        </div>
 
-          <div class="col-sm-4">
-            <div class="icon">
-              <i class="fas fa-cubes"></i>
+      <div class="container" style="max-width:100%" align="center">
+        <div class="row" style="margin-top:40px; padding:25px; width:60%; text-align: center;" align="center">
+          <div class="col-sm-6" style="max-width:50%; text-align: center;" align="center">
+            <div class="icon1">
+              <img src="/assets/images/ReportingIcon.png" height="100px" class="" alt="Discoverability Icon" style="margin-bottom: 10px">            
             </div>
-            <h3 class="no-anchor">Multi-Cluster</h3>
-            <p>Discover and manage multiple Kubernetes clusters across the enterprise</p>
+            <h3 class="no-anchor" style="font-size: 28px">Reporting</h3>
+            <p >Provide advanced reporting on compliance, security and other organizational policies.</p>
           </div>
-          <div class="col-sm-4">
-            <div class="icon">
-              <i class="fas fa-code"></i>
+          <div class="col-sm-6" >
+            <div class="icon1">
+              <img src="/assets/images/PolicyEnforcementIcon.png" height="100px" class="" alt="Federated Application View Icon" style="margin-bottom: 10px">
             </div>
-            <h3 class="no-anchor">Rich Queryability</h3>
-            <p>Rich, extensible query language that allows for advanced queries, joins and views</p>
+            <h3 class="no-anchor" style="font-size: 28px">Policy Enforcement</h3>
+            <p >Rich, extensible query language that allows for advanced queries, joins and views.</p>
           </div>
-          <div class="col-sm-4">
-            <div class="icon">
-              <i class="fas fa-globe"></i>
-            </div>
-            <h3 class="no-anchor">Advanced Exploration</h3>
-            <p>Find hidden relationships, explore cross-cluster dependencies and more</p>
+        </div>        
+      </div>  
+    </div>
+   </div>
+   <div class="down-arrow" style="margin-top:0px; margin-bottom:0px; border-top:25px solid #f3f3f3;"></div>
+    <div class="container-fluid" style="margin-top:10px;background-color: #fff">
+      <div class="md-guide-feature" >
+        <h1 class="no-anchor">K-Atlas Core Commponents</h1>
+             
+          <div class="container" ></div>
+          <img src="/assets/images/K-AtlasChart-5.png" class="img-fluid" style="max-width: 75%;margin-top:10px; margin-bottom:0px" alt="K-Atlas Chart">
+        </div>
+
+        <section class="clean-block features" style="color:#fff">
+          <div class="container" style="max-width:100%; margin-bottom: 0px; padding-top:-5px; padding-bottom:60px; background-color:#135CC0">
+              <div class="down-arrow" style="margin-top:0px; margin-bottom:60px; border-top:25px solid #fff;"></div>
+              <div class="row justify-content-center">
+                  <div class="col-md-6 feature-box">
+                      <i class="icon">
+                      <img src="/assets/images/CollectorIcon.png" height="88px" class="CollectorIcon" alt="Collector Icon" style="margin-bottom: 0px; margin-right:20px">
+                      </i>
+                      <h4 style="color:#fff;margin-left: 40px; font-weight: 400;">Collector</h4>
+                      <p style="font-size:18px;max-width: 80%; margin-left: 40px">The collector is responsible for discovery of Kubernetes assets in Kubernetes Clusters. For details on the Collector design, please refer Design Concepts.</p>
+                  </div>
+                  <div class="col-md-6 feature-box">
+                      <i class="icon">
+                      <img src="/assets/images/BrowserIcon.png" height="88px" class="BrowserIcon" alt="Browser Icon" style="margin-bottom: 0px; margin-right:20px">
+                      </i>
+                      <h4 style="color:#fff;margin-left: 40px; font-weight: 400;">K-Atlas Browser</h4>
+                      <p style="font-size:18px;max-width: 80%; margin-left: 40px">The Web Application exposes UI search capability to search clusters based on several criteria and provide a real time graphical view of entities. For details on usage, please Click here to see a demo.</p>
+                  </div>
+                  <div class="col-md-6 feature-box">
+                      <i class="icon">
+                      <img src="/assets/images/ServiceIcon.png" height="88px" class="ServiceIcon" alt="Service Icon" style="margin-bottom: 0px; margin-right:20px">
+                      </i>
+                      <h4 style="color:#fff;margin-left: 40px; font-weight: 400;">K-Atlas Service</h4>
+                      <p style="font-size:18px;max-width: 80%; margin-left: 40px">The K-Atlas Service exposes APIs that can be used to get details about Kubernetes entities and run queries to help diagnose issues in Kubernetes clusters. For details , please refer K-Atlas APIs.</p>
+                  </div>
+                  <div class="col-md-6 feature-box">
+                      <i class="icon">
+                      <img src="/assets/images/DatabaseIcon.png" height="88px" class="DatabaseIcon" alt="Database Icon" style="margin-bottom: 0px; margin-right:20px">
+                      </i>
+                      <h4 style="color:#fff;margin-left: 40px; font-weight: 400;">Graph Database</h4>
+                      <p style="font-size:18px;max-width: 80%; margin-left: 40px">Dgraph is used as the graph database. To know more about our motivation to choose Dgraph, please refer Design Concepts.</p>
+                  </div>
+              </div>
           </div>
+        </section>
+        <div class="down-arrow" style="margin-top:0px; margin-bottom:40px; border-top:30px solid #135CC0;"></div>
+
+        <div class="container-fluid" style="text-align:center; margin-top:20px; ">  
+          <p style="margin:auto; left:0; right:0; padding-bottom:5px; height:100%"><a style="background-color:#fff; border-width:2px；border-color:#135CC0; padding-bottom: 5px; margin-bottom: 50px;padding-right: 0px;padding-left: 0px;width: 300px;" class="btn btn-outline-inverse btn-lg" href="{{ site.baseurl }}/getting-started" role="button">Get Started</a></p>
         </div>
       </div>
     </div>
@@ -64,6 +130,8 @@ title: Home
       </div>
     </div>
     -->
+
     {% include footer.html %}
+ 
   </body>
 </html>
