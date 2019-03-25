@@ -17,10 +17,10 @@ import (
 )
 
 // regex to get objtype[filters]{fields}
-var blockRegex = `([a-zA-Z0-9]+)\[?(?:(\@[\(\)\"\,\@\$\=\>\<\~\!a-zA-Z0-9\-\.\|\&\:_\^\*]*|\**|\$\$[a-zA-Z0-9\,\=]+))\]?\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
+var blockRegex = `([a-zA-Z0-9]+)\[?(?:(\@[\(\)\"\,\@\$\=\>\<\~\!a-zA-Z0-9\/\-\.\|\&\:_\^\*]*|\**|\$\$[a-zA-Z0-9\,\=]+))\]?\{([\*|[\,\@\"\=a-zA-Z0-9\-]*)`
 
 // regex to get KeyOperatorValue from something like numreplicas>=2
-var filterRegex = `\@([a-zA-Z0-9\(\)\.\$]*)([\!\<\>\=\~]*)(\"?[a-zA-Z0-9\-\.\|\&\:_\$\^]*\"?)`
+var filterRegex = `\@([a-zA-Z0-9-_\(\)\.\$]*)([\!\<\>\=\~]*)(\"?[a-zA-Z0-9\-\\\/\.\|\&\:_\$\^]*\"?)`
 
 // QSLService service for QSL
 type QSLService struct {
@@ -438,7 +438,7 @@ func parseQuery(qry string) (string, string, string, error) {
 	objType := strings.ToLower(matches[1])
 	filters := matches[2]
 	fields := strings.ToLower(matches[3])
-	return objType, filters, fields, nil
+	return objType, strings.Replace(filters, "/", "\\/", -1), fields, nil
 }
 
 func (qa *QSLService) getCntFilter(query, objType string) (string, error) {

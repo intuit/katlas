@@ -15,6 +15,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import { ResultPaginationActionsWrapped } from './ResultPaginationActions';
 import { getQueryLayout, rowCellsFromLayout } from './layoutComposer';
 import { addResourceIdFilterQSL } from "../../utils/validate";
+import history from '../../history';
 
 // Customized table cell theme
 export const CustomTableCell = withStyles(theme => ({
@@ -115,9 +116,12 @@ class ResultList extends Component {
 
         tableRows = query.results.map((item, idx) => {
           let cells = rowCellsFromLayout(item, layout);
+          //build url to use for QSL in graph action; include basename, if applicable
+          let rowUrl = (history.basename ? history.basename : '' ) + '/graph/' +
+            addResourceIdFilterQSL(query.current, item.resourceid);
           cells.unshift(
             <CustomTableCell key={item.uid}>
-              <a className={classes.link} href={'/graph/' + addResourceIdFilterQSL(query.current, item.resourceid)}>
+              <a className={classes.link} href={rowUrl}>
                 <Tooltip title="Response Object in Graph View" aria-label="Response in Graph">
                   <IconButton className={classes.button} variant='contained' color='primary' size='small'>
                     {'\uf0e8'}
