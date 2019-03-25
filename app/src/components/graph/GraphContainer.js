@@ -107,7 +107,7 @@ class GraphContainer extends Component {
             </div>
           ) : null
         }
-        <SplitterLayout percentage={true} secondaryInitialSize={30}>
+        <SplitterLayout percentage={true} secondaryInitialSize={0}>
           <Graph dataSet={entity.results}/>
           <EntityDetails selectedObj={entity.results}/>
         </SplitterLayout>

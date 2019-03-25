@@ -6,6 +6,7 @@ import Home from "../home/Home";
 import Results from "../results/Results";
 import GraphContainer from "../graph/GraphContainer";
 import Notifier from '../notifier/Notifier';
+import ErrorPage from '../errorPage/ErrorPage';
 
 export default class App extends Component {
   render() {
@@ -17,6 +18,8 @@ export default class App extends Component {
           <Route exact path="/" component={Home} />
           <Route path="/results" component={Results} />
           <Route path="/graph/:uidOrQsl" component={GraphContainer} />
+          {/* catch-all route in case of no earlier match */}
+          <Route component={ErrorPage} />
         </Switch>
       </div>
     );
