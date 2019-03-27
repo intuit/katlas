@@ -12,6 +12,7 @@ services:
 
 install:
   - cd $TRAVIS_BUILD_DIR/service && make all
+  - cd $TRAVIS_BUILD_DIR/controller && make all
   - cd $TRAVIS_BUILD_DIR/app && yarn install
 
 before_script:
@@ -39,7 +40,7 @@ script:
   - cd $TRAVIS_BUILD_DIR/service
   - HOST=$(ifconfig docker0 | grep 'inet addr' |cut -d':' -f2 | awk '{print $1}')
   - echo $HOST
-  - docker run -d -it -p 8011:8011 -e ENV_NAMESPACE=local -e SERVER_TYPE=http -e DGRAPH_HOST=$HOST:9080 --name katlas-service katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
+  - docker run -d -it -p 8011:8011 -e SERVER_TYPE=http -e DGRAPH_HOST=$HOST:9080 --name katlas-service katlas/katlas-service:${TRAVIS_COMMIT_SHORTID}
   - sleep 5s
   - docker ps -a
   - cd $TRAVIS_BUILD_DIR/e2etests
