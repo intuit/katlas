@@ -6,6 +6,7 @@ import { withRouter } from 'react-router-dom';
 import { withStyles } from '@material-ui/core/styles';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import SplitterLayout from 'react-splitter-layout';
+import 'react-splitter-layout/lib/index.css';
 
 import "./Graph.css";
 import Graph from './Graph';

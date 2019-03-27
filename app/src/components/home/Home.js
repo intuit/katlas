@@ -83,7 +83,7 @@ class Home extends React.Component {
         </div>
         <div className={classes.container}>
           <TextField
-            label='Search string...'
+            label='Search string or QSL...'
             className={classes.textField}
             fullWidth
             margin='normal'
