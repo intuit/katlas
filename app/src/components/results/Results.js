@@ -9,7 +9,7 @@ import SearchIcon from '@material-ui/icons/Search';
 import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import SplitterLayout from 'react-splitter-layout';
-import 'react-splitter-layout/lib/index.css';
+import '../../shared/reactSplitterLayoutWithOverrides.css';
 
 import { ENTER_KEYCODE } from '../../config/appConfig';
 import ResultList from './ResultList';
