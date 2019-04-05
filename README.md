@@ -51,7 +51,7 @@ The K-Atlas Service exposes APIs that can be used to get details about Kubernete
 
 #### K-Atlas Browser
 
-The Web Application exposes UI search capability to search clusters based on several criteria and provide a real time graphical view of entities. For details on usage, please Click [here to see a demo](https://www.useloom.com/share/eb97aa1054004be197e3ed732223e689)
+The Web Application exposes UI search capability to search clusters based on several criteria and provide a real time graphical view of entities. For details on usage, please Click [here to see a demo](https://www.youtube.com/watch?v=jptJy4sTaGw)
 
 #### Graph Database
 
