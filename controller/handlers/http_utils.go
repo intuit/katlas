@@ -8,16 +8,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	time "time"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	//"reflect"
-	//"github.com/dgraph-io/dgo/y"
-	"net/http/httputil"
-)
+
+
+	)
 
 // AppNamespace used for only monitor assets in a specific namespace
 // otherwise AppNamespace will refer to all namespaces that the controller has access to
@@ -65,14 +64,14 @@ func SendJSONQuery(obj interface{}, url string) (int, []byte) {
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
 
-	log.Infof("%s response %+v\n", url, res)
-	log.Infof("%s body: %s\n", url, string(body))
-	log.Info("*************************************************************************")
-	requestDump, err := httputil.DumpRequest(req, true)
-	if err != nil {
-		fmt.Println(err)
-	}
-	log.Info(string(requestDump))
+	//log.Infof("%s response %+v\n", url, res)
+	//log.Infof("%s body: %s\n", url, string(body))
+	//log.Info("*************************************************************************")
+	//requestDump, err := httputil.DumpRequest(req, true)
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
+	//log.Info(string(requestDump))
 	return res.StatusCode, body
 }
 
@@ -91,14 +90,14 @@ func SendDeleteRequest(url string) (int, []byte) {
 	}
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
-	log.Infof("%s response %+v\n", url, res)
-	log.Infof("%s body: %s\n", url, string(body))
-	log.Info("*************************************************************************")
-	requestDump, err := httputil.DumpRequest(req, true)
-	if err != nil {
-		fmt.Println(err)
-	}
-	log.Info(string(requestDump))
+	//log.Infof("%s response %+v\n", url, res)
+	//log.Infof("%s body: %s\n", url, string(body))
+	//log.Info("*************************************************************************")
+	//requestDump, err := httputil.DumpRequest(req, true)
+	//if err != nil {
+	//	fmt.Println(err)
+	//}
+	//log.Info(string(requestDump))
 	return res.StatusCode, body
 }
 
